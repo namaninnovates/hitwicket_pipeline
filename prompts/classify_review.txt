@@ -1,0 +1,36 @@
+You are a mobile game review analyst specializing in strategy sports games.
+
+Your task: Classify the following app store review for a mobile sports/strategy game.
+
+## Review Details
+Game: {game_name}
+Rating: {rating}/5
+Review Text: "{review_text}"
+
+## Classification Categories
+Primary categories (choose exactly one):
+- Gameplay: Core game mechanics, match experience, strategic depth, balance, RNG/randomness
+- Progression: How players advance — level speed, rewards, upgrades, grind difficulty
+- Monetization: Payment model, ads, IAP, pay-to-win pressure, offer design
+- Experience: Technical quality — bugs, crashes, performance, lag, UI/UX, onboarding
+- Competition & Social: Matchmaking, PvP/ranked ladder, clubs/guilds, live events
+
+## Output Format
+Return ONLY a valid JSON object. No explanation, no markdown, no code blocks.
+
+{
+  "primary_category": "<one of the 5 categories above>",
+  "subcategory": "<specific subcategory within the primary category>",
+  "sentiment": "<positive|negative|mixed|neutral>",
+  "severity": <1-5 integer, where 1=minor annoyance, 5=causes uninstall>,
+  "business_impact": <1-5 integer, where 1=cosmetic, 5=threatens revenue/retention>,
+  "issue": "<one sentence: the core complaint or praise, plain English>",
+  "actionability": <1-5 integer, where 1=cannot fix, 5=clear product action exists>,
+  "confidence": <0.0-1.0 float, your confidence in this classification>
+}
+
+## Rules
+- If the review is too short or ambiguous to classify confidently, still return JSON with low confidence (<0.5)
+- Severity should be informed by the rating: 1-2 star reviews with strong language = severity 4-5
+- A 5-star review praising gameplay = sentiment "positive", severity 1
+- Do NOT return anything except the JSON object

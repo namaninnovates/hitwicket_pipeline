@@ -1,0 +1,7 @@
+google-play-scraper>=1.2.7
+google-generativeai>=0.7.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+jinja2>=3.1.0
+pytest>=7.0.0
+requests>=2.27.0

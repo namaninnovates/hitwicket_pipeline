@@ -1,0 +1,51 @@
+You are a mobile game product analyst writing for a founder. Be extremely concise and direct.
+
+## Input Data
+Game: {game_name}
+Analysis date: {analysis_date}
+Reviews analyzed: {review_count} (last 90 days, Google Play)
+Data source: Google Play Store only (Android reviews)
+
+## Priority Issues — {game_name}
+{priority_issues_text}
+
+## Trend Summary
+{trend_text}
+
+## Competitor Context
+{competitor_context}
+
+## Task
+Write a founder-facing weekly brief. It must be readable in 90 seconds.
+
+Use EXACTLY this structure:
+
+---
+# Weekly Review Brief — {game_name}
+**{analysis_date}** | {review_count} reviews analyzed
+
+## ⚡ Biggest Emerging Problem
+[2-3 sentences. What is the problem? What evidence proves it?]
+
+## 🕐 Why Now?
+[2-3 sentences. What trend data shows this is becoming urgent?]
+
+## 🌍 Competitive Signal
+[2-3 sentences. Is this unique to us or also in Tennis Clash / Baseball Clash? What does that mean?]
+
+## ✅ Recommendation
+[2-4 sentences. Concrete, specific action. Not "investigate" — actual decision.]
+
+## 📈 Expected Impact
+[Which metric moves? By roughly how much? What's the mechanism?]
+
+## ❌ What NOT to Do
+[1-2 sentences. Where is the evidence telling us NOT to spend effort right now?]
+
+---
+
+## Rules
+- No charts, no bullet walls, no "in conclusion"
+- Write as if texting a smart colleague, not filing a report
+- Use exact numbers from the input data — never round to "many" or "some"
+- If data is limited (small sample), say so explicitly rather than overstating confidence
