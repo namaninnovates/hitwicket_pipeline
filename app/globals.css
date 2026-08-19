@@ -4,36 +4,8 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: #0b0f19;
-    --foreground: #f8fafc;
-    --card: #161d31;
-    --card-foreground: #f8fafc;
-    --popover: #161d31;
-    --popover-foreground: #f8fafc;
-    --primary: #6366f1;
-    --primary-foreground: #ffffff;
-    --secondary: #1e293b;
-    --secondary-foreground: #f8fafc;
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
-    --accent: #1e293b;
-    --accent-foreground: #f8fafc;
-    --destructive: #ef4444;
-    --destructive-foreground: #f8fafc;
-    --border: #28334e;
-    --input: #28334e;
-    --ring: #6366f1;
-    --radius: 0.5rem;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-[#0b0f19] text-slate-200 antialiased;
   }
 }
 
