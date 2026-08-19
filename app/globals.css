@@ -5,7 +5,10 @@
 
 @layer base {
   body {
-    @apply bg-[#0b0f19] text-slate-200 antialiased;
+    background-color: #0b0f19;
+    color: #e2e8f0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
