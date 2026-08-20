@@ -526,6 +526,8 @@ def get_runs():
     runs_df = runs_df.fillna("")
     return {"runs": runs_df.to_dict("records")}
 
+_brief_file_cache: dict[str, str] = {}
+
 @app.get("/api/brief")
 @app.get("/api/briefs/latest")
 def get_latest_brief(game: str = "all"):
@@ -547,23 +549,33 @@ def get_latest_brief(game: str = "all"):
             detail=f"Invalid game parameter '{game}'. Allowed: {list(GAMES.keys())} or 'all'"
         )
 
-    outputs_resolved = OUTPUTS_DIR.resolve()
-    outputs_resolved.mkdir(parents=True, exist_ok=True)
+    # Check in-memory cache first for instant sub-millisecond response
+    if sanitized_game in _brief_file_cache:
+        content = _brief_file_cache[sanitized_game]
+        return {"brief": content, "content": content, "game": sanitized_game, "status": "ok"}
 
-    # Search for pre-generated brief file in outputs directory
+    search_dirs = [OUTPUTS_DIR.resolve(), (PROJECT_ROOT / "outputs").resolve()]
     target_files = []
-    if sanitized_game == "all":
-        target_files = [f for f in outputs_resolved.glob("**/founder_brief_global.md") if f.is_file()] or \
-                       [f for f in outputs_resolved.glob("**/founder_brief_all.md") if f.is_file()]
-    else:
-        target_files = [f for f in outputs_resolved.glob(f"**/founder_brief_{sanitized_game}.md") if f.is_file()]
 
-    if target_files:
-        target_file = sorted(target_files)[-1]
+    for d in search_dirs:
+        if not d.exists():
+            continue
+        if sanitized_game == "all":
+            target_files.extend(d.glob("**/founder_brief_global.md"))
+            target_files.extend(d.glob("**/founder_brief_all.md"))
+            target_files.extend(d.glob("founder_brief_global.md"))
+            target_files.extend(d.glob("founder_brief_all.md"))
+        else:
+            target_files.extend(d.glob(f"**/founder_brief_{sanitized_game}.md"))
+            target_files.extend(d.glob(f"founder_brief_{sanitized_game}.md"))
+
+    valid_files = [f for f in target_files if f.is_file()]
+    if valid_files:
+        target_file = sorted(valid_files)[-1]
         try:
-            target_file.resolve().relative_to(outputs_resolved)
             content = target_file.read_text(encoding="utf-8")
             if "0 reviews analyzed" not in content and len(content.strip()) > 20:
+                _brief_file_cache[sanitized_game] = content
                 return {"brief": content, "content": content, "game": sanitized_game, "status": "ok"}
         except Exception as e:
             logger.warning(f"Error reading pre-generated brief file: {e}")
