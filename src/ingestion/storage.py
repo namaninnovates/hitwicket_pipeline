@@ -139,9 +139,15 @@ def initialize_db(conn: Optional[Any] = None) -> None:
                         totalReviews   INTEGER,
                         avgRating      DOUBLE PRECISION,
                         positivePct    DOUBLE PRECISION,
-                        topPriority    TEXT,
+                        topPriority    VARCHAR(255),
                         brief          TEXT,
-                        created_at     VARCHAR(100) NOT NULL
+                        created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
+
+                    CREATE TABLE IF NOT EXISTS briefs (
+                        game           VARCHAR(100) PRIMARY KEY,
+                        brief_text     TEXT,
+                        generated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     );
                 """)
             logger.info("Neon PostgreSQL schema initialized successfully.")
@@ -552,6 +558,48 @@ def get_history_snapshots(conn: Any, limit: int = 50) -> list[dict]:
     except Exception as e:
         logger.error(f"Failed to fetch history snapshots: {e}")
         return []
+
+def upsert_brief(conn: Any, game: str, brief_text: str) -> bool:
+    try:
+        if is_postgres_connection(conn):
+            query = """
+            INSERT INTO briefs (game, brief_text, generated_at)
+            VALUES (%s, %s, CURRENT_TIMESTAMP)
+            ON CONFLICT (game) DO UPDATE 
+            SET brief_text = EXCLUDED.brief_text, generated_at = CURRENT_TIMESTAMP
+            """
+            with conn.cursor() as cur:
+                cur.execute(query, (game, brief_text))
+            return True
+        else:
+            query = """
+            INSERT INTO briefs (game, brief_text, generated_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT (game) DO UPDATE 
+            SET brief_text = excluded.brief_text, generated_at = CURRENT_TIMESTAMP
+            """
+            with conn:
+                conn.execute(query, (game, brief_text))
+            return True
+    except Exception as e:
+        logger.error(f"Failed to upsert brief for {game}: {e}")
+        return False
+
+def get_brief_for_game(conn: Any, game: str) -> Optional[str]:
+    try:
+        query = "SELECT brief_text FROM briefs WHERE game = "
+        if is_postgres_connection(conn):
+            with conn.cursor() as cur:
+                cur.execute(query + "%s", (game,))
+                row = cur.fetchone()
+                return row[0] if row else None
+        else:
+            cursor = conn.execute(query + "?", (game,))
+            row = cursor.fetchone()
+            return row[0] if row else None
+    except Exception as e:
+        logger.error(f"Failed to fetch brief for game {game}: {e}")
+        return None
 
 def get_latest_brief_for_game(conn: Any, game: str) -> Optional[str]:
     try:

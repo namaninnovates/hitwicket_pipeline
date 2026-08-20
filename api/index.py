@@ -570,10 +570,10 @@ def get_latest_brief(game: str = "all"):
         return {"brief": content, "content": content, "game": sanitized_game, "status": "ok"}
 
     # 1. Check Postgres DB first (handles Vercel Serverless environment safely)
-    from src.ingestion.storage import get_connection, get_latest_brief_for_game
+    from src.ingestion.storage import get_connection, get_brief_for_game
     conn = get_connection()
     if conn:
-        db_brief = get_latest_brief_for_game(conn, sanitized_game)
+        db_brief = get_brief_for_game(conn, sanitized_game)
         if db_brief and "0 reviews analyzed" not in db_brief and len(db_brief.strip()) > 20:
             _brief_file_cache[sanitized_game] = db_brief
             return {"brief": db_brief, "content": db_brief, "game": sanitized_game, "status": "ok"}
@@ -961,6 +961,11 @@ def stream_pipeline(
                     gd["vs_market_rating"] = round(gd["avgRating"] - metrics_payload["overall"]["avgRating"], 2)
                     gd["vs_market_neg"] = round(gd["negPct"] - metrics_payload["overall"]["negPct"], 1)
                     gd["vs_market_pos"] = round(gd["posPct"] - metrics_payload["overall"]["posPct"], 1)
+
+            if conn:
+                from src.ingestion.storage import upsert_brief
+                for gk, text in briefs_map.items():
+                    upsert_brief(conn, gk, text)
 
             yield f"data: {json.dumps({'type': 'complete_payload', 'payload': {'reviews': all_classified[:250], 'priorities': priority_by_game, 'matrix': matrix_data, 'briefs': briefs_map, 'metrics': metrics_payload}})}\n\n"
 
