@@ -124,19 +124,19 @@ export default function PriorityIssues({ selectedGame, refreshKey = 0 }: { selec
               >
                 {/* Header Row */}
                 <div
-                  className="flex items-center justify-between cursor-pointer select-none"
+                  className="flex items-start sm:items-center justify-between gap-3 cursor-pointer select-none"
                   onClick={() => setExpandedIndex(isExpanded ? null : idx)}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-slate-300 font-mono">
+                  <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-slate-300 font-mono shrink-0 mt-0.5 sm:mt-0">
                       {idx + 1}
                     </span>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                         {/* In Global mode, show game badge */}
                         {isGlobal && (
                           <span
-                            className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-md border ${
+                            className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-md border shrink-0 ${
                               isHitwicket
                                 ? "bg-indigo-600/20 text-indigo-300 border-indigo-500/40"
                                 : "bg-white/5 text-slate-400 border-white/10"
@@ -145,20 +145,20 @@ export default function PriorityIssues({ selectedGame, refreshKey = 0 }: { selec
                             {GAME_NAMES[itemGame] || itemGame}
                           </span>
                         )}
-                        <span className="text-base font-bold text-white tracking-tight">
+                        <span className="text-sm sm:text-base font-bold text-white tracking-tight break-words">
                           {p.primary_category}
                         </span>
-                        <span className="text-xs px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-medium">
+                        <span className="text-[0.7rem] sm:text-xs px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-medium">
                           {p.subcategory}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className={`px-3 py-1 rounded-full text-xs font-extrabold border flex items-center gap-1.5 ${scoreColor}`}>
+                  <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <div className={`px-2.5 sm:px-3 py-1 rounded-full text-xs font-extrabold border flex items-center gap-1.5 ${scoreColor}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
-                      <span>{score} / 100</span>
+                      <span className="whitespace-nowrap">{score} / 100</span>
                       <InfoTooltip content={`Priority Score: ${score}/100 based on formula weighting.`} size={11} />
                     </div>
                     <div className="text-slate-400 hover:text-white transition-colors">

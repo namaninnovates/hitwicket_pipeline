@@ -98,7 +98,7 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
       </div>
 
       {/* 5 Core Metric Cards with Relative Deltas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {/* 1. Total Ingested */}
         <MetricCard
           label="Total Ingested"
@@ -269,6 +269,7 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
           gradient="from-cyan-500/20 via-transparent to-transparent"
           borderHover="hover:border-cyan-500/40"
           valueColor="text-cyan-400"
+          className="col-span-2 md:col-span-1 lg:col-span-1"
         />
       </div>
     </div>
@@ -285,6 +286,7 @@ function MetricCard({
   gradient,
   borderHover,
   valueColor,
+  className = "",
 }: {
   label: string;
   info: string;
@@ -295,9 +297,10 @@ function MetricCard({
   gradient: string;
   borderHover: string;
   valueColor: string;
+  className?: string;
 }) {
   return (
-    <div className={`glass-card rounded-2xl p-5 relative transition-all duration-300 ${borderHover}`}>
+    <div className={`glass-card rounded-2xl p-4 sm:p-5 relative transition-all duration-300 ${borderHover} ${className}`}>
       {/* Background ambient glow contained separately so tooltips aren't clipped */}
       <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
         <div className={`absolute -right-6 -bottom-6 w-24 h-24 bg-gradient-to-tl ${gradient} rounded-full blur-xl`} />
