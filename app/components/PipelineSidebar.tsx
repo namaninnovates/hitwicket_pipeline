@@ -150,6 +150,9 @@ export default function PipelineSidebar({
                     timestamp: new Date().toLocaleTimeString(),
                   });
                   fetchDbStatus();
+                  setTimeout(() => {
+                    if (onClose) onClose();
+                  }, 1200);
                 } else if (data.type === "error") {
                   setLogs((prev) => [...prev, `[error] ${data.msg}`]);
                   setStatus("error");

@@ -38,7 +38,7 @@ except Exception:
 # Database (Local SQLite Database)
 # ─────────────────────────────────────────────
 DB_PATH = DATA_DIR / "reviews.db"
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get("DATABASE_URL") or "postgresql://neondb_owner:npg_FuEQdzL60jOX@ep-autumn-queen-azxvxdbp-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 IS_POSTGRES = bool(DATABASE_URL and DATABASE_URL.startswith("postgres"))
 
 
