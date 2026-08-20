@@ -209,12 +209,14 @@ def reset_database(payload: ResetDbPayload):
                     cur.execute("DELETE FROM reviews")
                     cur.execute("DELETE FROM pipeline_runs")
                     cur.execute("DELETE FROM history_snapshots")
+                    cur.execute("DELETE FROM briefs")
             else:
                 with conn:
                     conn.execute("DELETE FROM classifications")
                     conn.execute("DELETE FROM reviews")
                     conn.execute("DELETE FROM pipeline_runs")
                     conn.execute("DELETE FROM history_snapshots")
+                    conn.execute("DELETE FROM briefs")
                 
                 try:
                     conn.execute("VACUUM")
