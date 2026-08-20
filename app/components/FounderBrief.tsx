@@ -6,8 +6,6 @@ import InfoTooltip from "./Tooltip";
 import CricketLoader from "./CricketLoader";
 
 
-// Client-side in-memory cache across tab switches (0ms instant loading)
-let briefMemoryCache: Record<string, string> = {};
 
 export default function FounderBrief({
   selectedGame = "all",
@@ -19,25 +17,16 @@ export default function FounderBrief({
   refreshKey?: number;
 }) {
   const [brief, setBrief] = useState<string>(
-    historicalBrief || briefMemoryCache[selectedGame] || ""
+    historicalBrief || ""
   );
   const [loading, setLoading] = useState<boolean>(
-    !historicalBrief && !briefMemoryCache[selectedGame]
+    !historicalBrief
   );
   const [copied, setCopied] = useState(false);
 
   const isGlobal = selectedGame === "all" || selectedGame === "global";
 
   const loadBriefForGame = async (gameKey: string, forceFresh = false) => {
-    if (!forceFresh) {
-      // 1. Instant return from in-memory cache (0ms)
-      if (briefMemoryCache[gameKey]) {
-        setBrief(briefMemoryCache[gameKey]);
-        setLoading(false);
-        return;
-      }
-    }
-
     // 3. Otherwise, fetch generated brief from server
     setLoading(true);
     try {
@@ -45,7 +34,6 @@ export default function FounderBrief({
       if (res.ok) {
         const data = await res.json();
         const text = data.brief || data.content || "";
-        briefMemoryCache[gameKey] = text;
         setBrief(text);
       }
     } catch (e) {

@@ -90,10 +90,13 @@ export default function Dashboard() {
 
   const handlePipelineComplete = async (payload?: any) => {
     setIsPipelineOpen(false);
+    
+    // 1. Instantly trigger children to show skeleton loaders and fetch fresh data from Neon
+    setRefreshKey((prev) => prev + 1);
     setIsRefreshingData(true);
 
     try {
-      // Data is already saved in Postgres by the backend pipeline
+      // 2. Meanwhile, page.tsx silently builds the history snapshot in the background
       const [gamesRes, metricsRes, briefRes] = await Promise.all([
         fetch("/api/games").then((r) => r.json()).catch(() => ({})),
         fetch("/api/metrics").then((r) => r.json()).catch(() => ({})),
@@ -124,10 +127,9 @@ export default function Dashboard() {
     } catch (e) {
       console.warn("Snapshot auto-save on pipeline complete:", e);
     } finally {
-      setRefreshKey((prev) => prev + 1);
       setTimeout(() => {
         setIsRefreshingData(false);
-      }, 500);
+      }, 800);
     }
   };
 
