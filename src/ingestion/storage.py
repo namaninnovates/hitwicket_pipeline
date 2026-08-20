@@ -398,11 +398,12 @@ def purge_game_reviews(conn: Any, game_key: str) -> None:
             )
             cur.execute("DELETE FROM reviews WHERE game = %s", (game_key,))
     else:
-        conn.execute(
-            "DELETE FROM classifications WHERE review_db_id IN (SELECT id FROM reviews WHERE game = ?)",
-            (game_key,)
-        )
-        conn.execute("DELETE FROM reviews WHERE game = ?", (game_key,))
+        with conn:
+            conn.execute(
+                "DELETE FROM classifications WHERE review_db_id IN (SELECT id FROM reviews WHERE game = ?)",
+                (game_key,)
+            )
+            conn.execute("DELETE FROM reviews WHERE game = ?", (game_key,))
 
 
 def log_pipeline_run(conn: Any, **kwargs) -> int:

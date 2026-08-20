@@ -685,7 +685,7 @@ def stream_pipeline(
 
             conn = get_connection()
             if not conn:
-                raise RuntimeError("Failed to connect to Neon PostgreSQL database. Verify DATABASE_URL.")
+                raise RuntimeError("Failed to connect to local telemetry database.")
 
             # ─────────────────────────────────────────────
             # 1. INGEST STAGE (Per-game streaming logs)
@@ -722,7 +722,7 @@ def stream_pipeline(
                     n_skipped = clean_res["skipped_empty"]
                     yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Cleaned: {n_cleaned} reviews within {days}-day window (skipped {n_skipped} short/empty).'})}\n\n"
 
-                    # Persist to Neon PostgreSQL
+                    # Persist to Local Database
                     new_count = 0
                     for rev in clean_res["cleaned"]:
                         ok = insert_review(
@@ -739,13 +739,16 @@ def stream_pipeline(
                             new_count += 1
 
                     total_stored_all += new_count
-                    yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Persisted {new_count} new reviews to Neon PostgreSQL.'})}\n\n"
+                    yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Persisted {new_count} reviews to local database.'})}\n\n"
 
                 yield f"data: {json.dumps({'type': 'log', 'msg': f'Ingestion Stage Complete: {total_stored_all} total reviews persisted.'})}\n\n"
 
             # ─────────────────────────────────────────────
-            # 2. CLASSIFY STAGE (Per-batch streaming logs)
+            # 2. CLASSIFY STAGE
             # ─────────────────────────────────────────────
+            model_name = get_active_model_name()
+            total_classified = 0
+            total_failures = 0
             if "all" in stage_list or "classify" in stage_list:
                 yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
                 yield f"data: {json.dumps({'type': 'log', 'msg': 'STAGE 2/4: CLASSIFY (NLP Taxonomy & Sentiment Extraction)'})}\n\n"
@@ -756,19 +759,17 @@ def stream_pipeline(
                     unclassified = [r for r in unclassified if r["game"] in target_games]
 
                 if not unclassified:
-                    yield f"data: {json.dumps({'type': 'log', 'msg': 'All reviews are already classified in Neon PostgreSQL database.'})}\n\n"
+                    yield f"data: {json.dumps({'type': 'log', 'msg': 'All reviews are already classified in local database.'})}\n\n"
                 else:
                     total_unclass = len(unclassified)
                     yield f"data: {json.dumps({'type': 'log', 'msg': f'Found {total_unclass} reviews requiring NLP taxonomy classification.'})}\n\n"
 
-                    # Process in granular chunks so progress streams live to UI
                     chunk_size = 15
-                    classified_count = 0
                     for i in range(0, total_unclass, chunk_size):
-                        chunk = unclassified[i:i + chunk_size]
+                        chunk = unclassified[i : i + chunk_size]
                         chunk_results = classify_batch(chunk)
-                        
-                        for review, classification, model_name, is_fallback in chunk_results:
+
+                        for review, classification, model_used, is_fallback in chunk_results:
                             insert_classification(
                                 conn,
                                 review_db_id=review["id"],
@@ -780,17 +781,16 @@ def stream_pipeline(
                                 issue=classification.issue,
                                 actionability=classification.actionability,
                                 confidence=classification.confidence,
-                                model_used=model_name,
+                                model_used=model_used,
                             )
-                            classified_count += 1
+                            total_classified += 1
 
-                        pct = int((classified_count / total_unclass) * 100)
+                        pct = int((total_classified / total_unclass) * 100)
                         sample_cat = chunk_results[0][1].primary_category if chunk_results else "Gameplay"
                         sample_sub = chunk_results[0][1].subcategory if chunk_results else "Match / mechanics"
-                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[NLP Progress] {classified_count}/{total_unclass} categorized ({pct}%) -> Sample: {sample_cat} > {sample_sub}'})}\n\n"
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[NLP Progress] {total_classified}/{total_unclass} categorized ({pct}%) -> Sample: {sample_cat} > {sample_sub}'})}\n\n"
 
-                    active_model = get_active_model_name()
-                    yield f"data: {json.dumps({'type': 'log', 'msg': f'Classification Stage Complete: {classified_count} reviews tagged using {active_model}.'})}\n\n"
+                    yield f"data: {json.dumps({'type': 'log', 'msg': f'Classification Stage Complete: {total_classified} reviews tagged using {model_name}.'})}\n\n"
 
             # ─────────────────────────────────────────────
             # 3. SCORE & BENCHMARK STAGE
@@ -878,7 +878,7 @@ def stream_pipeline(
                 pass
 
             yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
-            yield f"data: {json.dumps({'type': 'log', 'msg': 'PIPELINE EXECUTION COMPLETE: All telemetry refreshed in Neon PostgreSQL.'})}\n\n"
+            yield f"data: {json.dumps({'type': 'log', 'msg': 'PIPELINE EXECUTION COMPLETE: All telemetry refreshed in local database.'})}\n\n"
             yield f"data: {json.dumps({'type': 'done', 'code': 0})}\n\n"
 
         except Exception as e:

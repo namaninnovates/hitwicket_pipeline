@@ -7,10 +7,14 @@ Fetches Google Play reviews for all configured games.
 
 import logging
 import time
+import socket
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 import sys
 from pathlib import Path
+
+# Set global socket timeout so Google Play requests never hang indefinitely
+socket.setdefaulttimeout(8.0)
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from src.config import (
