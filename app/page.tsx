@@ -306,7 +306,7 @@ export default function Dashboard() {
               <div key={`dashboard-${refreshKey}`} className="space-y-8 animate-in fade-in duration-300">
                 {/* 1. Global / Game Overview Metrics */}
                 <section>
-                  <Overview selectedGame={selectedGame} games={games} />
+                  <Overview selectedGame={selectedGame} games={games} refreshKey={refreshKey} />
                 </section>
 
                 {/* 2. 90-Second Executive Founder Brief */}

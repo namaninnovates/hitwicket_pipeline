@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { Inbox, Star, ThumbsDown, ThumbsUp, CheckCircle2, TrendingUp, Sparkles, Trophy, ArrowUpRight, ArrowDownRight, Scale } from "lucide-react";
 import InfoTooltip from "./Tooltip";
 
-export default function Overview({ selectedGame, games = {} }: any) {
+export default function Overview({ selectedGame, games = {}, refreshKey }: any) {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchMetrics = () => {
     fetch("/api/metrics")
       .then((res) => res.json())
       .then((data) => {
@@ -17,7 +17,11 @@ export default function Overview({ selectedGame, games = {} }: any) {
         setMetrics({ status: "empty" });
         setLoading(false);
       });
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchMetrics();
+  }, [selectedGame, refreshKey]);
 
   if (loading) {
     return (

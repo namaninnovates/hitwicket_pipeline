@@ -126,28 +126,45 @@ def get_connection():
 
 def load_data_df():
     conn = get_connection()
-    if not conn:
-        return pd.DataFrame(), pd.DataFrame()
-    
-    query = """
-    SELECT 
-        r.id, r.game, r.source, r.review_id, r.review_date, r.rating, 
-        r.review_text, r.app_version, r.thumbs_up, r.retrieved_at,
-        c.primary_category, c.subcategory, c.sentiment, c.severity, 
-        c.business_impact, c.issue, c.actionability, c.confidence, c.model_used
-    FROM reviews r
-    LEFT JOIN classifications c ON r.id = c.review_db_id
-    WHERE r.review_date IS NOT NULL
-    ORDER BY r.review_date DESC
-    """
-    try:
-        df = pd.read_sql_query(query, conn)
-        runs_df = pd.read_sql_query("SELECT * FROM pipeline_runs ORDER BY id DESC LIMIT 10", conn)
-    except Exception:
-        df = pd.DataFrame()
-        runs_df = pd.DataFrame()
-    finally:
-        conn.close()
+    df = pd.DataFrame()
+    runs_df = pd.DataFrame()
+    if conn:
+        query = """
+        SELECT 
+            r.id, r.game, r.source, r.review_id, r.review_date, r.rating, 
+            r.review_text, r.app_version, r.thumbs_up, r.retrieved_at,
+            c.primary_category, c.subcategory, c.sentiment, c.severity, 
+            c.business_impact, c.issue, c.actionability, c.confidence, c.model_used
+        FROM reviews r
+        LEFT JOIN classifications c ON r.id = c.review_db_id
+        WHERE r.review_date IS NOT NULL
+        ORDER BY r.review_date DESC
+        """
+        try:
+            df = pd.read_sql_query(query, conn)
+            runs_df = pd.read_sql_query("SELECT * FROM pipeline_runs ORDER BY id DESC LIMIT 10", conn)
+        except Exception:
+            df = pd.DataFrame()
+            runs_df = pd.DataFrame()
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+    # If database is empty on serverless cold-start before first run, fallback to bundled authentic reviews
+    if df.empty:
+        for csv_path in [
+            PROJECT_ROOT / "data" / "scraped_reviews_export.csv",
+            Path("data/scraped_reviews_export.csv"),
+            Path("/var/task/data/scraped_reviews_export.csv")
+        ]:
+            if csv_path.exists():
+                try:
+                    df = pd.read_csv(csv_path)
+                    break
+                except Exception:
+                    pass
     
     return df, runs_df
 
