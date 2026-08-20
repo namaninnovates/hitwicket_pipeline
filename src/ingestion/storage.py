@@ -213,17 +213,19 @@ def insert_review(
                 row = cur.fetchone()
                 return row is not None
         else:
-            cursor = conn.execute(
-                """
-                INSERT OR IGNORE INTO reviews
+            with conn:
+                cursor = conn.execute(
+                    """
+                    INSERT OR IGNORE INTO reviews
+                        (game, source, review_id, review_date, rating, review_text,
+                         app_version, thumbs_up, retrieved_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
                     (game, source, review_id, review_date, rating, review_text,
-                     app_version, thumbs_up, retrieved_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (game, source, review_id, review_date, rating, review_text,
-                 app_version, thumbs_up, retrieved_at),
-            )
-            return cursor.rowcount > 0
+                     app_version, thumbs_up, retrieved_at),
+                )
+                conn.commit()
+                return cursor.rowcount > 0
     except Exception as e:
         logger.error(f"DB insert error for review {review_id}: {e}")
         return False
@@ -274,19 +276,21 @@ def insert_classification(
                 )
                 return True
         else:
-            conn.execute(
-                """
-                INSERT OR REPLACE INTO classifications
+            with conn:
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO classifications
+                        (review_db_id, primary_category, subcategory, sentiment,
+                         severity, business_impact, issue, actionability, confidence,
+                         model_used, classified_at, classification_raw)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
                     (review_db_id, primary_category, subcategory, sentiment,
                      severity, business_impact, issue, actionability, confidence,
-                     model_used, classified_at, classification_raw)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (review_db_id, primary_category, subcategory, sentiment,
-                 severity, business_impact, issue, actionability, confidence,
-                 model_used, classified_at, classification_raw),
-            )
-            return True
+                     model_used, classified_at, classification_raw),
+                )
+                conn.commit()
+                return True
     except Exception as e:
         logger.error(f"DB classification insert error for review_db_id {review_db_id}: {e}")
         return False

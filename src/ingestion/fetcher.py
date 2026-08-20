@@ -18,6 +18,7 @@ socket.setdefaulttimeout(8.0)
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from src.config import (
+    ROOT_DIR,
     GAMES,
     REVIEW_WINDOW_DAYS,
     MAX_REVIEWS_PER_GAME,
@@ -139,7 +140,9 @@ def fetch_reviews_for_game(
         time.sleep(FETCH_SLEEP_SECONDS)
 
     if not all_reviews:
-        csv_fallback = Path(__file__).parent.parent.parent / "data" / "scraped_reviews_export.csv"
+        csv_fallback = ROOT_DIR / "data" / "scraped_reviews_export.csv"
+        if not csv_fallback.exists():
+            csv_fallback = Path(__file__).parent.parent.parent / "data" / "scraped_reviews_export.csv"
         if csv_fallback.exists():
             logger.info(
                 f"[{game['name']}] Scraper returned 0 reviews (datacenter IP constraint). "

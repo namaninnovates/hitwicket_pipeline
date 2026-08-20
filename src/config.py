@@ -30,6 +30,21 @@ try:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
+    # In serverless environments (Vercel), copy bundled baseline DB and briefs to writable /tmp
+    if is_serverless:
+        import shutil
+        bundled_db = ROOT_DIR / "data" / "reviews.db"
+        tmp_db = DATA_DIR / "reviews.db"
+        if bundled_db.exists() and (not tmp_db.exists() or tmp_db.stat().st_size == 0):
+            shutil.copy2(bundled_db, tmp_db)
+
+        bundled_outputs = ROOT_DIR / "outputs"
+        if bundled_outputs.exists():
+            for item in bundled_outputs.glob("*.md"):
+                dest = OUTPUTS_DIR / item.name
+                if not dest.exists():
+                    shutil.copy2(item, dest)
 except Exception:
     pass
 
