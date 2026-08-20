@@ -46,9 +46,6 @@ export default function FounderBrief({
         const data = await res.json();
         const text = data.brief || data.content || "";
         briefMemoryCache[gameKey] = text;
-        if (text) {
-          saveLocalBrief(gameKey, text);
-        }
         setBrief(text);
       }
     } catch (e) {
