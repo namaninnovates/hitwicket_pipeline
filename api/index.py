@@ -569,6 +569,16 @@ def get_latest_brief(game: str = "all"):
         content = _brief_file_cache[sanitized_game]
         return {"brief": content, "content": content, "game": sanitized_game, "status": "ok"}
 
+    # 1. Check Postgres DB first (handles Vercel Serverless environment safely)
+    from src.ingestion.storage import get_connection, get_latest_brief_for_game
+    conn = get_connection()
+    if conn:
+        db_brief = get_latest_brief_for_game(conn, sanitized_game)
+        if db_brief and "0 reviews analyzed" not in db_brief and len(db_brief.strip()) > 20:
+            _brief_file_cache[sanitized_game] = db_brief
+            return {"brief": db_brief, "content": db_brief, "game": sanitized_game, "status": "ok"}
+    
+    # 2. Fallback to local files (useful for local dev without DB)
     search_dirs = [OUTPUTS_DIR.resolve()]
     target_files = []
 
@@ -595,7 +605,7 @@ def get_latest_brief(game: str = "all"):
         except Exception as e:
             logger.warning(f"Error reading pre-generated brief file: {e}")
 
-    # If no pre-generated brief file is found, return not_generated (Zero LLM calls on GET)
+    # If no pre-generated brief is found, return not_generated (Zero LLM calls on GET)
     return {
         "brief": None,
         "content": None,

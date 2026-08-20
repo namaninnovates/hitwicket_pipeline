@@ -553,6 +553,22 @@ def get_history_snapshots(conn: Any, limit: int = 50) -> list[dict]:
         logger.error(f"Failed to fetch history snapshots: {e}")
         return []
 
+def get_latest_brief_for_game(conn: Any, game: str) -> str | None:
+    try:
+        query = "SELECT brief FROM history_snapshots WHERE game = "
+        if is_postgres_connection(conn):
+            with conn.cursor() as cur:
+                cur.execute(query + "%s ORDER BY timestamp DESC LIMIT 1", (game,))
+                row = cur.fetchone()
+                return row[0] if row else None
+        else:
+            cursor = conn.execute(query + "? ORDER BY timestamp DESC LIMIT 1", (game,))
+            row = cursor.fetchone()
+            return row[0] if row else None
+    except Exception as e:
+        logger.error(f"Failed to fetch latest brief for game {game}: {e}")
+        return None
+
 def delete_history_snapshot(conn: Any, snapshot_id: str) -> bool:
     try:
         if is_postgres_connection(conn):
