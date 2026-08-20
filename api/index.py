@@ -642,57 +642,86 @@ def stream_pipeline(
         )
 
     def event_stream():
-        global active_process
         try:
-            cmd = [
-                sys.executable, "-u", "run_pipeline.py",
-                "--stages", *stage_list,
-                "--max-reviews", str(max_reviews),
-                "--window-days", str(days)
-            ]
-            if fresh:
-                cmd.append("--fresh")
-            if games_list and "all" not in games_list:
-                cmd += ["--games", *games_list]
+            from run_pipeline import stage_ingest, stage_classify, stage_score, stage_brief
+
+            target_games = games_list if games_list and "all" not in games_list else list(GAMES.keys())
+
+            yield f"data: {json.dumps({'type': 'status', 'msg': 'Initializing pipeline execution for ' + ', '.join(target_games)})}\n\n"
+
+            # 1. INGEST
+            if "all" in stage_list or "ingest" in stage_list:
+                yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': f'STAGE: INGEST (fetching Google Play reviews, fresh={fresh})'})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
                 
-            cmd_str = " ".join(cmd)
-            yield f"data: {json.dumps({'type': 'status', 'msg': 'Executing: ' + cmd_str})}\n\n"
-            
-            env = os.environ.copy()
-            env["PYTHONUNBUFFERED"] = "1"
-            
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-                env=env,
-                cwd=str(PROJECT_ROOT)
-            )
-            
-            with active_process_lock:
-                active_process = process
-            
-            for line in iter(process.stdout.readline, ""):
-                if line:
-                    yield f"data: {json.dumps({'type': 'log', 'msg': line.strip()})}\n\n"
-                    
-            process.stdout.close()
-            return_code = process.wait()
-            
-            yield f"data: {json.dumps({'type': 'done', 'code': return_code})}\n\n"
+                ingest_stats = stage_ingest(
+                    game_keys=target_games,
+                    max_reviews=max_reviews,
+                    window_days=days,
+                    source="auto",
+                    fresh=fresh,
+                )
+                yield f"data: {json.dumps({'type': 'log', 'msg': f'Ingestion complete: {ingest_stats.get(\"new_reviews\", 0)} new reviews stored ({ingest_stats.get(\"within_90_days\", 0)} within 90-day window).'})}\n\n"
+
+            # 2. CLASSIFY
+            if "all" in stage_list or "classify" in stage_list:
+                yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'STAGE: CLASSIFY (running NLP taxonomy classification)'})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
+
+                classify_stats = stage_classify(game_keys=target_games)
+                yield f"data: {json.dumps({'type': 'log', 'msg': f'Classification complete: {classify_stats.get(\"classified\", 0)} reviews classified with {classify_stats.get(\"model\", \"NLP Model\")}.'})}\n\n"
+
+            # 3. SCORE
+            priority_by_game = {}
+            matrix_data = {}
+            all_classified = []
+            if "all" in stage_list or "score" in stage_list:
+                yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'STAGE: SCORE + ANALYZE (calculating priority scores and benchmark matrix)'})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
+
+                priority_by_game, matrix_data, all_classified = stage_score()
+                yield f"data: {json.dumps({'type': 'log', 'msg': f'Scoring complete: {len(all_classified)} classified reviews analyzed.'})}\n\n"
+
+            # 4. BRIEF
+            if "all" in stage_list or "brief" in stage_list:
+                yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'STAGE: GENERATE BRIEF (synthesizing founder briefs)'})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
+
+                if not all_classified:
+                    from src.ingestion.storage import get_connection as get_conn, get_classified_reviews
+                    c = get_conn()
+                    if c:
+                        all_classified = get_classified_reviews(c, days=days)
+                        c.close()
+                    if all_classified and not priority_by_game:
+                        from src.scoring.priority import compute_all_games_priority
+                        from src.analysis.competitor import build_competitor_matrix
+                        priority_by_game = compute_all_games_priority(all_classified)
+                        matrix_data = build_competitor_matrix(all_classified)
+
+                stage_brief(
+                    priority_by_game=priority_by_game,
+                    matrix_data=matrix_data,
+                    all_classified=all_classified,
+                    output_dir=OUTPUTS_DIR,
+                )
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'Founder and market briefs synthesized successfully.'})}\n\n"
+
+            yield f"data: {json.dumps({'type': 'done', 'code': 0})}\n\n"
         except Exception as e:
+            logger.error(f"Pipeline execution error: {e}")
             yield f"data: {json.dumps({'type': 'error', 'msg': str(e)})}\n\n"
         finally:
-            with active_process_lock:
-                active_process = None
             if pipeline_lock.locked():
                 try:
                     pipeline_lock.release()
                 except RuntimeError:
                     pass
-            
+
     return StreamingResponse(
         event_stream(),
         media_type="text/event-stream",
