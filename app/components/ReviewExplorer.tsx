@@ -130,7 +130,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
           <div>
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center">
               <span>Review Explorer &amp; Interactive Filters</span>
-              <InfoTooltip content="Search, filter, inspect, and export all raw Google Play reviews stored in the Neon PostgreSQL database." />
+              <InfoTooltip content="Search, filter, inspect, and export all raw Google Play reviews stored in your private local database." />
             </h2>
             <p className="text-xs text-slate-400">Click any filter button below to instantly slice and inspect raw feedback</p>
           </div>

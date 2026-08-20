@@ -19,6 +19,7 @@ import {
   SquareDashed
 } from "lucide-react";
 import InfoTooltip from "./Tooltip";
+import { resetLocalDatabase } from "../lib/localDb";
 
 export default function PipelineSidebar({
   games,
@@ -495,20 +496,21 @@ export default function PipelineSidebar({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 uppercase tracking-wider">
               <Database size={14} className="text-indigo-400" />
-              <span>Telemetry Database State</span>
-              <InfoTooltip content="Neon PostgreSQL stores cumulative reviews across all past runs. If you want only reviews from your new run, click 'Reset DB & Clean Fetch'." />
+              <span>Local Telemetry Database</span>
+              <InfoTooltip content="Stores reviews in your private local database. If you want only reviews from your new run, click 'Reset DB'." />
             </div>
             <button
               type="button"
               onClick={async () => {
-                if (window.confirm("Are you sure you want to clear all stored reviews and reset the database?")) {
+                if (window.confirm("Are you sure you want to clear all locally stored reviews and reset your database?")) {
+                  await resetLocalDatabase();
                   await fetch("/api/database/reset", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ confirm: "RESET" }),
-                  });
+                  }).catch(() => {});
                   fetchDbStatus();
-                  setLogs(["[system] Database reset: all reviews & classifications cleared."]);
+                  setLogs(["[system] Local database reset: all reviews & classifications cleared."]);
                 }
               }}
               className="text-[0.65rem] text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-2 py-0.5 rounded border border-rose-500/20 transition-all cursor-pointer"

@@ -21,6 +21,8 @@ import Documentation from "./components/Documentation";
 import Footer from "./components/Footer";
 import CricketLoader from "./components/CricketLoader";
 
+import { getLocalReviews, saveLocalReviews, resetLocalDatabase } from "./lib/localDb";
+
 export default function Dashboard() {
   const [activeView, setActiveView] = useState<"dashboard" | "data" | "docs">("dashboard");
   const [games, setGames] = useState<Record<string, any>>({});
@@ -34,30 +36,45 @@ export default function Dashboard() {
     fetch("/api/games")
       .then((res) => res.json())
       .then((data) => setGames(data.games || {}));
+
+    // Check & hydrate client-side local database on first visit
+    getLocalReviews().then(async (localReviews) => {
+      if (localReviews.length === 0) {
+        try {
+          const res = await fetch("/api/seed");
+          if (res.ok) {
+            const data = await res.json();
+            if (data.reviews && data.reviews.length > 0) {
+              await saveLocalReviews(data.reviews);
+              setRefreshKey((prev) => prev + 1);
+            }
+          }
+        } catch (e) {
+          console.warn("Auto-seed local database skipped:", e);
+        }
+      }
+    });
   }, []);
 
   const handleResetAll = async () => {
     const confirmed = window.confirm(
-      "⚠️ Reset All Telemetry Data to 0?\n\nThis will purge all ingested reviews, classifications, competitor matrices, and founder briefs from the system."
+      "⚠️ Reset Your Local Telemetry Database to 0?\n\nThis will purge all locally stored reviews, classifications, competitor matrices, and founder briefs from your browser."
     );
     if (!confirmed) return;
 
     setIsResetting(true);
     try {
-      const res = await fetch("/api/database/reset", {
+      await resetLocalDatabase();
+      await fetch("/api/database/reset", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ confirm: "RESET" }),
-      });
-      if (res.ok) {
-        window.location.reload();
-      } else {
-        const err = await res.json().catch(() => ({}));
-        alert(err.detail || "Failed to reset database.");
-      }
+      }).catch(() => {});
+
+      window.location.reload();
     } catch (e) {
-      console.error("Error resetting data:", e);
-      alert("Error communicating with reset endpoint.");
+      console.error("Error resetting local data:", e);
+      alert("Error clearing local database.");
     } finally {
       setIsResetting(false);
     }

@@ -86,7 +86,7 @@ export default function Overview({ selectedGame, games = {} }: any) {
         {/* 1. Total Ingested */}
         <MetricCard
           label="Total Ingested"
-          info="Total public reviews fetched from Google Play across all tracked games in Neon PostgreSQL."
+          info="Total public reviews fetched from Google Play stored in your private local database."
           value={activeData?.ingested?.toLocaleString() || "0"}
           subtitle={
             isGlobal

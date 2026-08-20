@@ -30,31 +30,23 @@ except ImportError:
 
 def is_postgres_connection(conn: Any) -> bool:
     """Check if the provided connection is a PostgreSQL connection."""
-    if not conn:
-        return False
-    if PSYCOPG2_AVAILABLE and isinstance(conn, psycopg2.extensions.connection):
-        return True
-    return getattr(conn, "__module__", "").startswith("psycopg2") or hasattr(conn, "get_dsn_parameters")
+    return False
 
 
-def get_connection(db_url: Optional[str] = None) -> Union[sqlite3.Connection, Any]:
+def get_connection(db_path: Optional[Union[Path, str]] = None) -> sqlite3.Connection:
     """
-    Return a database connection.
-    Connects to Neon Serverless PostgreSQL using DATABASE_URL.
+    Return a local SQLite database connection.
+    Guarantees fast, isolated local storage with zero cloud credentials.
     """
-    target_url = db_url or DATABASE_URL
-    if not target_url:
-        raise ValueError(
-            "DATABASE_URL is not set. Please configure DATABASE_URL in your .env file to connect to Neon PostgreSQL."
-        )
-
-    if not PSYCOPG2_AVAILABLE:
-        raise ImportError(
-            "psycopg2-binary is required for PostgreSQL connections. "
-            "Install it via: pip install psycopg2-binary"
-        )
-    conn = psycopg2.connect(target_url)
-    conn.autocommit = True
+    target = Path(db_path) if db_path else DB_PATH
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+    conn = sqlite3.connect(str(target), timeout=30.0)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL;")
+    conn.execute("PRAGMA foreign_keys=ON;")
     return conn
 
 

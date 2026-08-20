@@ -154,6 +154,30 @@ def load_data_df():
 # ─────────────────────────────────────────────
 # Endpoints
 # ─────────────────────────────────────────────
+@app.get("/api/seed")
+def get_seed_data():
+    """Returns baseline review and classification records to initialize client-side local database."""
+    df, _ = load_data_df()
+    if df.empty:
+        csv_fallback = PROJECT_ROOT / "data" / "scraped_reviews_export.csv"
+        if csv_fallback.exists():
+            try:
+                df = pd.read_csv(csv_fallback)
+            except Exception:
+                df = pd.DataFrame()
+
+    records = df.to_dict(orient="records") if not df.empty else []
+    # Convert any NaN values to None for clean JSON serialization
+    cleaned_records = []
+    for r in records:
+        cleaned_records.append({k: (None if pd.isna(v) else v) for k, v in r.items()})
+
+    return {
+        "status": "success",
+        "total": len(cleaned_records),
+        "reviews": cleaned_records
+    }
+
 @app.post("/api/database/reset")
 def reset_database(payload: ResetDbPayload):
     if payload.confirm != "RESET":
@@ -165,31 +189,24 @@ def reset_database(payload: ResetDbPayload):
     if not conn:
         raise HTTPException(
             status_code=500,
-            detail="Database connection failed. Please verify that DATABASE_URL is configured in your Vercel project environment variables."
+            detail="Local database connection failed."
         )
     try:
-        # Guarantee tables exist before deletion
-        try:
-            if initialize_db:
-                initialize_db(conn)
-        except Exception:
-            pass
-
-        if is_postgres_connection(conn):
-            with conn.cursor() as cur:
-                cur.execute("DELETE FROM classifications;")
-                cur.execute("DELETE FROM reviews;")
-                cur.execute("DELETE FROM pipeline_runs;")
-        else:
-            with conn:
-                conn.execute("DELETE FROM classifications")
-                conn.execute("DELETE FROM reviews")
-                conn.execute("DELETE FROM pipeline_runs")
+        if initialize_db:
             try:
-                conn.isolation_level = None
-                conn.execute("VACUUM")
+                initialize_db(conn)
             except Exception:
                 pass
+
+        with conn:
+            conn.execute("DELETE FROM classifications")
+            conn.execute("DELETE FROM reviews")
+            conn.execute("DELETE FROM pipeline_runs")
+        
+        try:
+            conn.execute("VACUUM")
+        except Exception:
+            pass
 
         # Safely attempt to purge generated briefs from outputs directory if writable
         try:
@@ -203,10 +220,10 @@ def reset_database(payload: ResetDbPayload):
         except Exception:
             pass
 
-        return {"status": "success", "message": "Database and telemetry reset successfully"}
+        return {"status": "success", "message": "Local database and telemetry reset successfully"}
     except Exception as e:
-        logger.error(f"Failed to reset database: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to reset database: {e}")
+        logger.error(f"Failed to reset local database: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to reset local database: {e}")
     finally:
         try:
             conn.close()
