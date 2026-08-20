@@ -17,6 +17,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
 app = FastAPI(title="Hitwicket Review Intelligence API", version="1.0.0")
+handler = app
+application = app
 
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -662,7 +664,10 @@ def stream_pipeline(
                     source="auto",
                     fresh=fresh,
                 )
-                yield f"data: {json.dumps({'type': 'log', 'msg': f'Ingestion complete: {ingest_stats.get(\"new_reviews\", 0)} new reviews stored ({ingest_stats.get(\"within_90_days\", 0)} within 90-day window).'})}\n\n"
+                n_new = ingest_stats.get("new_reviews", 0)
+                n_within = ingest_stats.get("within_90_days", 0)
+                ingest_msg = f"Ingestion complete: {n_new} new reviews stored ({n_within} within 90-day window)."
+                yield f"data: {json.dumps({'type': 'log', 'msg': ingest_msg})}\n\n"
 
             # 2. CLASSIFY
             if "all" in stage_list or "classify" in stage_list:
@@ -671,7 +676,10 @@ def stream_pipeline(
                 yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
 
                 classify_stats = stage_classify(game_keys=target_games)
-                yield f"data: {json.dumps({'type': 'log', 'msg': f'Classification complete: {classify_stats.get(\"classified\", 0)} reviews classified with {classify_stats.get(\"model\", \"NLP Model\")}.'})}\n\n"
+                n_classified = classify_stats.get("classified", 0)
+                m_model = classify_stats.get("model", "NLP Model")
+                classify_msg = f"Classification complete: {n_classified} reviews classified with {m_model}."
+                yield f"data: {json.dumps({'type': 'log', 'msg': classify_msg})}\n\n"
 
             # 3. SCORE
             priority_by_game = {}
