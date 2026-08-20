@@ -645,85 +645,234 @@ def stream_pipeline(
 
     def event_stream():
         try:
-            from run_pipeline import stage_ingest, stage_classify, stage_score, stage_brief
+            from src.ingestion.fetcher import fetch_reviews_for_game
+            from src.cleaning.cleaner import clean_batch
+            from src.classification.classifier import classify_batch, get_active_model_name
+            from src.scoring.priority import compute_all_games_priority, format_priority_for_display
+            from src.analysis.competitor import build_competitor_matrix
+            from src.reporting.brief import generate_founder_brief, generate_global_market_brief
+            from src.ingestion.storage import (
+                get_connection,
+                insert_review,
+                insert_classification,
+                purge_game_reviews,
+                get_unclassified_reviews,
+                get_classified_reviews,
+                log_pipeline_run
+            )
 
             target_games = games_list if games_list and "all" not in games_list else list(GAMES.keys())
+            game_names_str = ", ".join([GAMES.get(g, {}).get("name", g) for g in target_games])
 
-            yield f"data: {json.dumps({'type': 'status', 'msg': 'Initializing pipeline execution for ' + ', '.join(target_games)})}\n\n"
+            yield f"data: {json.dumps({'type': 'status', 'msg': 'Initializing review intelligence pipeline for: ' + game_names_str})}\n\n"
 
-            # 1. INGEST
+            conn = get_connection()
+            if not conn:
+                raise RuntimeError("Failed to connect to Neon PostgreSQL database. Verify DATABASE_URL.")
+
+            # ─────────────────────────────────────────────
+            # 1. INGEST STAGE (Per-game streaming logs)
+            # ─────────────────────────────────────────────
+            all_raw_by_game = {}
             if "all" in stage_list or "ingest" in stage_list:
                 yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
-                yield f"data: {json.dumps({'type': 'log', 'msg': f'STAGE: INGEST (fetching Google Play reviews, fresh={fresh})'})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': f'STAGE 1/4: INGEST (Fetching Google Play reviews, max={max_reviews}, fresh={fresh})'})}\n\n"
                 yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
-                
-                ingest_stats = stage_ingest(
-                    game_keys=target_games,
-                    max_reviews=max_reviews,
-                    window_days=days,
-                    source="auto",
-                    fresh=fresh,
-                )
-                n_new = ingest_stats.get("new_reviews", 0)
-                n_within = ingest_stats.get("within_90_days", 0)
-                ingest_msg = f"Ingestion complete: {n_new} new reviews stored ({n_within} within 90-day window)."
-                yield f"data: {json.dumps({'type': 'log', 'msg': ingest_msg})}\n\n"
 
-            # 2. CLASSIFY
+                total_stored_all = 0
+                for g_key in target_games:
+                    g_meta = GAMES.get(g_key, {})
+                    g_name = g_meta.get("name", g_key)
+                    g_pkg = g_meta.get("google_play_id", "")
+
+                    if fresh:
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Fresh mode enabled: purging prior review records...'})}\n\n"
+                        purge_game_reviews(conn, g_key)
+
+                    yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Connecting to Google Play store endpoint (pkg: {g_pkg})...'})}\n\n"
+                    raw_reviews = fetch_reviews_for_game(
+                        g_key,
+                        max_reviews=max_reviews,
+                        window_days=days,
+                        source_preference="auto"
+                    )
+                    all_raw_by_game[g_key] = raw_reviews
+                    yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Retrieved {len(raw_reviews)} raw reviews.'})}\n\n"
+
+                    # Clean & Deduplicate
+                    clean_res = clean_batch(raw_reviews)
+                    n_cleaned = len(clean_res["cleaned"])
+                    n_skipped = clean_res["skipped_empty"]
+                    yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Cleaned: {n_cleaned} reviews within {days}-day window (skipped {n_skipped} short/empty).'})}\n\n"
+
+                    # Persist to Neon PostgreSQL
+                    new_count = 0
+                    for rev in clean_res["cleaned"]:
+                        ok = insert_review(
+                            conn,
+                            game=rev["game"],
+                            review_id=rev["review_id"],
+                            review_date=rev["review_date"],
+                            rating=rev["rating"],
+                            review_text=rev["review_text"],
+                            app_version=rev.get("app_version"),
+                            thumbs_up=rev.get("thumbs_up", 0),
+                        )
+                        if ok:
+                            new_count += 1
+
+                    total_stored_all += new_count
+                    yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Persisted {new_count} new reviews to Neon PostgreSQL.'})}\n\n"
+
+                yield f"data: {json.dumps({'type': 'log', 'msg': f'Ingestion Stage Complete: {total_stored_all} total reviews persisted.'})}\n\n"
+
+            # ─────────────────────────────────────────────
+            # 2. CLASSIFY STAGE (Per-batch streaming logs)
+            # ─────────────────────────────────────────────
             if "all" in stage_list or "classify" in stage_list:
                 yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
-                yield f"data: {json.dumps({'type': 'log', 'msg': 'STAGE: CLASSIFY (running NLP taxonomy classification)'})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'STAGE 2/4: CLASSIFY (NLP Taxonomy & Sentiment Extraction)'})}\n\n"
                 yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
 
-                classify_stats = stage_classify(game_keys=target_games)
-                n_classified = classify_stats.get("classified", 0)
-                m_model = classify_stats.get("model", "NLP Model")
-                classify_msg = f"Classification complete: {n_classified} reviews classified with {m_model}."
-                yield f"data: {json.dumps({'type': 'log', 'msg': classify_msg})}\n\n"
+                unclassified = get_unclassified_reviews(conn)
+                if target_games:
+                    unclassified = [r for r in unclassified if r["game"] in target_games]
 
-            # 3. SCORE
+                if not unclassified:
+                    yield f"data: {json.dumps({'type': 'log', 'msg': 'All reviews are already classified in Neon PostgreSQL database.'})}\n\n"
+                else:
+                    total_unclass = len(unclassified)
+                    yield f"data: {json.dumps({'type': 'log', 'msg': f'Found {total_unclass} reviews requiring NLP taxonomy classification.'})}\n\n"
+
+                    # Process in granular chunks so progress streams live to UI
+                    chunk_size = 15
+                    classified_count = 0
+                    for i in range(0, total_unclass, chunk_size):
+                        chunk = unclassified[i:i + chunk_size]
+                        chunk_results = classify_batch(chunk)
+                        
+                        for review, classification, model_name, is_fallback in chunk_results:
+                            insert_classification(
+                                conn,
+                                review_db_id=review["id"],
+                                primary_category=classification.primary_category,
+                                subcategory=classification.subcategory,
+                                sentiment=classification.sentiment,
+                                severity=classification.severity,
+                                business_impact=classification.business_impact,
+                                issue=classification.issue,
+                                actionability=classification.actionability,
+                                confidence=classification.confidence,
+                                model_used=model_name,
+                            )
+                            classified_count += 1
+
+                        pct = int((classified_count / total_unclass) * 100)
+                        sample_cat = chunk_results[0][1].primary_category if chunk_results else "Gameplay"
+                        sample_sub = chunk_results[0][1].subcategory if chunk_results else "Match / mechanics"
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[NLP Progress] {classified_count}/{total_unclass} categorized ({pct}%) -> Sample: {sample_cat} > {sample_sub}'})}\n\n"
+
+                    active_model = get_active_model_name()
+                    yield f"data: {json.dumps({'type': 'log', 'msg': f'Classification Stage Complete: {classified_count} reviews tagged using {active_model}.'})}\n\n"
+
+            # ─────────────────────────────────────────────
+            # 3. SCORE & BENCHMARK STAGE
+            # ─────────────────────────────────────────────
             priority_by_game = {}
             matrix_data = {}
             all_classified = []
             if "all" in stage_list or "score" in stage_list:
                 yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
-                yield f"data: {json.dumps({'type': 'log', 'msg': 'STAGE: SCORE + ANALYZE (calculating priority scores and benchmark matrix)'})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'STAGE 3/4: SCORE + BENCHMARK (4-Component Priority Model)'})}\n\n"
                 yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
 
-                priority_by_game, matrix_data, all_classified = stage_score()
-                yield f"data: {json.dumps({'type': 'log', 'msg': f'Scoring complete: {len(all_classified)} classified reviews analyzed.'})}\n\n"
+                all_classified = get_classified_reviews(conn, days=days)
+                yield f"data: {json.dumps({'type': 'log', 'msg': f'Computing scores across {len(all_classified)} classified reviews (Formula: 0.30*Freq + 0.25*Sev + 0.25*Impact + 0.20*Trend)...'})}\n\n"
 
-            # 4. BRIEF
+                priority_by_game = compute_all_games_priority(all_classified)
+                matrix_data = build_competitor_matrix(all_classified)
+
+                for g_key, p_list in priority_by_game.items():
+                    if g_key in target_games and p_list:
+                        g_name = GAMES.get(g_key, {}).get("name", g_key)
+                        top_p = p_list[0]
+                        p_cat = top_p["primary_category"]
+                        p_sub = top_p["subcategory"]
+                        p_score = top_p["priority_score"]
+                        p_freq = top_p.get("frequency_pct", 0)
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name} #1 Priority] {p_cat} > {p_sub} (Priority Score: {p_score:.1f}/100, Freq: {p_freq:.1f}%)'})}\n\n"
+
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'Built 5x3 Competitor Benchmark Matrix across Gameplay, Progression, Monetization, Experience, Competition.'})}\n\n"
+
+            # ─────────────────────────────────────────────
+            # 4. BRIEF SYNTHESIS STAGE
+            # ─────────────────────────────────────────────
             if "all" in stage_list or "brief" in stage_list:
                 yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
-                yield f"data: {json.dumps({'type': 'log', 'msg': 'STAGE: GENERATE BRIEF (synthesizing founder briefs)'})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'STAGE 4/4: SYNTHESIZE EXECUTIVE BRIEFS (Gemini Intelligence)'})}\n\n"
                 yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
 
                 if not all_classified:
-                    from src.ingestion.storage import get_connection as get_conn, get_classified_reviews
-                    c = get_conn()
-                    if c:
-                        all_classified = get_classified_reviews(c, days=days)
-                        c.close()
+                    all_classified = get_classified_reviews(conn, days=days)
                     if all_classified and not priority_by_game:
-                        from src.scoring.priority import compute_all_games_priority
-                        from src.analysis.competitor import build_competitor_matrix
                         priority_by_game = compute_all_games_priority(all_classified)
                         matrix_data = build_competitor_matrix(all_classified)
 
-                stage_brief(
+                # Generate game-specific briefs
+                for g_key in target_games:
+                    g_name = GAMES.get(g_key, {}).get("name", g_key)
+                    g_priorities = priority_by_game.get(g_key, [])
+                    g_reviews = [r for r in all_classified if r.get("game") == g_key]
+                    if g_reviews or g_priorities:
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Synthesizing 90-Second Executive Decision Memo...'})}\n\n"
+                        generate_founder_brief(
+                            game_key=g_key,
+                            classified_reviews=g_reviews,
+                            priority_scores=g_priorities,
+                            matrix_data=matrix_data,
+                            output_dir=OUTPUTS_DIR,
+                        )
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Executive brief generated successfully.'})}\n\n"
+
+                # Generate global benchmark brief
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'Synthesizing Cross-Game Global Market Intelligence Brief...'})}\n\n"
+                generate_global_market_brief(
+                    all_classified=all_classified,
                     priority_by_game=priority_by_game,
                     matrix_data=matrix_data,
-                    all_classified=all_classified,
                     output_dir=OUTPUTS_DIR,
                 )
-                yield f"data: {json.dumps({'type': 'log', 'msg': 'Founder and market briefs synthesized successfully.'})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'Global market intelligence brief generated successfully.'})}\n\n"
 
+            # Record run log to Neon PostgreSQL
+            try:
+                log_pipeline_run(
+                    conn,
+                    reviews_fetched=len(all_classified),
+                    within_90_days=len(all_classified),
+                    new_reviews=len(all_classified),
+                    classified=len(all_classified),
+                    model_used=get_active_model_name(),
+                    output_dir=str(OUTPUTS_DIR),
+                    stages_run=",".join(stage_list),
+                    notes="Executed via Web Pipeline Console"
+                )
+            except Exception:
+                pass
+
+            yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
+            yield f"data: {json.dumps({'type': 'log', 'msg': 'PIPELINE EXECUTION COMPLETE: All telemetry refreshed in Neon PostgreSQL.'})}\n\n"
             yield f"data: {json.dumps({'type': 'done', 'code': 0})}\n\n"
+
         except Exception as e:
             logger.error(f"Pipeline execution error: {e}")
             yield f"data: {json.dumps({'type': 'error', 'msg': str(e)})}\n\n"
         finally:
+            try:
+                if conn:
+                    conn.close()
+            except Exception:
+                pass
             if pipeline_lock.locked():
                 try:
                     pipeline_lock.release()
