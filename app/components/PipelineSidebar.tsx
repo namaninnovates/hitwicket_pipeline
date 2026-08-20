@@ -21,7 +21,7 @@ import {
   SquareDashed
 } from "lucide-react";
 import InfoTooltip from "./Tooltip";
-import { resetLocalDatabase } from "../lib/localDb";
+import { resetLocalDatabase, saveLocalReviews, saveLocalBrief, saveLocalTelemetry } from "../lib/localDb";
 
 export default function PipelineSidebar({
   games,
@@ -135,6 +135,25 @@ export default function PipelineSidebar({
                   else if (msg.includes("STAGE: CLASSIFY")) setCurrentStage("3/4 Classifying");
                   else if (msg.includes("STAGE: SCORE")) setCurrentStage("4/4 Scoring & Analytics");
                   else if (msg.includes("STAGE: GENERATE BRIEF")) setCurrentStage("Synthesizing Memo");
+                } else if (data.type === "complete_payload" && data.payload) {
+                  const p = data.payload;
+                  if (p.reviews && p.reviews.length > 0) {
+                    saveLocalReviews(p.reviews);
+                  }
+                  if (p.briefs) {
+                    Object.entries(p.briefs).forEach(([gk, bText]: [string, any]) => {
+                      if (bText) saveLocalBrief(gk, bText);
+                    });
+                  }
+                  saveLocalTelemetry({
+                    metrics: p.metrics,
+                    priorities: p.priorities,
+                    matrix: p.matrix,
+                    briefs: p.briefs,
+                  });
+                  if (onComplete) {
+                    onComplete(p);
+                  }
                 } else if (data.type === "done") {
                   const durationSec = ((Date.now() - startTimeRef.current) / 1000).toFixed(1);
                   setLogs((prev) => [...prev, `✓ Pipeline completed successfully in ${durationSec}s.`]);
@@ -148,7 +167,7 @@ export default function PipelineSidebar({
                   if (onComplete) {
                     setTimeout(() => {
                       onComplete();
-                    }, 1000);
+                    }, 500);
                   }
                 } else if (data.type === "error") {
                   setLogs((prev) => [...prev, `[error] ${data.msg}`]);

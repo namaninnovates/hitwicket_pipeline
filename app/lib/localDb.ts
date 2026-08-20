@@ -288,6 +288,79 @@ export async function resetLocalDatabase(): Promise<void> {
 }
 
 /**
+ * Save computed active telemetry (metrics, priorities, matrix, briefs) locally.
+ */
+export interface LocalTelemetry {
+  metrics?: any;
+  priorities?: any;
+  matrix?: any;
+  analytics?: any[];
+  briefs?: Record<string, string>;
+  updatedAt: string;
+}
+
+export async function saveLocalTelemetry(telemetry: Partial<LocalTelemetry>): Promise<void> {
+  try {
+    const db = await openLocalDatabase();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_META, "readwrite");
+      const store = tx.objectStore(STORE_META);
+      const existingReq = store.get("active_telemetry");
+      existingReq.onsuccess = () => {
+        const current = existingReq.result?.value || {};
+        const merged = { ...current, ...telemetry, updatedAt: new Date().toISOString() };
+        store.put({ key: "active_telemetry", value: merged });
+      };
+      tx.oncomplete = () => {
+        try {
+          localStorage.setItem("hw_active_telemetry", JSON.stringify({ ...telemetry, updatedAt: new Date().toISOString() }));
+        } catch {}
+        resolve();
+      };
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch {
+    try {
+      const current = JSON.parse(localStorage.getItem("hw_active_telemetry") || "{}");
+      localStorage.setItem("hw_active_telemetry", JSON.stringify({ ...current, ...telemetry, updatedAt: new Date().toISOString() }));
+    } catch {}
+  }
+}
+
+export async function getLocalTelemetry(): Promise<LocalTelemetry | null> {
+  try {
+    const db = await openLocalDatabase();
+    return new Promise((resolve) => {
+      const tx = db.transaction(STORE_META, "readonly");
+      const store = tx.objectStore(STORE_META);
+      const req = store.get("active_telemetry");
+      req.onsuccess = () => {
+        const val = req.result?.value || null;
+        if (val) return resolve(val);
+        try {
+          resolve(JSON.parse(localStorage.getItem("hw_active_telemetry") || "null"));
+        } catch {
+          resolve(null);
+        }
+      };
+      req.onerror = () => {
+        try {
+          resolve(JSON.parse(localStorage.getItem("hw_active_telemetry") || "null"));
+        } catch {
+          resolve(null);
+        }
+      };
+    });
+  } catch {
+    try {
+      return JSON.parse(localStorage.getItem("hw_active_telemetry") || "null");
+    } catch {
+      return null;
+    }
+  }
+}
+
+/**
  * Export the user's local database as a downloadable JSON file.
  */
 export async function exportLocalDatabaseJson(): Promise<string> {

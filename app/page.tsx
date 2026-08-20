@@ -26,6 +26,7 @@ import CricketLoader from "./components/CricketLoader";
 import {
   getLocalReviews,
   saveLocalReviews,
+  saveLocalTelemetry,
   resetLocalDatabase,
   getAllHistorySnapshots,
   saveHistorySnapshot,
@@ -97,33 +98,59 @@ export default function Dashboard() {
     }
   };
 
-  const handlePipelineComplete = async () => {
+  const handlePipelineComplete = async (payload?: any) => {
     setIsPipelineOpen(false);
     setIsRefreshingData(true);
 
     try {
-      const [gamesRes, metricsRes, briefRes] = await Promise.all([
-        fetch("/api/games").then((r) => r.json()),
-        fetch("/api/metrics").then((r) => r.json()),
-        fetch(`/api/brief?game=${selectedGame}`).then((r) => r.json()).catch(() => ({})),
-      ]);
-      setGames(gamesRes.games || {});
+      if (payload && payload.metrics) {
+        await saveLocalTelemetry({
+          metrics: payload.metrics,
+          priorities: payload.priorities,
+          matrix: payload.matrix,
+          briefs: payload.briefs,
+        });
 
-      const activeMetrics = selectedGame === "all" ? metricsRes.overall : metricsRes.games?.[selectedGame];
-      if (activeMetrics) {
-        const newSnap: HistorySnapshot = {
-          id: "snap_" + Date.now(),
-          title: selectedGame === "all" ? "Global Market Synthesis" : `${gamesRes.games?.[selectedGame]?.name || selectedGame} Analysis`,
-          timestamp: new Date().toISOString(),
-          game: selectedGame,
-          totalReviews: activeMetrics.ingested || 0,
-          avgRating: activeMetrics.avgRating || 0,
-          positivePct: activeMetrics.sentimentDist?.positive || 0,
-          topPriority: activeMetrics.topPriority || undefined,
-          brief: briefRes?.brief || null,
-        };
-        await saveHistorySnapshot(newSnap);
-        setHistoryCount((prev) => prev + 1);
+        const activeM = selectedGame === "all" ? payload.metrics.overall : payload.metrics.games?.[selectedGame];
+        const activeB = payload.briefs?.[selectedGame] || payload.briefs?.["all"] || null;
+        if (activeM) {
+          const newSnap: HistorySnapshot = {
+            id: "snap_" + Date.now(),
+            title: selectedGame === "all" ? "Global Market Synthesis" : `${games[selectedGame]?.name || selectedGame} Analysis`,
+            timestamp: new Date().toISOString(),
+            game: selectedGame,
+            totalReviews: activeM.ingested || 0,
+            avgRating: activeM.avgRating || 0,
+            positivePct: activeM.posPct || 0,
+            brief: activeB,
+          };
+          await saveHistorySnapshot(newSnap);
+          setHistoryCount((prev) => prev + 1);
+        }
+      } else {
+        const [gamesRes, metricsRes, briefRes] = await Promise.all([
+          fetch("/api/games").then((r) => r.json()).catch(() => ({})),
+          fetch("/api/metrics").then((r) => r.json()).catch(() => ({})),
+          fetch(`/api/brief?game=${selectedGame}`).then((r) => r.json()).catch(() => ({})),
+        ]);
+        if (gamesRes?.games) setGames(gamesRes.games);
+
+        const activeMetrics = selectedGame === "all" ? metricsRes?.overall : metricsRes?.games?.[selectedGame];
+        if (activeMetrics) {
+          const newSnap: HistorySnapshot = {
+            id: "snap_" + Date.now(),
+            title: selectedGame === "all" ? "Global Market Synthesis" : `${gamesRes.games?.[selectedGame]?.name || selectedGame} Analysis`,
+            timestamp: new Date().toISOString(),
+            game: selectedGame,
+            totalReviews: activeMetrics.ingested || 0,
+            avgRating: activeMetrics.avgRating || 0,
+            positivePct: activeMetrics.posPct || 0,
+            topPriority: activeMetrics.topPriority || undefined,
+            brief: briefRes?.brief || null,
+          };
+          await saveHistorySnapshot(newSnap);
+          setHistoryCount((prev) => prev + 1);
+        }
       }
     } catch (e) {
       console.warn("Snapshot auto-save on pipeline complete:", e);
@@ -131,7 +158,7 @@ export default function Dashboard() {
       setRefreshKey((prev) => prev + 1);
       setTimeout(() => {
         setIsRefreshingData(false);
-      }, 1200);
+      }, 500);
     }
   };
 

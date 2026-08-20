@@ -880,6 +880,65 @@ def stream_pipeline(
             except Exception:
                 pass
 
+            # Prepare full telemetry payload for client local database storage
+            briefs_map = {}
+            for gk in target_games:
+                bf = OUTPUTS_DIR / f"founder_brief_{gk}.md"
+                if bf.exists():
+                    try:
+                        briefs_map[gk] = bf.read_text(encoding="utf-8")
+                    except Exception:
+                        pass
+            g_bf = OUTPUTS_DIR / "founder_brief_global.md"
+            if g_bf.exists():
+                try:
+                    briefs_map["all"] = g_bf.read_text(encoding="utf-8")
+                except Exception:
+                    pass
+
+            # Calculate metrics payload
+            df_all = pd.DataFrame(all_classified) if all_classified else pd.DataFrame()
+            metrics_payload = {"overall": {}, "games": {}}
+            if not df_all.empty:
+                def _calc_m(sub):
+                    if sub.empty:
+                        return {"ingested": 0, "avgRating": 0, "negPct": 0, "posPct": 0, "classified": 0}
+                    return {
+                        "ingested": len(sub),
+                        "avgRating": round(float(sub["rating"].mean()), 2),
+                        "negPct": round(float((sub["rating"] <= 2).mean() * 100), 1),
+                        "posPct": round(float((sub["rating"] >= 4).mean() * 100), 1),
+                        "classified": int(sub["primary_category"].notna().sum()) if "primary_category" in sub else len(sub)
+                    }
+                metrics_payload["overall"] = _calc_m(df_all)
+                game_ratings = []
+                for gk in GAMES.keys():
+                    gm = _calc_m(df_all[df_all["game"] == gk])
+                    metrics_payload["games"][gk] = gm
+                    game_ratings.append({"game": gk, "rating": gm["avgRating"], "negPct": gm["negPct"], "posPct": gm["posPct"]})
+                game_ratings.sort(key=lambda x: x["rating"], reverse=True)
+                rank_map = {item["game"]: i + 1 for i, item in enumerate(game_ratings)}
+                comp_df = df_all[df_all["game"] != "hitwicket"]
+                comp_m = _calc_m(comp_df)
+                hw_m = metrics_payload["games"].get("hitwicket", {})
+                metrics_payload["relative"] = {
+                    "competitor_avg_rating": comp_m["avgRating"],
+                    "competitor_neg_pct": comp_m["negPct"],
+                    "competitor_pos_pct": comp_m["posPct"],
+                    "hw_rating_delta": round(hw_m.get("avgRating", 0) - comp_m["avgRating"], 2),
+                    "hw_neg_delta": round(hw_m.get("negPct", 0) - comp_m["negPct"], 1),
+                    "hw_pos_delta": round(hw_m.get("posPct", 0) - comp_m["posPct"], 1),
+                    "rank_map": rank_map,
+                    "leaderboard": game_ratings
+                }
+                for gk, gd in metrics_payload["games"].items():
+                    gd["rank"] = rank_map.get(gk, 1)
+                    gd["vs_market_rating"] = round(gd["avgRating"] - metrics_payload["overall"]["avgRating"], 2)
+                    gd["vs_market_neg"] = round(gd["negPct"] - metrics_payload["overall"]["negPct"], 1)
+                    gd["vs_market_pos"] = round(gd["posPct"] - metrics_payload["overall"]["posPct"], 1)
+
+            yield f"data: {json.dumps({'type': 'complete_payload', 'payload': {'reviews': all_classified[:250], 'priorities': priority_by_game, 'matrix': matrix_data, 'briefs': briefs_map, 'metrics': metrics_payload}})}\n\n"
+
             yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
             yield f"data: {json.dumps({'type': 'log', 'msg': 'PIPELINE EXECUTION COMPLETE: All telemetry refreshed in local database.'})}\n\n"
             yield f"data: {json.dumps({'type': 'done', 'code': 0})}\n\n"

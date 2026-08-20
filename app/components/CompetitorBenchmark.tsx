@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Swords, AlertCircle, Compass, CheckCircle } from "lucide-react";
 import InfoTooltip from "./Tooltip";
+import { getLocalTelemetry } from "../lib/localDb";
 
 export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: number }) {
   const [matrixData, setMatrixData] = useState<any>(null);
@@ -8,14 +9,30 @@ export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: n
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    fetch("/api/matrix")
-      .then((res) => res.json())
-      .then((data) => {
-        setMatrixData(data.matrix || {});
-        setInsights(data.insights || []);
-        setLoading(false);
-      });
+    const loadMatrix = async () => {
+      // 1. Try local telemetry database first
+      try {
+        const local = await getLocalTelemetry();
+        if (local?.matrix && Object.keys(local.matrix).length > 0) {
+          setMatrixData(local.matrix);
+          setLoading(false);
+          return;
+        }
+      } catch {}
+
+      // 2. Fallback to API
+      setLoading(true);
+      fetch("/api/matrix")
+        .then((res) => res.json())
+        .then((data) => {
+          setMatrixData(data.matrix || {});
+          setInsights(data.insights || []);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    };
+
+    loadMatrix();
   }, [refreshKey]);
 
   if (loading) {
