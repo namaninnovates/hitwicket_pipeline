@@ -18,6 +18,8 @@ import ReviewExplorer from "./components/ReviewExplorer";
 import PipelineHistory from "./components/PipelineHistory";
 import PipelineSidebar from "./components/PipelineSidebar";
 import Documentation from "./components/Documentation";
+import Footer from "./components/Footer";
+import CricketLoader from "./components/CricketLoader";
 
 export default function Dashboard() {
   const [activeView, setActiveView] = useState<"dashboard" | "data" | "docs">("dashboard");
@@ -25,6 +27,8 @@ export default function Dashboard() {
   const [selectedGame, setSelectedGame] = useState("all");
   const [isPipelineOpen, setIsPipelineOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isRefreshingData, setIsRefreshingData] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     fetch("/api/games")
@@ -48,7 +52,8 @@ export default function Dashboard() {
       if (res.ok) {
         window.location.reload();
       } else {
-        alert("Failed to reset database.");
+        const err = await res.json().catch(() => ({}));
+        alert(err.detail || "Failed to reset database.");
       }
     } catch (e) {
       console.error("Error resetting data:", e);
@@ -58,93 +63,105 @@ export default function Dashboard() {
     }
   };
 
+  const handlePipelineComplete = () => {
+    setIsPipelineOpen(false);
+    setIsRefreshingData(true);
+    fetch("/api/games")
+      .then((res) => res.json())
+      .then((data) => {
+        setGames(data.games || {});
+      })
+      .finally(() => {
+        setRefreshKey((prev) => prev + 1);
+        setTimeout(() => {
+          setIsRefreshingData(false);
+        }, 1200);
+      });
+  };
+
   return (
-    <div className="min-h-screen text-slate-100 font-sans selection:bg-indigo-500 selection:text-white pb-20">
-      {/* Top Floating Glass Navbar */}
-      <header className="sticky top-0 z-40 w-full glass-panel border-b border-white/[0.08] bg-[#0b0f19]/80 backdrop-blur-2xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          {/* Left: Brand & Main View Tabs */}
-          <div className="flex items-center gap-5 lg:gap-7 shrink-0">
-            {/* Brand Logo & Tag */}
+    <div className="min-h-screen bg-[#080b14] text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30">
+      {/* Top Global Navigation Bar (Clean, Elegant Single-Line Navbar) */}
+      <header className="sticky top-0 z-40 glass-panel border-b border-white/[0.08] backdrop-blur-2xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4 overflow-x-auto no-scrollbar">
+          {/* Logo & Platform Title (Clean Typography, No Icon Box) */}
+          <div className="shrink-0">
             <div className="flex items-center gap-2">
-              <span className="text-base font-black tracking-tight text-white flex items-center gap-1.5">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-300 font-extrabold text-base">
-                  Hitwicket
-                </span>
-                <span className="text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-sm">
-                  Intel
-                </span>
+              <span className="font-extrabold text-sm tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-indigo-200">
+                HITWICKET
+              </span>
+              <span className="text-[0.65rem] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded-full">
+                v1.2 PRO
               </span>
             </div>
-
-            <div className="h-4 w-[1px] bg-white/10 hidden md:block" />
-
-            {/* Navigation Tabs */}
-            <nav className="hidden md:flex items-center gap-1 p-1 rounded-xl bg-black/40 border border-white/[0.06]">
-              <button
-                onClick={() => setActiveView("dashboard")}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
-                  activeView === "dashboard"
-                    ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-                }`}
-              >
-                <LayoutDashboard size={13} />
-                <span>Executive Intel</span>
-              </button>
-              <button
-                onClick={() => setActiveView("data")}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
-                  activeView === "data"
-                    ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-                }`}
-              >
-                <Database size={13} />
-                <span>Data Explorer</span>
-              </button>
-              <button
-                onClick={() => setActiveView("docs")}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
-                  activeView === "docs"
-                    ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-                }`}
-              >
-                <BookOpen size={13} />
-                <span>Documentation</span>
-              </button>
-            </nav>
+            <p className="text-[0.68rem] text-slate-400 font-medium">Review Intelligence &amp; Competitive Engine</p>
           </div>
 
-          {/* Right: Game Switcher & Actions */}
-          <div className="flex items-center gap-3 shrink-0">
-            {/* Game Selector Segmented Buttons (Only on dashboard view) */}
+          {/* Center Navigation Tabs */}
+          <nav className="flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/[0.08] shadow-inner shrink-0">
+            <button
+              onClick={() => setActiveView("dashboard")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeView === "dashboard"
+                  ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-indigo-400/30"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+              }`}
+            >
+              <LayoutDashboard size={14} />
+              <span>Intelligence</span>
+            </button>
+            <button
+              onClick={() => setActiveView("data")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeView === "data"
+                  ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-indigo-400/30"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+              }`}
+            >
+              <Database size={14} />
+              <span>Explorer</span>
+            </button>
+            <button
+              onClick={() => setActiveView("docs")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeView === "docs"
+                  ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-indigo-400/30"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+              }`}
+            >
+              <BookOpen size={14} />
+              <span>Documentation</span>
+            </button>
+          </nav>
+
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            {/* Quick Game Selector (Visible on Dashboard Tab) */}
             {activeView === "dashboard" && (
-              <div className="hidden sm:flex items-center p-1 rounded-xl bg-black/40 border border-white/[0.08] gap-1">
+              <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setSelectedGame("all")}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     selectedGame === "all"
-                      ? "bg-white/15 text-white shadow-sm border border-white/10"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                      ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold"
+                      : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  Global
+                  All (Global)
                 </button>
-                {Object.entries(games).map(([key, g]: any) => (
+                {Object.keys(games).map((key) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => setSelectedGame(key)}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer truncate max-w-[110px] ${
                       selectedGame === key
-                        ? "bg-indigo-600 text-white shadow-[0_0_12px_rgba(99,102,241,0.35)] border border-indigo-400/40"
-                        : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                        ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold"
+                        : "text-slate-400 hover:text-white"
                     }`}
                   >
-                    {g.name}
+                    {games[key]?.name?.split(" ")[0] || key}
                   </button>
                 ))}
               </div>
@@ -175,48 +192,63 @@ export default function Dashboard() {
       </header>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        {activeView === "dashboard" && (
-          <div className="space-y-8">
-            {/* 1. Global / Game Overview Metrics */}
-            <section>
-              <Overview selectedGame={selectedGame} games={games} />
-            </section>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 flex-1 w-full">
+        {isRefreshingData ? (
+          <div className="py-24 flex flex-col items-center justify-center min-h-[400px]">
+            <CricketLoader
+              label="Syncing Intelligence Telemetry..."
+              subtext="Loading newly ingested reviews, updated priority scores, and competitor matrices"
+              size="lg"
+            />
+          </div>
+        ) : (
+          <>
+            {activeView === "dashboard" && (
+              <div key={`dashboard-${refreshKey}`} className="space-y-8 animate-in fade-in duration-300">
+                {/* 1. Global / Game Overview Metrics */}
+                <section>
+                  <Overview selectedGame={selectedGame} games={games} />
+                </section>
 
-            {/* 2. 90-Second Executive Founder Brief (First thing below stats) */}
-            <section>
-              <FounderBrief selectedGame={selectedGame} />
-            </section>
+                {/* 2. 90-Second Executive Founder Brief */}
+                <section>
+                  <FounderBrief selectedGame={selectedGame} />
+                </section>
 
-            {/* 3. Priority Issues & Competitor Benchmark Matrix */}
-            <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              {/* Left Column: Top Prioritized Issues */}
-              <div className="lg:col-span-7 h-full">
-                <PriorityIssues selectedGame={selectedGame} />
+                {/* 3. Priority Issues & Competitor Benchmark Matrix */}
+                <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                  {/* Left Column: Top Prioritized Issues */}
+                  <div className="lg:col-span-7 h-full">
+                    <PriorityIssues selectedGame={selectedGame} />
+                  </div>
+
+                  {/* Right Column: Benchmark Matrix & Comparison Telemetry */}
+                  <div className="lg:col-span-5 space-y-8">
+                    <CompetitorBenchmark />
+                    <GameAnalytics />
+                  </div>
+                </section>
               </div>
+            )}
 
-              {/* Right Column: Benchmark Matrix & Comparison Telemetry */}
-              <div className="lg:col-span-5 space-y-8">
-                <CompetitorBenchmark />
-                <GameAnalytics />
+            {activeView === "data" && (
+              <div key={`data-${refreshKey}`} className="space-y-8 animate-in fade-in duration-300">
+                <ReviewExplorer games={games} />
+                <PipelineHistory />
               </div>
-            </section>
-          </div>
-        )}
+            )}
 
-        {activeView === "data" && (
-          <div className="space-y-8">
-            <ReviewExplorer games={games} />
-            <PipelineHistory />
-          </div>
-        )}
-
-        {activeView === "docs" && (
-          <div>
-            <Documentation />
-          </div>
+            {activeView === "docs" && (
+              <div key={`docs-${refreshKey}`}>
+                <Documentation />
+              </div>
+            )}
+          </>
         )}
       </main>
+
+      {/* Footer Attribution */}
+      <Footer />
 
       {/* Slide-out Execution Controller Panel */}
       {isPipelineOpen && (
@@ -225,10 +257,10 @@ export default function Dashboard() {
             className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
             onClick={() => setIsPipelineOpen(false)}
           />
-          <div className="relative w-full max-w-lg glass-panel h-full shadow-2xl border-l border-white/10 rounded-l-3xl overflow-hidden flex flex-col z-10 animate-in slide-in-from-right duration-300">
+          <div className="relative w-full sm:max-w-lg glass-panel h-full shadow-2xl border-l border-white/10 rounded-l-none sm:rounded-l-3xl overflow-hidden flex flex-col z-10 animate-in slide-in-from-right duration-300">
             <button
               onClick={() => setIsPipelineOpen(false)}
-              className="absolute top-5 right-5 z-20 text-slate-400 hover:text-white bg-black/60 p-2 rounded-full border border-white/10 hover:bg-white/10 transition-all cursor-pointer"
+              className="absolute top-4 sm:top-5 right-4 sm:right-5 z-20 text-slate-400 hover:text-white bg-black/60 p-2 rounded-full border border-white/10 hover:bg-white/10 transition-all cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -237,6 +269,7 @@ export default function Dashboard() {
               selectedGame={selectedGame}
               setSelectedGame={setSelectedGame}
               hideFilters
+              onComplete={handlePipelineComplete}
             />
           </div>
         </div>

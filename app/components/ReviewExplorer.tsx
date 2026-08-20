@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search, Filter, Download, Star, Database, Sparkles, RotateCcw, Calendar, Hash, Check } from "lucide-react";
 import InfoTooltip from "./Tooltip";
+import CricketLoader from "./CricketLoader";
 
 export default function ReviewExplorer({ games }: { games: any }) {
   const [reviews, setReviews] = useState<any[]>([]);
@@ -129,7 +130,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
           <div>
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center">
               <span>Review Explorer &amp; Interactive Filters</span>
-              <InfoTooltip content="Search, filter, inspect, and export all raw Google Play reviews stored in the local SQLite database." />
+              <InfoTooltip content="Search, filter, inspect, and export all raw Google Play reviews stored in the Neon PostgreSQL database." />
             </h2>
             <p className="text-xs text-slate-400">Click any filter button below to instantly slice and inspect raw feedback</p>
           </div>
@@ -155,7 +156,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
       </div>
 
       {/* Button-Based Multi-Criteria Filter Console */}
-      <div className="glass-panel rounded-3xl p-5 border border-white/[0.08] space-y-4">
+      <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-white/[0.08] space-y-4">
         {/* Search Query Input */}
         <form onSubmit={handleSearch} className="flex gap-2">
           <div className="flex-1 relative">
@@ -459,9 +460,12 @@ export default function ReviewExplorer({ games }: { games: any }) {
         </div>
 
         {loading ? (
-          <div className="p-16 text-center text-slate-400 flex flex-col items-center justify-center">
-            <div className="w-8 h-8 border-3 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-3" />
-            <span className="text-xs">Querying database...</span>
+          <div className="py-16">
+            <CricketLoader
+              label="Querying Review Intelligence Database..."
+              subtext="Filtering reviews by sentiment, star rating, and NLP taxonomy"
+              size="md"
+            />
           </div>
         ) : reviews.length === 0 ? (
           <div className="p-16 text-center text-slate-400 space-y-2">

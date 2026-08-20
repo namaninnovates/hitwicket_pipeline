@@ -25,7 +25,13 @@ Create a `.env` file in `hitwicket-review-intelligence/.env`:
 GEMINI_API_KEY=your_gemini_api_key
 GEMINI_MODEL=gemini-3.5-flash-lite
 GEMINI_FALLBACK_MODEL=gemini-3.6-flash
+
+# Optional: Neon Serverless PostgreSQL (For Vercel / Cloud deployment)
+# If omitted, the pipeline defaults to local SQLite (data/reviews.db)
+DATABASE_URL=postgresql://user:password@ep-xyz.us-east-2.aws.neon.tech/neondb?sslmode=require
 ```
+
+> **Dual Database Engine**: The pipeline works **100% offline out-of-the-box using local SQLite** (`data/reviews.db`). For cloud deployments on **Vercel**, simply set `DATABASE_URL` pointing to your **Neon Serverless Postgres** database, and the pipeline automatically switches to PostgreSQL with zero code changes.
 
 > **Hybrid AI Architecture**: Review classification runs on a fast, zero-cost deterministic rule-based NLP engine (0 API calls). Google Gemini (`gemini-3.5-flash-lite`) is invoked **exactly once per run** to synthesize the executive Founder Brief, costing **~$0.00026 per pipeline run (<$0.01/month)**.
 
@@ -128,18 +134,20 @@ hitwicket-review-intelligence/
 
 ## 📊 Priority Scoring Formula
 
-The priority score ($0 - 100$) is calculated deterministically from stored review data:
+The priority score (0–100) is calculated deterministically from stored review data:
 
-$$\text{Priority} = 0.30 \times \text{Frequency} + 0.25 \times \text{Severity} + 0.25 \times \text{BusinessImpact} + 0.20 \times \text{Trend}$$
+```
+Priority = (Frequency × 0.30) + (Severity × 0.25) + (Business Impact × 0.25) + (Trend × 0.20)
+```
 
 | Component | Weight | Normalization | Rationale |
 |---|---|---|---|
-| **Frequency** | **30%** | $\frac{\text{count}}{\text{total reviews}} \times 100$ | Problem volume indicates scale of player friction |
-| **Severity** | **25%** | $\frac{\text{avg severity} - 1}{4} \times 100$ | Severity (1-5) directly correlates with uninstall/churn risk |
-| **Business Impact** | **25%** | $\frac{\text{avg impact} - 1}{4} \times 100$ | Separates cosmetic bugs from revenue/retention threats |
-| **Trend** | **20%** | $\frac{\Delta\% + 100}{3}$ | Identifies emerging crises (Current 30d vs Prior 30d) |
+| **Frequency** | **30%** | `(Count ÷ Total Reviews) × 100` | Problem volume indicates scale of player friction |
+| **Severity** | **25%** | `((Avg Severity − 1) ÷ 4) × 100` | Severity (1–5) directly correlates with uninstall/churn risk |
+| **Business Impact** | **25%** | `((Avg Impact − 1) ÷ 4) × 100` | Separates cosmetic bugs from revenue/retention threats |
+| **Trend** | **20%** | `(% Change + 100) ÷ 3` | Identifies emerging crises (Current 30d vs Prior 30d) |
 
-*Small-sample guard: If category volume $< 5$ in current or prior period, trend is set to neutral (50) and flagged.*
+*Small-sample guard: If category volume is fewer than 5 reviews in the current or prior period, trend is set to neutral (50) and flagged.*
 
 See [SCORING.md](SCORING.md) for full mathematical documentation and worked examples.
 
@@ -180,8 +188,8 @@ See [TAXONOMY.md](TAXONOMY.md) for definitions and exclusion rationale.
 ## ⚖️ Review Sampling Strategy (Equal vs. Dynamic)
 
 * **Equal Sample Size (Recommended for Benchmarking)**: Setting equal sample sizes (e.g., 150–300 reviews per game) provides balanced statistical variance, stable error margins, and fair side-by-side comparison across competitor titles.
-* **Normalized Mathematics**: If games have unequal review volumes, the scoring formula evaluates **Share of Voice** ($\text{Frequency} = \frac{\text{Count}}{\text{Total Reviews}} \times 100$) rather than raw counts, preventing high-volume games from distorting priorities.
-* **Small Sample Safeguard**: Categories with $<5$ reviews automatically revert to neutral trend scores (`insufficient_sample`).
+* **Normalized Mathematics**: If games have unequal review volumes, the scoring formula evaluates **Share of Voice** (`Frequency = (Count ÷ Total Reviews) × 100`) rather than raw counts, preventing high-volume games from distorting priorities.
+* **Small Sample Safeguard**: Categories with fewer than 5 reviews automatically revert to neutral trend scores (`insufficient_sample`).
 
 ---
 

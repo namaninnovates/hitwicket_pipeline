@@ -26,7 +26,13 @@ LOGS_DIR.mkdir(exist_ok=True)
 # ─────────────────────────────────────────────
 # Database
 # ─────────────────────────────────────────────
+DATABASE_URL = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL") or os.environ.get("NEON_DATABASE_URL")
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+IS_POSTGRES = bool(DATABASE_URL)
 DB_PATH = DATA_DIR / "reviews.db"
+
 
 # ─────────────────────────────────────────────
 # Games to track

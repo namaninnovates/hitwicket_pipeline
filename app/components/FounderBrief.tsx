@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { RefreshCw, FileText, Sparkles, Copy, Check, Globe } from "lucide-react";
 import InfoTooltip from "./Tooltip";
+import CricketLoader from "./CricketLoader";
 
 export default function FounderBrief({ selectedGame = "all" }: { selectedGame?: string }) {
   const [brief, setBrief] = useState("");
@@ -33,7 +35,7 @@ export default function FounderBrief({ selectedGame = "all" }: { selectedGame?: 
   };
 
   return (
-    <div className="glass-panel rounded-3xl p-6 lg:p-8 relative overflow-hidden">
+    <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 relative overflow-hidden">
       {/* Background glow orb */}
       <div className="absolute -right-20 -top-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -56,6 +58,7 @@ export default function FounderBrief({ selectedGame = "all" }: { selectedGame?: 
                       ? "Cross-game comparative synthesis comparing Hitwicket, Tennis Clash, and Baseball Clash across ratings, complaint velocities, competitor vulnerabilities, and market opportunities."
                       : "Synthesized from prioritized review telemetry, competitor deltas, and user friction patterns into a rapid 90-second executive decision memo."
                   }
+                  position="bottom"
                 />
               </h2>
               <span
@@ -98,22 +101,25 @@ export default function FounderBrief({ selectedGame = "all" }: { selectedGame?: 
       </div>
 
       {loading ? (
-        <div className="p-12 text-center text-slate-400 space-y-3">
-          <RefreshCw size={24} className="animate-spin mx-auto text-indigo-400" />
-          <p className="text-sm">Synthesizing executive brief from latest telemetry...</p>
+        <div className="py-12">
+          <CricketLoader
+            label="Synthesizing Executive Brief with Gemini..."
+            subtext="Analyzing 90-day review trajectories and competitor matrices"
+            size="md"
+          />
         </div>
       ) : brief ? (
-        <div className="glass-card rounded-2xl p-6 lg:p-8 border border-white/[0.08] bg-black/40 text-slate-200 leading-relaxed text-sm">
+        <div className="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/[0.08] bg-black/40 text-slate-200 leading-relaxed text-sm">
           <div className="prose prose-invert prose-indigo max-w-none prose-headings:text-white prose-headings:font-bold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-p:text-slate-300 prose-li:text-slate-300 prose-strong:text-indigo-200 prose-code:text-indigo-300 prose-code:bg-white/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md">
-            <ReactMarkdown>{brief}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{brief}</ReactMarkdown>
           </div>
         </div>
       ) : (
         <div className="p-8 text-center glass-card rounded-2xl border-dashed border-amber-500/30 bg-amber-500/5 text-amber-300">
           <Sparkles className="mx-auto mb-2 text-amber-400" size={24} />
-          <p className="font-semibold text-white">No brief generated yet</p>
+          <p className="font-semibold text-white">Database is currently empty — No brief generated</p>
           <p className="text-xs text-slate-400 mt-1">
-            Run the &quot;Score &amp; Brief Only&quot; stage in the pipeline controller to generate your first 90-second report.
+            Click &quot;Setup Pipeline&quot; in the top right to ingest reviews and synthesize your 90-second executive intelligence memo.
           </p>
         </div>
       )}

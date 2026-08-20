@@ -22,15 +22,21 @@ PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(PROJECT_ROOT))
 
 try:
-    from src.config import GAMES, DB_PATH, OUTPUTS_DIR, CATEGORIES
+    from src.config import GAMES, DB_PATH, OUTPUTS_DIR, CATEGORIES, DATABASE_URL, IS_POSTGRES
     from src.scoring.priority import compute_priority_scores
     from src.analysis.competitor import build_competitor_matrix, identify_hitwicket_specific_issues
+    from src.ingestion.storage import get_connection as get_db_connection, is_postgres_connection, initialize_db
 except ImportError as e:
     print(f"Warning: Could not import src modules: {e}")
     GAMES = {}
     DB_PATH = Path("data/reviews.db")
     OUTPUTS_DIR = Path("outputs")
     CATEGORIES = []
+    DATABASE_URL = None
+    IS_POSTGRES = False
+    get_db_connection = None
+    is_postgres_connection = lambda c: False
+    initialize_db = lambda: None
 
 # ─────────────────────────────────────────────
 # Security Middleware & Headers
@@ -108,9 +114,13 @@ class ResetDbPayload(BaseModel):
 # Database Helpers
 # ─────────────────────────────────────────────
 def get_connection():
-    if not DB_PATH.exists():
-        return None
-    return sqlite3.connect(DB_PATH)
+    if get_db_connection:
+        try:
+            return get_db_connection()
+        except Exception as e:
+            logger.error(f"Failed to connect to Neon PostgreSQL: {e}")
+            return None
+    return None
 
 def load_data_df():
     conn = get_connection()
@@ -153,10 +163,18 @@ def reset_database(payload: ResetDbPayload):
     if not conn:
         raise HTTPException(status_code=404, detail="Database not found")
     try:
-        with conn:
-            conn.execute("DELETE FROM classifications")
-            conn.execute("DELETE FROM reviews")
-            conn.execute("DELETE FROM pipeline_runs")
+        if is_postgres_connection(conn):
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM classifications;")
+                cur.execute("DELETE FROM reviews;")
+                cur.execute("DELETE FROM pipeline_runs;")
+        else:
+            with conn:
+                conn.execute("DELETE FROM classifications")
+                conn.execute("DELETE FROM reviews")
+                conn.execute("DELETE FROM pipeline_runs")
+            
+            conn.isolation_level = None
             conn.execute("VACUUM")
 
         # Also purge any cached/generated briefs from outputs directory
@@ -480,10 +498,19 @@ def get_latest_brief(game: str = "all"):
             detail=f"Invalid game parameter '{game}'. Allowed: {list(GAMES.keys())} or 'all'"
         )
 
+    # 1. First check if DB is empty
+    df, _ = load_data_df()
+    if df.empty or len(df[df["primary_category"].notna()]) == 0:
+        return {"brief": None, "content": None, "game": sanitized_game, "status": "empty"}
+
+    classified_records = df[df["primary_category"].notna()].to_dict("records")
+    if not classified_records:
+        return {"brief": None, "content": None, "game": sanitized_game, "status": "empty"}
+
     outputs_resolved = OUTPUTS_DIR.resolve()
     outputs_resolved.mkdir(parents=True, exist_ok=True)
 
-    # Check if a game-specific or global brief already exists
+    # 2. Check if a game-specific or global brief already exists for current dataset
     if sanitized_game == "all":
         target_files = [f for f in outputs_resolved.glob("**/founder_brief_global.md") if f.is_file()] or \
                        [f for f in outputs_resolved.glob("**/founder_brief_all.md") if f.is_file()]
@@ -495,57 +522,49 @@ def get_latest_brief(game: str = "all"):
         try:
             target_file.resolve().relative_to(outputs_resolved)
             content = target_file.read_text(encoding="utf-8")
-            return {"brief": content, "content": content, "game": sanitized_game}
+            if "0 reviews analyzed" not in content:
+                return {"brief": content, "content": content, "game": sanitized_game}
         except Exception:
             pass
 
-    # If brief doesn't exist yet, generate on demand from database
+    # 3. If brief doesn't exist yet, generate on demand from active database records
     try:
-        df, _ = load_data_df()
-        if not df.empty:
-            classified_records = df[df["primary_category"].notna()].to_dict("records")
-            if classified_records:
-                from src.scoring.priority import compute_priority_scores
-                from src.analysis.competitor import build_competitor_matrix
-                from src.reporting.brief import generate_founder_brief, generate_global_market_brief
+        from src.scoring.priority import compute_priority_scores
+        from src.analysis.competitor import build_competitor_matrix
+        from src.reporting.brief import generate_founder_brief, generate_global_market_brief
 
-                matrix_data = build_competitor_matrix(classified_records)
+        matrix_data = build_competitor_matrix(classified_records)
 
-                if sanitized_game == "all":
-                    priority_by_game = {
-                        g: compute_priority_scores(classified_records, game=g)
-                        for g in GAMES.keys()
-                    }
-                    brief_path = generate_global_market_brief(
-                        all_classified=classified_records,
-                        priority_by_game=priority_by_game,
-                        matrix_data=matrix_data,
-                        output_dir=OUTPUTS_DIR,
-                    )
-                else:
-                    game_reviews = [r for r in classified_records if r.get("game") == sanitized_game]
-                    priorities = compute_priority_scores(classified_records, game=sanitized_game)
-                    brief_path = generate_founder_brief(
-                        game_key=sanitized_game,
-                        classified_reviews=game_reviews,
-                        priority_scores=priorities,
-                        matrix_data=matrix_data,
-                        output_dir=OUTPUTS_DIR,
-                    )
+        if sanitized_game == "all":
+            priority_by_game = {
+                g: compute_priority_scores(classified_records, game=g)
+                for g in GAMES.keys()
+            }
+            brief_path = generate_global_market_brief(
+                all_classified=classified_records,
+                priority_by_game=priority_by_game,
+                matrix_data=matrix_data,
+                output_dir=OUTPUTS_DIR,
+            )
+        else:
+            game_reviews = [r for r in classified_records if r.get("game") == sanitized_game]
+            if not game_reviews:
+                return {"brief": None, "content": None, "game": sanitized_game, "status": "empty"}
+            priorities = compute_priority_scores(classified_records, game=sanitized_game)
+            brief_path = generate_founder_brief(
+                game_key=sanitized_game,
+                classified_reviews=game_reviews,
+                priority_scores=priorities,
+                matrix_data=matrix_data,
+                output_dir=OUTPUTS_DIR,
+            )
 
-                content = brief_path.read_text(encoding="utf-8")
-                return {"brief": content, "content": content, "game": sanitized_game}
+        content = brief_path.read_text(encoding="utf-8")
+        return {"brief": content, "content": content, "game": sanitized_game}
     except Exception as e:
         logger.error(f"Failed to generate on-demand brief for {sanitized_game}: {e}")
 
-    # Fallback to any brief file if available
-    brief_files = [f for f in outputs_resolved.glob("**/founder_brief_*.md") if f.is_file()]
-    if brief_files:
-        target_file = sorted(brief_files)[-1]
-        content = target_file.read_text(encoding="utf-8")
-        return {"brief": content, "content": content, "game": sanitized_game}
-
-    return {"brief": None, "content": None, "game": sanitized_game}
+    return {"brief": None, "content": None, "game": sanitized_game, "status": "empty"}
 
 @app.get("/api/docs/{doc_name}")
 def get_doc(doc_name: str):
@@ -695,4 +714,10 @@ def stop_pipeline():
             pass
             
     return {"status": "idle", "message": "No active pipeline process was running"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("api.index:app", host="127.0.0.1", port=8000, reload=True)
+
 

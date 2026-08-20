@@ -27,7 +27,7 @@ export default function GameAnalytics() {
   if (analytics.length < 2) return null;
 
   return (
-    <div className="glass-panel rounded-3xl p-6 lg:p-8 flex flex-col">
+    <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col">
       <div className="flex items-center gap-2.5 mb-5">
         <div className="p-1.5 rounded-lg bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20">
           <BarChart3 size={18} />

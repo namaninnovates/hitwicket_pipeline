@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { History, CheckCircle2, XCircle, Clock, Hash, Layers } from "lucide-react";
+import CricketLoader from "./CricketLoader";
 
 export default function PipelineHistory() {
   const [runs, setRuns] = useState<any[]>([]);
@@ -29,9 +30,12 @@ export default function PipelineHistory() {
 
       <div className="glass-panel rounded-3xl overflow-hidden flex-1 flex flex-col border border-white/[0.08]">
         {loading ? (
-          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center">
-            <div className="w-8 h-8 border-3 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-3" />
-            <span className="text-xs">Loading execution history...</span>
+          <div className="py-12">
+            <CricketLoader
+              label="Loading Pipeline Audit Log..."
+              subtext="Fetching historical telemetry runs from database"
+              size="md"
+            />
           </div>
         ) : runs.length === 0 ? (
           <div className="p-12 text-center text-slate-400 text-xs">

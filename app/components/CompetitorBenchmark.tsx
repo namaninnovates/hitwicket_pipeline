@@ -42,7 +42,7 @@ export default function CompetitorBenchmark() {
   ];
 
   return (
-    <div className="glass-panel rounded-3xl p-6 lg:p-8 flex flex-col">
+    <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
           <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">

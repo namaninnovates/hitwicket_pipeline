@@ -1,0 +1,50 @@
+import React from "react";
+import { Code2, ExternalLink, ShieldAlert } from "lucide-react";
+
+export default function Footer() {
+  return (
+    <footer className="mt-16 border-t border-white/[0.08] bg-black/40 backdrop-blur-xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-3">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+          {/* Left: Branding & Assignment Note */}
+          <div className="flex items-center gap-2">
+            <span className="text-base">🏏</span>
+            <span className="font-semibold text-slate-300">Hitwicket Review Intelligence</span>
+            <span className="text-slate-600 hidden sm:inline">•</span>
+            <span className="text-slate-400">
+              Developed by{" "}
+              <a
+                href="https://github.com/namaninnovates/hitwicket_pipeline"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-indigo-400 hover:text-indigo-300 underline underline-offset-4 decoration-indigo-500/40 hover:decoration-indigo-300 transition-colors inline-flex items-center gap-1 cursor-pointer"
+              >
+                <span>namaninnovates</span>
+                <ExternalLink size={11} className="inline opacity-70" />
+              </a>{" "}
+              as a part of assignment
+            </span>
+          </div>
+
+          {/* Right: Tech & Telemetry Badge */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[0.7rem] text-slate-400">
+              <Code2 size={12} className="text-indigo-400" />
+              <span>Next.js 16 • FastAPI • Neon PostgreSQL</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[0.7rem] text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>System Online</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Disclaimer Line */}
+        <div className="pt-2 border-t border-white/[0.04] flex items-center justify-center sm:justify-start gap-1.5 text-[0.7rem] text-slate-500">
+          <ShieldAlert size={12} className="text-amber-400/70 shrink-0" />
+          <span>Notice: Only for experimental &amp; evaluation purposes. Not affiliated with, endorsed by, or associated with Hitwicket.</span>
+        </div>
+      </div>
+    </footer>
+  );
+}

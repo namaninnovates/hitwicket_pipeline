@@ -38,7 +38,7 @@ export default function PriorityIssues({ selectedGame }: { selectedGame: string 
   };
 
   return (
-    <div className="glass-panel rounded-3xl p-6 lg:p-8 flex flex-col h-full">
+    <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col h-full">
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-2">

@@ -20,7 +20,13 @@ import {
 } from "lucide-react";
 import InfoTooltip from "./Tooltip";
 
-export default function PipelineSidebar({ games, selectedGame, setSelectedGame, hideFilters = false }: any) {
+export default function PipelineSidebar({
+  games,
+  selectedGame,
+  setSelectedGame,
+  hideFilters = false,
+  onComplete,
+}: any) {
   const [maxRevs, setMaxRevs] = useState(150);
   const [windowDays, setWindowDays] = useState(90);
   const [selectedGameList, setSelectedGameList] = useState<string[]>(["hitwicket", "tennis_clash", "baseball_clash"]);
@@ -126,6 +132,11 @@ export default function PipelineSidebar({ games, selectedGame, setSelectedGame, 
                     timestamp: new Date().toLocaleTimeString(),
                   });
                   fetchDbStatus();
+                  if (onComplete) {
+                    setTimeout(() => {
+                      onComplete();
+                    }, 1000);
+                  }
                 } else if (data.type === "error") {
                   setLogs((prev) => [...prev, `[error] ${data.msg}`]);
                   setStatus("error");
@@ -485,7 +496,7 @@ export default function PipelineSidebar({ games, selectedGame, setSelectedGame, 
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 uppercase tracking-wider">
               <Database size={14} className="text-indigo-400" />
               <span>Telemetry Database State</span>
-              <InfoTooltip content="SQLite stores cumulative reviews across all past runs. If you want only reviews from your new run, click 'Reset DB & Clean Fetch'." />
+              <InfoTooltip content="Neon PostgreSQL stores cumulative reviews across all past runs. If you want only reviews from your new run, click 'Reset DB & Clean Fetch'." />
             </div>
             <button
               type="button"

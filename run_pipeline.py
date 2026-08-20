@@ -37,11 +37,19 @@ from src.config import (
     MAX_REVIEWS_PER_GAME,
     GEMINI_API_KEY,
 )
-from src.ingestion.storage import initialize_db, get_connection, insert_review, log_pipeline_run, get_unclassified_reviews, get_classified_reviews
+from src.ingestion.storage import (
+    initialize_db,
+    get_connection,
+    insert_review,
+    insert_classification,
+    log_pipeline_run,
+    get_unclassified_reviews,
+    get_classified_reviews,
+    purge_game_reviews,
+)
 from src.ingestion.fetcher import fetch_all_games
 from src.cleaning.cleaner import clean_batch
 from src.classification.classifier import classify_batch, get_active_model_name
-from src.ingestion.storage import insert_classification
 from src.scoring.priority import compute_all_games_priority, format_priority_for_display
 from src.analysis.competitor import build_competitor_matrix, format_competitor_matrix
 from src.reporting.brief import generate_founder_brief, generate_global_market_brief
@@ -95,11 +103,7 @@ def stage_ingest(game_keys: list[str], max_reviews: int, window_days: int, sourc
         for game_key, raw_reviews in raw_by_game.items():
             if fresh:
                 logger.info(f"[{GAMES[game_key]['name']}] Fresh mode: Purging prior records for {game_key}")
-                conn.execute(
-                    "DELETE FROM classifications WHERE review_db_id IN (SELECT id FROM reviews WHERE game = ?)",
-                    (game_key,)
-                )
-                conn.execute("DELETE FROM reviews WHERE game = ?", (game_key,))
+                purge_game_reviews(conn, game_key)
 
             stats["reviews_fetched"] += len(raw_reviews)
 
