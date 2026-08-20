@@ -201,15 +201,27 @@ def reset_database(payload: ResetDbPayload):
             except Exception:
                 pass
 
-        with conn:
-            conn.execute("DELETE FROM classifications")
-            conn.execute("DELETE FROM reviews")
-            conn.execute("DELETE FROM pipeline_runs")
-        
         try:
-            conn.execute("VACUUM")
-        except Exception:
-            pass
+            from src.ingestion.storage import is_postgres_connection
+            if is_postgres_connection(conn):
+                with conn.cursor() as cur:
+                    cur.execute("DELETE FROM classifications")
+                    cur.execute("DELETE FROM reviews")
+                    cur.execute("DELETE FROM pipeline_runs")
+                    cur.execute("DELETE FROM history_snapshots")
+            else:
+                with conn:
+                    conn.execute("DELETE FROM classifications")
+                    conn.execute("DELETE FROM reviews")
+                    conn.execute("DELETE FROM pipeline_runs")
+                    conn.execute("DELETE FROM history_snapshots")
+                
+                try:
+                    conn.execute("VACUUM")
+                except Exception:
+                    pass
+        except Exception as e:
+            logger.error(f"Failed to clear tables: {e}")
 
         # Safely attempt to purge generated briefs from outputs directory if writable
         try:
@@ -1008,3 +1020,47 @@ if __name__ == "__main__":
     uvicorn.run("api.index:app", host="127.0.0.1", port=8000, reload=True)
 
 
+
+from typing import Dict, Any
+
+@app.get("/api/history")
+def get_history():
+    conn = get_connection()
+    if not conn: return {"snapshots": []}
+    from src.ingestion.storage import get_history_snapshots
+    try:
+        snaps = get_history_snapshots(conn)
+        return {"snapshots": snaps}
+    except Exception as e:
+        logger.error(f"Error fetching history: {e}")
+        return {"snapshots": []}
+    finally:
+        conn.close()
+
+@app.post("/api/history")
+def save_history(snapshot: Dict[str, Any]):
+    conn = get_connection()
+    if not conn: return {"status": "error"}
+    from src.ingestion.storage import insert_history_snapshot
+    try:
+        insert_history_snapshot(conn, snapshot)
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Error saving history: {e}")
+        return {"status": "error"}
+    finally:
+        conn.close()
+
+@app.delete("/api/history/{snapshot_id}")
+def delete_history(snapshot_id: str):
+    conn = get_connection()
+    if not conn: return {"status": "error"}
+    from src.ingestion.storage import delete_history_snapshot
+    try:
+        delete_history_snapshot(conn, snapshot_id)
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Error deleting history: {e}")
+        return {"status": "error"}
+    finally:
+        conn.close()

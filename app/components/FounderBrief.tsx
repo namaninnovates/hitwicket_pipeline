@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import { RefreshCw, FileText, Sparkles, Copy, Check, Globe } from "lucide-react";
 import InfoTooltip from "./Tooltip";
 import CricketLoader from "./CricketLoader";
-import { saveLocalBrief, getLocalBrief, saveHistorySnapshot } from "../lib/localDb";
+
 
 // Client-side in-memory cache across tab switches (0ms instant loading)
 let briefMemoryCache: Record<string, string> = {};
@@ -33,15 +33,6 @@ export default function FounderBrief({
       // 1. Instant return from in-memory cache (0ms)
       if (briefMemoryCache[gameKey]) {
         setBrief(briefMemoryCache[gameKey]);
-        setLoading(false);
-        return;
-      }
-
-      // 2. Instant return from local IndexedDB / storage (0ms)
-      const localSaved = await getLocalBrief(gameKey);
-      if (localSaved) {
-        briefMemoryCache[gameKey] = localSaved;
-        setBrief(localSaved);
         setLoading(false);
         return;
       }

@@ -23,15 +23,17 @@ import Documentation from "./components/Documentation";
 import Footer from "./components/Footer";
 import CricketLoader from "./components/CricketLoader";
 
-import {
-  getLocalReviews,
-  saveLocalReviews,
-  saveLocalTelemetry,
-  resetLocalDatabase,
-  getAllHistorySnapshots,
-  saveHistorySnapshot,
-  HistorySnapshot,
-} from "./lib/localDb";
+export interface HistorySnapshot {
+  id: string;
+  title: string;
+  timestamp: string;
+  game: string;
+  totalReviews: number;
+  avgRating: number;
+  positivePct: number;
+  topPriority?: string;
+  brief?: string | null;
+}
 
 export default function Dashboard() {
   const [activeView, setActiveView] = useState<"dashboard" | "data" | "docs">("dashboard");
@@ -50,27 +52,16 @@ export default function Dashboard() {
       .then((res) => res.json())
       .then((data) => setGames(data.games || {}));
 
-    // Check & hydrate client-side local database on first visit
-    getLocalReviews().then(async (localReviews) => {
-      if (localReviews.length === 0) {
-        try {
-          const res = await fetch("/api/seed");
-          if (res.ok) {
-            const data = await res.json();
-            if (data.reviews && data.reviews.length > 0) {
-              await saveLocalReviews(data.reviews);
-              setRefreshKey((prev) => prev + 1);
-            }
-          }
-        } catch (e) {
-          console.warn("Auto-seed local database skipped:", e);
-        }
+    // Check & hydrate backend database on first visit if empty
+    fetch("/api/metrics").then((r) => r.json()).then((data) => {
+      if (!data.overall?.ingested) {
+        fetch("/api/seed").then(() => setRefreshKey((prev) => prev + 1)).catch(() => {});
       }
     });
 
     // Load history snapshots count
-    getAllHistorySnapshots().then((snaps) => {
-      setHistoryCount(snaps.length);
+    fetch("/api/history").then((r) => r.json()).then((d) => {
+      setHistoryCount(d.snapshots?.length || 0);
     });
   }, []);
 
@@ -82,11 +73,8 @@ export default function Dashboard() {
 
     setIsResetting(true);
     try {
-      await resetLocalDatabase();
       await fetch("/api/database/reset", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ confirm: "RESET" }),
+        method: "DELETE",
       }).catch(() => {});
 
       window.location.reload();
@@ -103,54 +91,33 @@ export default function Dashboard() {
     setIsRefreshingData(true);
 
     try {
-      if (payload && payload.metrics) {
-        await saveLocalTelemetry({
-          metrics: payload.metrics,
-          priorities: payload.priorities,
-          matrix: payload.matrix,
-          briefs: payload.briefs,
+      // Data is already saved in Postgres by the backend pipeline
+      const [gamesRes, metricsRes, briefRes] = await Promise.all([
+        fetch("/api/games").then((r) => r.json()).catch(() => ({})),
+        fetch("/api/metrics").then((r) => r.json()).catch(() => ({})),
+        fetch(`/api/brief?game=${selectedGame}`).then((r) => r.json()).catch(() => ({})),
+      ]);
+      if (gamesRes?.games) setGames(gamesRes.games);
+
+      const activeMetrics = selectedGame === "all" ? metricsRes?.overall : metricsRes?.games?.[selectedGame];
+      if (activeMetrics) {
+        const newSnap: HistorySnapshot = {
+          id: "snap_" + Date.now(),
+          title: selectedGame === "all" ? "Global Market Synthesis" : `${gamesRes?.games?.[selectedGame]?.name || selectedGame} Analysis`,
+          timestamp: new Date().toISOString(),
+          game: selectedGame,
+          totalReviews: activeMetrics.ingested || 0,
+          avgRating: activeMetrics.avgRating || 0,
+          positivePct: activeMetrics.posPct || 0,
+          topPriority: activeMetrics.topPriority || undefined,
+          brief: briefRes?.brief || null,
+        };
+        await fetch("/api/history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newSnap)
         });
-
-        const activeM = selectedGame === "all" ? payload.metrics.overall : payload.metrics.games?.[selectedGame];
-        const activeB = payload.briefs?.[selectedGame] || payload.briefs?.["all"] || null;
-        if (activeM) {
-          const newSnap: HistorySnapshot = {
-            id: "snap_" + Date.now(),
-            title: selectedGame === "all" ? "Global Market Synthesis" : `${games[selectedGame]?.name || selectedGame} Analysis`,
-            timestamp: new Date().toISOString(),
-            game: selectedGame,
-            totalReviews: activeM.ingested || 0,
-            avgRating: activeM.avgRating || 0,
-            positivePct: activeM.posPct || 0,
-            brief: activeB,
-          };
-          await saveHistorySnapshot(newSnap);
-          setHistoryCount((prev) => prev + 1);
-        }
-      } else {
-        const [gamesRes, metricsRes, briefRes] = await Promise.all([
-          fetch("/api/games").then((r) => r.json()).catch(() => ({})),
-          fetch("/api/metrics").then((r) => r.json()).catch(() => ({})),
-          fetch(`/api/brief?game=${selectedGame}`).then((r) => r.json()).catch(() => ({})),
-        ]);
-        if (gamesRes?.games) setGames(gamesRes.games);
-
-        const activeMetrics = selectedGame === "all" ? metricsRes?.overall : metricsRes?.games?.[selectedGame];
-        if (activeMetrics) {
-          const newSnap: HistorySnapshot = {
-            id: "snap_" + Date.now(),
-            title: selectedGame === "all" ? "Global Market Synthesis" : `${gamesRes.games?.[selectedGame]?.name || selectedGame} Analysis`,
-            timestamp: new Date().toISOString(),
-            game: selectedGame,
-            totalReviews: activeMetrics.ingested || 0,
-            avgRating: activeMetrics.avgRating || 0,
-            positivePct: activeMetrics.posPct || 0,
-            topPriority: activeMetrics.topPriority || undefined,
-            brief: briefRes?.brief || null,
-          };
-          await saveHistorySnapshot(newSnap);
-          setHistoryCount((prev) => prev + 1);
-        }
+        setHistoryCount((prev) => prev + 1);
       }
     } catch (e) {
       console.warn("Snapshot auto-save on pipeline complete:", e);

@@ -1,24 +1,14 @@
 import { useState, useEffect } from "react";
 import { Inbox, Star, ThumbsDown, ThumbsUp, CheckCircle2, TrendingUp, Sparkles, Trophy, ArrowUpRight, ArrowDownRight, Scale } from "lucide-react";
 import InfoTooltip from "./Tooltip";
-import { getLocalTelemetry } from "../lib/localDb";
+
 
 export default function Overview({ selectedGame, games = {}, refreshKey }: any) {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchMetrics = async () => {
-    // 1. Try browser local database first (0ms, 100% reliable)
-    try {
-      const local = await getLocalTelemetry();
-      if (local?.metrics?.overall?.ingested) {
-        setMetrics(local.metrics);
-        setLoading(false);
-        return;
-      }
-    } catch {}
-
-    // 2. Fallback to API
+    // Fetch directly from API
     fetch("/api/metrics")
       .then((res) => res.json())
       .then((data) => {

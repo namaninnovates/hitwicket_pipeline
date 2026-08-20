@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, AlertTriangle, Flame, TrendingUp, ShieldAlert, Quote, Star, Gamepad2 } from "lucide-react";
 import InfoTooltip from "./Tooltip";
-import { getLocalTelemetry } from "../lib/localDb";
+
 
 export default function PriorityIssues({ selectedGame, refreshKey = 0 }: { selectedGame: string; refreshKey?: number }) {
   const [priorities, setPriorities] = useState<any[]>([]);
@@ -10,28 +10,8 @@ export default function PriorityIssues({ selectedGame, refreshKey = 0 }: { selec
 
   useEffect(() => {
     const loadPriorities = async () => {
-      // 1. Try local telemetry database first
-      try {
-        const local = await getLocalTelemetry();
-        if (local?.priorities) {
-          let list: any[] = [];
-          if (selectedGame === "all") {
-            Object.values(local.priorities).forEach((arr: any) => {
-              if (Array.isArray(arr)) list.push(...arr);
-            });
-            list.sort((a, b) => (b.priority_score || 0) - (a.priority_score || 0));
-          } else if (local.priorities[selectedGame]) {
-            list = local.priorities[selectedGame];
-          }
-          if (list.length > 0) {
-            setPriorities(list);
-            setLoading(false);
-            return;
-          }
-        }
-      } catch {}
-
-      // 2. Fallback to API
+      // Fetch directly from API
+      setLoading(true);
       setLoading(true);
       fetch(`/api/priorities?game=${selectedGame}`)
         .then((res) => res.json())

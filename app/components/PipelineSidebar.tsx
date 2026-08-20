@@ -21,7 +21,7 @@ import {
   SquareDashed
 } from "lucide-react";
 import InfoTooltip from "./Tooltip";
-import { resetLocalDatabase, saveLocalReviews, saveLocalBrief, saveLocalTelemetry } from "../lib/localDb";
+
 
 export default function PipelineSidebar({
   games,
@@ -137,22 +137,6 @@ export default function PipelineSidebar({
                   else if (msg.includes("STAGE: GENERATE BRIEF")) setCurrentStage("Synthesizing Memo");
                 } else if (data.type === "complete_payload" && data.payload) {
                   const p = data.payload;
-                  if (p.reviews && p.reviews.length > 0) {
-                    await saveLocalReviews(p.reviews);
-                  }
-                  if (p.briefs) {
-                    await Promise.all(
-                      Object.entries(p.briefs).map(async ([gk, bText]: [string, any]) => {
-                        if (bText) await saveLocalBrief(gk, bText);
-                      })
-                    );
-                  }
-                  await saveLocalTelemetry({
-                    metrics: p.metrics,
-                    priorities: p.priorities,
-                    matrix: p.matrix,
-                    briefs: p.briefs,
-                  });
                   if (onComplete) {
                     onComplete(p);
                   }

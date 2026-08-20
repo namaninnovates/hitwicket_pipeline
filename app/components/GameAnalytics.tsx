@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { BarChart3, Star, Percent } from "lucide-react";
 import InfoTooltip from "./Tooltip";
-import { getLocalTelemetry } from "../lib/localDb";
+
 
 export default function GameAnalytics({ refreshKey = 0 }: { refreshKey?: number }) {
   const [analytics, setAnalytics] = useState<any[]>([]);
@@ -9,27 +9,6 @@ export default function GameAnalytics({ refreshKey = 0 }: { refreshKey?: number 
 
   useEffect(() => {
     const loadAnalytics = async () => {
-      // 1. Try local telemetry database first
-      try {
-        const local = await getLocalTelemetry();
-        if (local?.metrics?.games) {
-          const list = Object.entries(local.metrics.games).map(([gk, gm]: [string, any]) => ({
-            game: gk,
-            avgRating: gm.avgRating || 0,
-            posPct: gm.posPct || 0,
-            negPct: gm.negPct || 0,
-            ingested: gm.ingested || 0,
-            rank: gm.rank || 1,
-          }));
-          if (list.length > 0) {
-            setAnalytics(list);
-            setLoading(false);
-            return;
-          }
-        }
-      } catch {}
-
-      // 2. Fallback to API
       setLoading(true);
       fetch("/api/analytics")
         .then((res) => res.json())

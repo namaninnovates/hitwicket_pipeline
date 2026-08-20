@@ -14,7 +14,7 @@ import {
   Globe,
   Database
 } from "lucide-react";
-import { HistorySnapshot, getAllHistorySnapshots, deleteHistorySnapshot } from "../lib/localDb";
+import { HistorySnapshot } from "../page";
 
 interface HistorySidebarProps {
   isOpen: boolean;
@@ -37,8 +37,9 @@ export default function HistorySidebar({
   const fetchSnapshots = async () => {
     setLoading(true);
     try {
-      const list = await getAllHistorySnapshots();
-      setSnapshots(list);
+      const res = await fetch("/api/history");
+      const data = await res.json();
+      setSnapshots(data.snapshots || []);
     } catch (e) {
       console.warn("Error fetching history snapshots:", e);
     } finally {
@@ -55,7 +56,7 @@ export default function HistorySidebar({
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (window.confirm("Delete this saved snapshot from your local history?")) {
-      await deleteHistorySnapshot(id);
+      await fetch(`/api/history/${id}`, { method: "DELETE" });
       if (activeSnapshotId === id) {
         onSelectSnapshot(null);
       }

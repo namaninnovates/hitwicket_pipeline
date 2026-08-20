@@ -130,6 +130,19 @@ def initialize_db(conn: Optional[Any] = None) -> None:
                         stages_run         TEXT,
                         notes              TEXT
                     );
+
+                    CREATE TABLE IF NOT EXISTS history_snapshots (
+                        id             VARCHAR(255) PRIMARY KEY,
+                        title          VARCHAR(255),
+                        timestamp      VARCHAR(100),
+                        game           VARCHAR(100),
+                        totalReviews   INTEGER,
+                        avgRating      DOUBLE PRECISION,
+                        positivePct    DOUBLE PRECISION,
+                        topPriority    TEXT,
+                        brief          TEXT,
+                        created_at     VARCHAR(100) NOT NULL
+                    );
                 """)
             logger.info("Neon PostgreSQL schema initialized successfully.")
         else:
@@ -187,6 +200,19 @@ def initialize_db(conn: Optional[Any] = None) -> None:
                         output_dir         TEXT,
                         stages_run         TEXT,
                         notes              TEXT
+                    );
+
+                    CREATE TABLE IF NOT EXISTS history_snapshots (
+                        id             TEXT PRIMARY KEY,
+                        title          TEXT,
+                        timestamp      TEXT,
+                        game           TEXT,
+                        totalReviews   INTEGER,
+                        avgRating      REAL,
+                        positivePct    REAL,
+                        topPriority    TEXT,
+                        brief          TEXT,
+                        created_at     TEXT NOT NULL
                     );
                 """)
             logger.info(f"SQLite database initialized at {DB_PATH}")
@@ -469,3 +495,74 @@ def log_pipeline_run(conn: Any, **kwargs) -> int:
             args,
         )
         return cursor.lastrowid
+
+def insert_history_snapshot(conn: Any, snapshot: dict) -> bool:
+    created_at = datetime.now(timezone.utc).isoformat()
+    args = (
+        snapshot.get("id"),
+        snapshot.get("title"),
+        snapshot.get("timestamp"),
+        snapshot.get("game"),
+        snapshot.get("totalReviews"),
+        snapshot.get("avgRating"),
+        snapshot.get("positivePct"),
+        snapshot.get("topPriority"),
+        snapshot.get("brief"),
+        created_at
+    )
+    try:
+        if is_postgres_connection(conn):
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO history_snapshots
+                        (id, title, timestamp, game, totalReviews, avgRating, positivePct, topPriority, brief, created_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (id) DO NOTHING
+                    """,
+                    args,
+                )
+                return True
+        else:
+            with conn:
+                conn.execute(
+                    """
+                    INSERT OR IGNORE INTO history_snapshots
+                        (id, title, timestamp, game, totalReviews, avgRating, positivePct, topPriority, brief, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    args,
+                )
+                return True
+    except Exception as e:
+        logger.error(f"Failed to insert history snapshot: {e}")
+        return False
+
+def get_history_snapshots(conn: Any, limit: int = 50) -> list[dict]:
+    query = "SELECT * FROM history_snapshots ORDER BY timestamp DESC LIMIT "
+    try:
+        if is_postgres_connection(conn):
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(query + "%s", (limit,))
+                rows = cur.fetchall()
+                return [dict(row) for row in rows]
+        else:
+            cursor = conn.execute(query + "?", (limit,))
+            return [dict(row) for row in cursor.fetchall()]
+    except Exception as e:
+        logger.error(f"Failed to fetch history snapshots: {e}")
+        return []
+
+def delete_history_snapshot(conn: Any, snapshot_id: str) -> bool:
+    try:
+        if is_postgres_connection(conn):
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM history_snapshots WHERE id = %s", (snapshot_id,))
+                return True
+        else:
+            with conn:
+                conn.execute("DELETE FROM history_snapshots WHERE id = ?", (snapshot_id,))
+                return True
+    except Exception as e:
+        logger.error(f"Failed to delete history snapshot: {e}")
+        return False
