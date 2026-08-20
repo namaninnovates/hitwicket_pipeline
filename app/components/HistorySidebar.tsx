@@ -98,15 +98,15 @@ export default function HistorySidebar({
   const grouped = groupSnapshots();
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden flex">
+    <div className="fixed inset-0 z-50 overflow-hidden flex justify-start">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
-      {/* Slide-out History Drawer */}
-      <div className="relative ml-0 sm:ml-auto w-full max-w-md bg-[#0b0f19] border-r sm:border-r-0 sm:border-l border-white/[0.08] shadow-2xl flex flex-col h-full z-10 font-sans">
+      {/* Slide-out History Drawer (Left Side like ChatGPT) */}
+      <div className="relative mr-auto w-full max-w-md bg-[#0b0f19] border-r border-white/[0.08] shadow-2xl flex flex-col h-full z-10 font-sans animate-in slide-in-from-left duration-300">
         {/* Header */}
         <div className="p-4 border-b border-white/[0.08] flex items-center justify-between gap-3 bg-slate-900/40">
           <div className="flex items-center gap-2.5">

@@ -139,79 +139,97 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#080b14] text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30">
       {/* Top Global Navigation Bar (Clean, Elegant Single-Line Navbar) */}
       <header className="sticky top-0 z-40 glass-panel border-b border-white/[0.08] backdrop-blur-2xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4 overflow-x-auto no-scrollbar">
-          {/* Logo & Platform Title (Clean Typography, No Icon Box) */}
-          <div className="shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-sm tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-indigo-200">
-                HITWICKET
-              </span>
-              <span className="text-[0.65rem] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded-full">
-                v1.2 PRO
-              </span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+          {/* Left: History Button + Logo & Branding */}
+          <div className="flex items-center gap-3 shrink-0">
+            {/* ChatGPT-style History Button on Far Left */}
+            <button
+              type="button"
+              onClick={() => setIsHistoryOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all shadow-sm hover:scale-[1.02] cursor-pointer"
+              title="Open Intelligence History (ChatGPT-style)"
+            >
+              <History size={14} className="text-indigo-400" />
+              <span className="hidden md:inline">History</span>
+              {historyCount > 0 && (
+                <span className="text-[0.65rem] font-bold px-1.5 py-0.2 bg-indigo-500/20 text-indigo-300 rounded-full border border-indigo-500/30 font-mono">
+                  {historyCount}
+                </span>
+              )}
+            </button>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-sm tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-indigo-200">
+                  HITWICKET
+                </span>
+                <span className="text-[0.65rem] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded-full">
+                  v1.2 PRO
+                </span>
+              </div>
+              <p className="text-[0.68rem] text-slate-400 font-medium hidden lg:block">Review Intelligence &amp; Competitive Engine</p>
             </div>
-            <p className="text-[0.68rem] text-slate-400 font-medium">Review Intelligence &amp; Competitive Engine</p>
           </div>
 
           {/* Center Navigation Tabs */}
           <nav className="flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/[0.08] shadow-inner shrink-0">
             <button
               onClick={() => setActiveView("dashboard")}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeView === "dashboard"
                   ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-indigo-400/30"
                   : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
               }`}
             >
-              <LayoutDashboard size={14} />
+              <LayoutDashboard size={13} />
               <span>Intelligence</span>
             </button>
             <button
               onClick={() => setActiveView("data")}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeView === "data"
                   ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-indigo-400/30"
                   : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
               }`}
             >
-              <Database size={14} />
+              <Database size={13} />
               <span>Explorer</span>
             </button>
             <button
               onClick={() => setActiveView("docs")}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeView === "docs"
                   ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-indigo-400/30"
                   : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
               }`}
             >
-              <BookOpen size={14} />
+              <BookOpen size={13} />
               <span>Documentation</span>
             </button>
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             {/* Quick Game Selector (Visible on Dashboard Tab) */}
             {activeView === "dashboard" && (
               <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setSelectedGame("all")}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     selectedGame === "all"
                       ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold"
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  All (Global)
+                  All
                 </button>
                 {Object.keys(games).map((key) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => setSelectedGame(key)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer truncate max-w-[110px] ${
+                    className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer truncate max-w-[90px] ${
                       selectedGame === key
                         ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold"
                         : "text-slate-400 hover:text-white"
@@ -223,40 +241,24 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* ChatGPT-style History Button */}
-            <button
-              type="button"
-              onClick={() => setIsHistoryOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all shadow-sm hover:scale-[1.02] cursor-pointer"
-              title="View ChatGPT-style history of previous intelligence snapshots and runs"
-            >
-              <History size={13} className="text-indigo-400" />
-              <span>History</span>
-              {historyCount > 0 && (
-                <span className="text-[0.65rem] font-bold px-1.5 py-0.2 bg-indigo-500/20 text-indigo-300 rounded-full border border-indigo-500/30 font-mono">
-                  {historyCount}
-                </span>
-              )}
-            </button>
-
             {/* Reset Everything Button */}
             <button
               type="button"
               onClick={handleResetAll}
               disabled={isResetting}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 transition-all shadow-sm hover:scale-[1.02] cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 transition-all shadow-sm hover:scale-[1.02] cursor-pointer disabled:opacity-50"
               title="Reset all database records and review intelligence metrics to 0"
             >
               <RotateCcw size={12} className={isResetting ? "animate-spin text-rose-400" : "text-rose-400"} />
-              <span>{isResetting ? "Resetting..." : "Reset"}</span>
+              <span className="hidden sm:inline">{isResetting ? "Resetting..." : "Reset"}</span>
             </button>
 
             {/* Setup Pipeline CTA */}
             <button
               onClick={() => setIsPipelineOpen(true)}
-              className="bg-gradient-to-r from-indigo-500 to-fuchsia-600 hover:from-indigo-400 hover:to-fuchsia-500 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:scale-[1.02] cursor-pointer"
+              className="bg-gradient-to-r from-indigo-500 to-fuchsia-600 hover:from-indigo-400 hover:to-fuchsia-500 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:scale-[1.02] cursor-pointer"
             >
-              <Play size={12} fill="currentColor" />
+              <Play size={11} fill="currentColor" />
               <span>Setup Pipeline</span>
             </button>
           </div>
