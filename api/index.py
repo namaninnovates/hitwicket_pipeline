@@ -712,9 +712,20 @@ def stream_pipeline(
                             new_count += 1
 
                     total_stored_all += new_count
-                    yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Persisted {new_count} reviews to local database.'})}\n\n"
+                    
+                    try:
+                        game_total_row = conn.execute("SELECT COUNT(*) as cnt FROM reviews WHERE game = ?", (g_key,)).fetchone()
+                        game_total_in_db = game_total_row["cnt"] if game_total_row else new_count
+                    except Exception:
+                        game_total_in_db = new_count
 
-                yield f"data: {json.dumps({'type': 'log', 'msg': f'Ingestion Stage Complete: {total_stored_all} total reviews persisted.'})}\n\n"
+                    existing_retained = max(0, game_total_in_db - new_count)
+                    if fresh:
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Fresh Ingestion: {new_count} reviews stored.'})}\n\n"
+                    else:
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Incremental Merge: +{new_count} new reviews added | {existing_retained} historical reviews preserved (Total: {game_total_in_db} reviews in DB).'})}\n\n"
+
+                yield f"data: {json.dumps({'type': 'log', 'msg': f'Ingestion Stage Complete: +{total_stored_all} new reviews merged into database.'})}\n\n"
 
             # ─────────────────────────────────────────────
             # 2. CLASSIFY STAGE

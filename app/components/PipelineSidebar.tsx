@@ -34,7 +34,7 @@ export default function PipelineSidebar({
   const [maxRevs, setMaxRevs] = useState(150);
   const [windowDays, setWindowDays] = useState(90);
   const [selectedGameList, setSelectedGameList] = useState<string[]>(["hitwicket", "tennis_clash", "baseball_clash"]);
-  const [freshMode, setFreshMode] = useState(true);
+  const [freshMode, setFreshMode] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [showCautionModal, setShowCautionModal] = useState(false);
   const [status, setStatus] = useState<"idle" | "running" | "completed" | "stopped" | "error">("idle");
@@ -423,14 +423,18 @@ export default function PipelineSidebar({
           </div>
         </div>
 
-        {/* 4. 100% Fresh Scrape Mode Toggle */}
+        {/* 4. Incremental Merge vs Fresh Purge Toggle */}
         <div className="bg-black/30 rounded-2xl p-3.5 border border-white/[0.06] flex items-center justify-between">
           <div>
             <div className="text-xs font-semibold text-white flex items-center gap-1.5">
-              <span>Fresh Scrape Mode</span>
-              <InfoTooltip content="When enabled (default), previous reviews for the selected games are purged before scraping, ensuring the database contains only the fresh batch." />
+              <span>Fresh Purge Mode</span>
+              <InfoTooltip content="When OFF (Recommended), newly scraped reviews merge cumulatively with existing historical reviews (e.g. Day 0–100 retained intact, adding Day 100–110). Turn ON only to purge previous reviews and start fresh." />
             </div>
-            <p className="text-[0.65rem] text-slate-400 mt-0.5">Purge prior reviews for selected games and ingest latest</p>
+            <p className="text-[0.65rem] text-slate-400 mt-0.5">
+              {freshMode
+                ? "⚠️ Purge prior reviews for selected games and start fresh"
+                : "✓ Incremental Merge: Preserves past reviews and adds new ones intact"}
+            </p>
           </div>
           <button
             type="button"
