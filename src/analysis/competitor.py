@@ -22,11 +22,13 @@ MEDIUM_THRESHOLD = 10.0  # 10–20%
 # Below 10% = Low
 
 
-def _label(frequency_pct: float) -> str:
-    """Convert frequency percentage to High/Medium/Low."""
-    if frequency_pct >= HIGH_THRESHOLD:
+def _label(frequency_pct: float, count: int = 0) -> str:
+    """Convert frequency percentage and count to High/Medium/Low with sample guards."""
+    if count < 3:
+        return "Low"
+    if frequency_pct >= HIGH_THRESHOLD and count >= 5:
         return "High"
-    elif frequency_pct >= MEDIUM_THRESHOLD:
+    elif frequency_pct >= MEDIUM_THRESHOLD and count >= 3:
         return "Medium"
     else:
         return "Low"
@@ -73,7 +75,7 @@ def build_competitor_matrix(classified_reviews: list[dict]) -> dict:
             raw[game_key][cat] = {
                 "count": count,
                 "pct": round(pct, 1),
-                "label": _label(pct),
+                "label": _label(pct, count=count),
             }
 
     # Build matrix

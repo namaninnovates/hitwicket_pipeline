@@ -89,7 +89,18 @@ Trend_normalized = (pct_change_clamped + 100) / 3
 
 **Weight 20%**: Lowest weight because trends can be noisy with small sample sizes. The formula explicitly degrades gracefully when data is insufficient.
 
-**Small-sample protection**: If either the current or prior period has fewer than 5 reviews in the category, the trend component is replaced with the midpoint (50) and flagged as `"trend_data": "insufficient_sample"`.
+**Small-sample protection**: If either the current or prior period has fewer than 10 reviews in the category, the trend component is flagged as `"trend_data": "insufficient_sample"` (neutral baseline).
+
+---
+
+### Sample Size Confidence Dampener (Anti-Outlier Protection)
+
+To guarantee that single-review anomalies (e.g. $N=1$) cannot score 60/100 and outrank widespread recurring issues affecting dozens of players, the engine applies a statistical confidence dampener:
+
+$$\text{Confidence Factor} = \min\left(1.0, \frac{\text{Count}}{5.0}\right)$$
+
+* For **$N < 5$ reviews**: Priority is proportionally scaled by the sample confidence ($N=1 \to \times 0.20$, $N=2 \to \times 0.40$, $N=3 \to \times 0.60$, $N=4 \to \times 0.80$). Additionally, unearned neutral trend points are zeroed out until a meaningful sample is established.
+* For **$N \ge 5$ reviews**: Full priority score is applied ($\text{Confidence Factor} = 1.0$).
 
 ---
 
@@ -147,12 +158,42 @@ Priority Score:  56 / 100
 
 ---
 
+---
+
+## Sample Size Strategy & Cross-Game Balancing
+
+### Should the Number of Reviews per Game Be the Same?
+
+**Yes, equal sample sizes (e.g., 150–300 reviews per game) are recommended for competitive benchmarking**, though the mathematical model is designed to handle unequal counts safely.
+
+### 1. Why Equal Sample Sizes Provide Superior Benchmarking
+- **Variance & Error Margin Stability**: If Game A has 500 reviews and Game B has only 15 reviews, a single 1-star review in Game B represents 6.7% of all complaints, whereas in Game A it represents only 0.2%. Equal samples ensure balanced statistical confidence across all titles.
+- **Trend Detection Reliability**: The trend formula ($\Delta\% = \frac{C_{\text{current}} - C_{\text{prior}}}{C_{\text{prior}}}$) requires stable volume in both periods to avoid false escalations.
+- **Visual Parity**: Side-by-side sentiment distributions and matrix comparisons reflect equal depth of player feedback.
+
+### 2. How the Formula Prevents Raw Count Distortion
+When review counts differ across games (e.g., due to natural download volume differences):
+- **Normalized Frequency (Share of Voice)**:
+  $$\text{Frequency}_{\text{normalized}} = \left( \frac{\text{Category Complaints}}{\text{Total Game Reviews}} \right) \times 100$$
+  The model never compares raw complaint counts (e.g. 50 vs 500); it evaluates the proportion of player dissatisfaction within each game's own ecosystem.
+- **Small-Sample Safeguards (`MIN_TREND_SAMPLE = 5`)**:
+  If either period contains fewer than 5 reviews, the trend defaults to neutral (50) and is labeled `insufficient_sample`.
+
+### 3. Recommended Pipeline Sampling Strategies
+
+| Goal | Sampling Strategy | Sidebar Configuration |
+| :--- | :--- | :--- |
+| **Fair Competitive Benchmark** *(Recommended)* | **Equal Sample Size** | Set **Max Reviews = 150–300** and select all 3 games. |
+| **Natural Market Velocity** | **Time-Window Driven** | Set **Window = 30 or 90 days**, Max Reviews = 1000+ (captures natural review velocity). |
+| **Hitwicket Deep Dive** | **Hitwicket Focused** | Run Hitwicket with 500+ reviews to catch edge-case bugs, competitors with 100 reviews. |
+
+---
+
 ## Limitations
 
 - **Trend requires ≥60 days of data**: On first run, prior period may be empty. In this case, trend defaults to 50 (neutral) and is flagged.
-- **Severity and business_impact are LLM-assigned**: Subject to model variability. Confidence score is tracked to surface low-confidence classifications.
 - **Frequency is count-based**: Games with more total reviews will naturally show higher absolute counts. All frequency scores are normalized as percentages within each game independently.
 
 ---
 
-*Scoring model version: 1.0 | 2026-08-19*
+*Scoring model version: 1.1 | 2026-08-20*

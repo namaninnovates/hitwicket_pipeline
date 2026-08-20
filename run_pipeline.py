@@ -44,13 +44,17 @@ from src.classification.classifier import classify_batch, get_active_model_name
 from src.ingestion.storage import insert_classification
 from src.scoring.priority import compute_all_games_priority, format_priority_for_display
 from src.analysis.competitor import build_competitor_matrix, format_competitor_matrix
-from src.reporting.brief import generate_founder_brief
+from src.reporting.brief import generate_founder_brief, generate_global_market_brief
 from src.reporting.html_report import generate_html_report
 
 # ─────────────────────────────────────────────
 # Logging setup
 # ─────────────────────────────────────────────
 def setup_logging(verbose: bool = False):
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except Exception:
+        pass
     level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(
         level=level,
@@ -65,10 +69,10 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────
 # Stage: INGEST
 # ─────────────────────────────────────────────
-def stage_ingest(game_keys: list[str], max_reviews: int, window_days: int, source: str = "auto") -> dict:
+def stage_ingest(game_keys: list[str], max_reviews: int, window_days: int, source: str = "auto", fresh: bool = False) -> dict:
     """Fetch and store reviews. Returns ingest stats."""
     logger.info("=" * 50)
-    logger.info(f"STAGE: INGEST (source: {source})")
+    logger.info(f"STAGE: INGEST (source: {source}, fresh: {fresh})")
     logger.info("=" * 50)
 
     stats = {
@@ -89,6 +93,14 @@ def stage_ingest(game_keys: list[str], max_reviews: int, window_days: int, sourc
     conn = get_connection()
     with conn:
         for game_key, raw_reviews in raw_by_game.items():
+            if fresh:
+                logger.info(f"[{GAMES[game_key]['name']}] Fresh mode: Purging prior records for {game_key}")
+                conn.execute(
+                    "DELETE FROM classifications WHERE review_db_id IN (SELECT id FROM reviews WHERE game = ?)",
+                    (game_key,)
+                )
+                conn.execute("DELETE FROM reviews WHERE game = ?", (game_key,))
+
             stats["reviews_fetched"] += len(raw_reviews)
 
             # Clean
@@ -132,14 +144,7 @@ def stage_classify(game_keys: list[str]) -> dict:
     logger.info("STAGE: CLASSIFY")
     logger.info("=" * 50)
 
-    if not GEMINI_API_KEY:
-        logger.warning(
-            "No GEMINI_API_KEY found in environment or .env file.\n"
-            "  → Using rule-based fallback classifier (lower accuracy).\n"
-            "  → Create a .env file with: GEMINI_API_KEY=your_key_here"
-        )
-
-    stats = {"classified": 0, "failures": 0, "model": "unknown"}
+    stats = {"classified": 0, "failures": 0, "model": "rule_based_nlp"}
 
     conn = get_connection()
 
@@ -238,24 +243,39 @@ def stage_brief(priority_by_game: dict, matrix_data: dict, all_classified: list,
     logger.info("STAGE: GENERATE BRIEF")
     logger.info("=" * 50)
 
-    # Generate Hitwicket brief (primary game)
-    hw_priorities = priority_by_game.get("hitwicket", [])
-    hw_reviews = [r for r in all_classified if r.get("game") == "hitwicket"]
+    # Generate briefs for each game that has classified reviews
+    hw_brief_path = None
+    for game_key in GAMES.keys():
+        g_priorities = priority_by_game.get(game_key, [])
+        g_reviews = [r for r in all_classified if r.get("game") == game_key]
+        if g_reviews or g_priorities:
+            b_path = generate_founder_brief(
+                game_key=game_key,
+                classified_reviews=g_reviews,
+                priority_scores=g_priorities,
+                matrix_data=matrix_data,
+                output_dir=output_dir,
+            )
+            if game_key == "hitwicket":
+                hw_brief_path = b_path
 
-    brief_path = generate_founder_brief(
-        game_key="hitwicket",
-        classified_reviews=hw_reviews,
-        priority_scores=hw_priorities,
+    # Generate global relative market intelligence brief
+    generate_global_market_brief(
+        all_classified=all_classified,
+        priority_by_game=priority_by_game,
         matrix_data=matrix_data,
         output_dir=output_dir,
     )
+
+    if not hw_brief_path:
+        hw_brief_path = output_dir / "founder_brief_hitwicket.md"
 
     # Generate HTML report
     html_path = generate_html_report(
         all_classified=all_classified,
         priority_by_game=priority_by_game,
         matrix_data=matrix_data,
-        brief_path=brief_path,
+        brief_path=hw_brief_path,
         output_dir=output_dir,
     )
 
@@ -304,6 +324,12 @@ def main():
         help="Review source provider (default: auto)",
     )
     parser.add_argument(
+        "--fresh",
+        action="store_true",
+        default=False,
+        help="Purge previous reviews for target games to ensure 100% fresh ingestion",
+    )
+    parser.add_argument(
         "--verbose", "-v",
         action="store_true",
         help="Verbose logging",
@@ -344,6 +370,7 @@ def main():
             max_reviews=args.max_reviews,
             window_days=args.window_days,
             source=args.source,
+            fresh=args.fresh,
         )
         run_stats.update(ingest_stats)
 

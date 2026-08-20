@@ -1,35 +1,98 @@
-import { useState, useEffect } from "react";
-import { Play, Database, Calendar } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import {
+  Play,
+  Square,
+  Database,
+  Terminal,
+  Cpu,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  RefreshCw,
+  Calendar,
+  Hash,
+  Gamepad2,
+  Clock,
+  Sparkles,
+  Layers,
+  CheckSquare,
+  SquareDashed
+} from "lucide-react";
+import InfoTooltip from "./Tooltip";
 
-export default function PipelineSidebar({ games, selectedGame, setSelectedGame }) {
-  const [pipelineMode, setPipelineMode] = useState("Full Pipeline (All Stages)");
+export default function PipelineSidebar({ games, selectedGame, setSelectedGame, hideFilters = false }: any) {
   const [maxRevs, setMaxRevs] = useState(150);
+  const [windowDays, setWindowDays] = useState(90);
+  const [selectedGameList, setSelectedGameList] = useState<string[]>(["hitwicket", "tennis_clash", "baseball_clash"]);
+  const [freshMode, setFreshMode] = useState(true);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [status, setStatus] = useState<"idle" | "running" | "completed" | "stopped" | "error">("idle");
+  const [currentStage, setCurrentStage] = useState<string>("");
+  const [completionStats, setCompletionStats] = useState<{ duration?: string; timestamp?: string } | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [dbStatus, setDbStatus] = useState<any>(null);
+  const logEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const startTimeRef = useRef<number>(0);
 
   const fetchDbStatus = () => {
     fetch("/api/metrics")
       .then((res) => res.json())
       .then((data) => {
         if (data.overall) setDbStatus(data.overall);
-      });
+      })
+      .catch(() => {});
   };
 
   useEffect(() => {
     fetchDbStatus();
   }, []);
 
+  useEffect(() => {
+    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs]);
+
+  const toggleGame = (gameKey: string) => {
+    if (selectedGameList.includes(gameKey)) {
+      setSelectedGameList(selectedGameList.filter((g) => g !== gameKey));
+    } else {
+      setSelectedGameList([...selectedGameList, gameKey]);
+    }
+  };
+
+  const selectAllGames = () => {
+    setSelectedGameList(Object.keys(games));
+  };
+
+  const unselectAllGames = () => {
+    setSelectedGameList([]);
+  };
+
   const runPipeline = async () => {
+    if (selectedGameList.length === 0) return;
     setIsStreaming(true);
-    setLogs([]);
-    let stages = "all";
-    if (pipelineMode.includes("1.")) stages = "ingest";
-    else if (pipelineMode.includes("2.")) stages = "classify";
-    else if (pipelineMode.includes("3.")) stages = "score,brief";
+    setStatus("running");
+    setCurrentStage("Initializing...");
+    setCompletionStats(null);
+    startTimeRef.current = Date.now();
+    setLogs(["[init] Initializing review intelligence execution..."]);
+
+    const stages = "all";
+    const allKeys = Object.keys(games);
+    const gamesParam = selectedGameList.length === allKeys.length ? "all" : selectedGameList.join(",");
+
+    abortControllerRef.current = new AbortController();
 
     try {
-      const response = await fetch(`/api/pipeline/stream?stages=${stages}&max_reviews=${maxRevs}`);
+      const response = await fetch(
+        `/api/pipeline/stream?stages=${stages}&max_reviews=${maxRevs}&days=${windowDays}&games=${gamesParam}&fresh=${freshMode}`,
+        { signal: abortControllerRef.current.signal }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Server returned HTTP ${response.status}`);
+      }
+
       const reader = response.body?.getReader();
       const decoder = new TextDecoder("utf-8");
 
@@ -44,106 +107,466 @@ export default function PipelineSidebar({ games, selectedGame, setSelectedGame }
               try {
                 const data = JSON.parse(line.slice(6));
                 if (data.type === "log" || data.type === "status") {
-                  setLogs((prev) => [...prev, data.msg]);
+                  const msg = data.msg || "";
+                  setLogs((prev) => [...prev, msg]);
+
+                  // Detect active stage
+                  if (msg.includes("STAGE: INGEST")) setCurrentStage("1/4 Ingesting");
+                  else if (msg.includes("STAGE: CLEAN")) setCurrentStage("2/4 Cleaning");
+                  else if (msg.includes("STAGE: CLASSIFY")) setCurrentStage("3/4 Classifying");
+                  else if (msg.includes("STAGE: SCORE")) setCurrentStage("4/4 Scoring & Analytics");
+                  else if (msg.includes("STAGE: GENERATE BRIEF")) setCurrentStage("Synthesizing Memo");
                 } else if (data.type === "done") {
+                  const durationSec = ((Date.now() - startTimeRef.current) / 1000).toFixed(1);
+                  setLogs((prev) => [...prev, `✓ Pipeline completed successfully in ${durationSec}s.`]);
+                  setStatus("completed");
+                  setCurrentStage("Complete");
+                  setCompletionStats({
+                    duration: `${durationSec}s`,
+                    timestamp: new Date().toLocaleTimeString(),
+                  });
                   fetchDbStatus();
+                } else if (data.type === "error") {
+                  setLogs((prev) => [...prev, `[error] ${data.msg}`]);
+                  setStatus("error");
+                  setCurrentStage("Error");
                 }
               } catch (e) {}
             }
           }
         }
       }
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      if (e.name === "AbortError") {
+        setLogs((prev) => [...prev, "[system] ⏹ Pipeline cancelled by user."]);
+        setStatus("stopped");
+        setCurrentStage("Stopped");
+      } else {
+        setLogs((prev) => [...prev, `[error] Execution failed: ${e.message || e}`]);
+        setStatus("error");
+        setCurrentStage("Failed");
+      }
+    } finally {
+      setIsStreaming(false);
+      abortControllerRef.current = null;
     }
-    setIsStreaming(false);
   };
 
+  const stopPipeline = async () => {
+    try {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      await fetch("/api/pipeline/stop", { method: "POST" });
+      setStatus("stopped");
+      setCurrentStage("Stopped");
+      setLogs((prev) => [...prev, "[system] ⏹ Sent stop signal: process terminated."]);
+      fetchDbStatus();
+    } catch (e) {
+      console.error("Error stopping pipeline:", e);
+    } finally {
+      setIsStreaming(false);
+    }
+  };
+
+  const DAY_PRESETS = [
+    { label: "7d", days: 7 },
+    { label: "14d", days: 14 },
+    { label: "30d", days: 30 },
+    { label: "60d", days: 60 },
+    { label: "90d", days: 90 },
+    { label: "180d", days: 180 },
+    { label: "365d", days: 365 },
+    { label: "Unlimited", days: 3650 },
+  ];
+
+  const VOLUME_PRESETS = [
+    { label: "50", revs: 50 },
+    { label: "100", revs: 100 },
+    { label: "150", revs: 150 },
+    { label: "300", revs: 300 },
+    { label: "500", revs: 500 },
+    { label: "1,000", revs: 1000 },
+    { label: "Unlimited", revs: 5000 },
+  ];
+
   return (
-    <div className="w-72 bg-[#101524] border-r border-[#28334e] flex flex-col h-full">
-      <div className="p-4 border-b border-[#28334e]">
-        <h1 className="text-lg font-bold text-white">Hitwicket Pipeline</h1>
-        <p className="text-xs text-slate-400">Founder's Office Decision System</p>
-      </div>
-
-      <div className="p-4 flex-1 overflow-y-auto">
-        <h2 className="text-sm font-semibold text-slate-300 mb-3">Pipeline Controller</h2>
-        
-        <label className="block text-xs text-slate-400 mb-1">Execution Target</label>
-        <select 
-          className="w-full bg-[#1e293b] border border-[#28334e] rounded-md px-2 py-1.5 text-sm text-slate-200 mb-4 focus:outline-none focus:border-indigo-500"
-          value={pipelineMode}
-          onChange={(e) => setPipelineMode(e.target.value)}
-        >
-          <option>Full Pipeline (All Stages)</option>
-          <option>1. Ingest Reviews Only</option>
-          <option>2. Classify Unclassified Only</option>
-          <option>3. Score & Brief Only</option>
-        </select>
-
-        <label className="block text-xs text-slate-400 mb-1">Max Reviews per Game: {maxRevs}</label>
-        <input 
-          type="range" 
-          min="50" max="2000" step="50" 
-          value={maxRevs}
-          onChange={(e) => setMaxRevs(parseInt(e.target.value))}
-          className="w-full mb-6 accent-indigo-500"
-        />
-
-        <button 
-          onClick={runPipeline}
-          disabled={isStreaming}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center space-x-2 transition-colors mb-6"
-        >
-          <Play size={16} />
-          <span>{isStreaming ? "Running..." : "Run Pipeline Now"}</span>
-        </button>
-
-        <div className="w-full h-px bg-[#28334e] mb-6"></div>
-
-        <h2 className="text-sm font-semibold text-slate-300 mb-3 flex items-center"><Filter size={16} className="mr-2"/> View Filters</h2>
-        
-        <label className="block text-xs text-slate-400 mb-1">Select Game View</label>
-        <select 
-          className="w-full bg-[#1e293b] border border-[#28334e] rounded-md px-2 py-1.5 text-sm text-slate-200 mb-6 focus:outline-none focus:border-indigo-500"
-          value={selectedGame}
-          onChange={(e) => setSelectedGame(e.target.value)}
-        >
-          <option value="all">All Games</option>
-          {Object.entries(games).map(([key, g]: any) => (
-            <option key={key} value={key}>{g.name}</option>
-          ))}
-        </select>
-
-        <div className="w-full h-px bg-[#28334e] mb-6"></div>
-
-        <h2 className="text-sm font-semibold text-slate-300 mb-3 flex items-center"><Database size={16} className="mr-2"/> Database Status</h2>
-        {dbStatus ? (
-          <div className="space-y-2 text-sm text-slate-400">
-            <div className="flex justify-between">
-              <span>Total Ingested:</span>
-              <span className="text-white font-medium">{dbStatus.ingested?.toLocaleString() || 0}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Classified:</span>
-              <span className="text-amber-400 font-medium">{dbStatus.classified?.toLocaleString() || 0}</span>
-            </div>
+    <div className="w-full flex flex-col h-full bg-[#0b0f19]/95 backdrop-blur-2xl text-slate-200">
+      {/* Header */}
+      <div className="p-6 border-b border-white/[0.08] flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+            <Cpu size={20} />
           </div>
-        ) : (
-          <p className="text-sm text-slate-500">Loading...</p>
-        )}
-      </div>
-
-      {isStreaming && (
-        <div className="p-4 border-t border-[#28334e] bg-[#0d1117] h-64 flex flex-col">
-          <div className="text-xs font-semibold text-slate-400 mb-2">Live Execution Log</div>
-          <div className="flex-1 overflow-y-auto text-xs font-mono text-blue-400 whitespace-pre-wrap flex flex-col-reverse">
-            <div>
-              {logs.slice(-20).map((l, i) => <div key={i}>{l}</div>)}
-            </div>
+          <div>
+            <h1 className="text-lg font-bold text-white tracking-tight flex items-center">
+              <span>Pipeline Control Center</span>
+              <InfoTooltip content="Manage automated Google Play scraping, rule-based classification, priority scoring, and executive report synthesis." />
+            </h1>
+            <p className="text-xs text-slate-400">Configure ingestion time window &amp; review limits</p>
           </div>
         </div>
-      )}
+
+        {/* Global Pipeline Status Pill in Header */}
+        <div>
+          {status === "running" && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-semibold animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
+              {currentStage || "Running..."}
+            </span>
+          )}
+          {status === "completed" && completionStats && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">
+              <CheckCircle2 size={13} className="text-emerald-400" />
+              Completed ({completionStats.duration})
+            </span>
+          )}
+          {status === "stopped" && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold">
+              <AlertCircle size={13} className="text-amber-400" />
+              Stopped
+            </span>
+          )}
+          {status === "error" && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold">
+              <XCircle size={13} className="text-rose-400" />
+              Failed
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Controls Form */}
+      <div className="p-6 flex-1 overflow-y-auto space-y-6">
+        {/* 1. Target Games Multi-Selector */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Target Game Titles
+              </label>
+              <InfoTooltip content="Select which games to include in the ingestion and analysis run. You can click any game to toggle or unselect it." />
+            </div>
+            <div className="flex items-center gap-2 text-[0.68rem]">
+              <button
+                type="button"
+                onClick={selectAllGames}
+                className="text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+              >
+                Select All
+              </button>
+              <span className="text-slate-600">|</span>
+              <button
+                type="button"
+                onClick={unselectAllGames}
+                className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                Unselect All
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.keys(games).map((key) => {
+              const isSelected = selectedGameList.includes(key);
+              const g = games[key];
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => toggleGame(key)}
+                  className={`p-3 rounded-2xl text-xs font-semibold border text-center transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-indigo-600/20 border-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.25)]"
+                      : "bg-black/30 border-white/[0.06] text-slate-500 hover:text-slate-300"
+                  }`}
+                >
+                  <div className="truncate">{g.name}</div>
+                  <div className="text-[0.65rem] opacity-70 mt-0.5">{isSelected ? "Selected" : "Unselected"}</div>
+                </button>
+              );
+            })}
+          </div>
+          {selectedGameList.length === 0 && (
+            <p className="text-[0.68rem] text-amber-400 mt-1.5 flex items-center gap-1">
+              <AlertCircle size={12} /> Please select at least one game title to run the pipeline.
+            </p>
+          )}
+        </div>
+
+        {/* 2. Review Window (Custom Number of Days or Time Range) */}
+        <div className="bg-black/30 rounded-2xl p-4 border border-white/[0.06] space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+              <Calendar size={14} className="text-indigo-400" />
+              <span>Review Time Window</span>
+              <InfoTooltip content="Set the lookback window in days. Click any preset to select or unselect it." />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <input
+                type="number"
+                min="1"
+                max="3650"
+                value={windowDays}
+                onChange={(e) => {
+                  const val = Math.max(1, Math.min(3650, parseInt(e.target.value) || 1));
+                  setWindowDays(val);
+                }}
+                className="w-20 bg-black/60 border border-white/10 rounded-lg px-2 py-1 text-xs text-right font-mono text-indigo-400 font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+              <span className="text-xs text-slate-400">days</span>
+            </div>
+          </div>
+
+          {/* Quick Presets with Unlimited */}
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {DAY_PRESETS.map((p) => {
+              const isActive = windowDays === p.days;
+              return (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => setWindowDays(isActive ? 90 : p.days)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                    isActive
+                      ? "bg-indigo-600 text-white font-bold shadow-sm"
+                      : "bg-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                  }`}
+                  title={isActive ? "Click to unselect (resets to 90d)" : `Set window to ${p.label}`}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 3. Review Volume Limit */}
+        <div className="bg-black/30 rounded-2xl p-4 border border-white/[0.06] space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+              <Hash size={14} className="text-indigo-400" />
+              <span>Max Reviews per Game</span>
+              <InfoTooltip content="Limit the maximum reviews scraped per game. Click 'Unlimited' to fetch all available reviews." />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <input
+                type="number"
+                min="10"
+                max="5000"
+                step="10"
+                value={maxRevs}
+                onChange={(e) => {
+                  const val = Math.max(10, Math.min(5000, parseInt(e.target.value) || 10));
+                  setMaxRevs(val);
+                }}
+                className="w-20 bg-black/60 border border-white/10 rounded-lg px-2 py-1 text-xs text-right font-mono text-indigo-400 font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+              <span className="text-xs text-slate-400">revs</span>
+            </div>
+          </div>
+
+          {/* Quick Review Count Presets with Unlimited */}
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {VOLUME_PRESETS.map((p) => {
+              const isActive = maxRevs === p.revs;
+              return (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => setMaxRevs(isActive ? 150 : p.revs)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                    isActive
+                      ? "bg-indigo-600 text-white font-bold shadow-sm"
+                      : "bg-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                  }`}
+                  title={isActive ? "Click to unselect (resets to 150)" : `Set volume limit to ${p.label}`}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 4. 100% Fresh Scrape Mode Toggle */}
+        <div className="bg-black/30 rounded-2xl p-3.5 border border-white/[0.06] flex items-center justify-between">
+          <div>
+            <div className="text-xs font-semibold text-white flex items-center gap-1.5">
+              <span>Fresh Scrape Mode</span>
+              <InfoTooltip content="When enabled (default), previous reviews for the selected games are purged before scraping, ensuring the database contains only the fresh batch." />
+            </div>
+            <p className="text-[0.65rem] text-slate-400 mt-0.5">Purge prior reviews for selected games and ingest latest</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFreshMode(!freshMode)}
+            className={`w-10 h-5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+              freshMode ? "bg-indigo-600 justify-end" : "bg-white/15 justify-start"
+            }`}
+          >
+            <span className="bg-white w-4 h-4 rounded-full shadow-sm" />
+          </button>
+        </div>
+
+        {/* Pipeline Control & Status Bar */}
+        <div className="space-y-2.5">
+          {isStreaming ? (
+            <div className="flex gap-2">
+              <button
+                disabled
+                className="flex-1 py-3.5 px-4 rounded-xl font-bold text-sm bg-indigo-600/70 text-white flex items-center justify-center gap-2 shadow-sm transition-all"
+              >
+                <RefreshCw size={16} className="animate-spin text-indigo-200" />
+                <span>Executing ({currentStage || `${windowDays}d, ${maxRevs} revs`})...</span>
+              </button>
+              <button
+                type="button"
+                onClick={stopPipeline}
+                className="py-3.5 px-4 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(225,29,72,0.4)] transition-all cursor-pointer"
+                title="Stop running pipeline immediately"
+              >
+                <Square size={14} fill="currentColor" />
+                <span>Stop</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={runPipeline}
+              disabled={selectedGameList.length === 0}
+              className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-indigo-600 hover:opacity-95 text-white flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(99,102,241,0.4)] disabled:opacity-40 transition-all cursor-pointer"
+            >
+              <Play size={16} fill="currentColor" />
+              <span>Trigger Pipeline Now ({selectedGameList.length} Game{selectedGameList.length === 1 ? "" : "s"})</span>
+            </button>
+          )}
+
+          {/* Completion & Execution Status Card */}
+          {status !== "idle" && (
+            <div
+              className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-all ${
+                status === "completed"
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                  : status === "running"
+                  ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-300"
+                  : status === "stopped"
+                  ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                  : "bg-rose-500/10 border-rose-500/30 text-rose-300"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {status === "completed" && <CheckCircle2 size={16} className="text-emerald-400" />}
+                {status === "running" && <RefreshCw size={16} className="animate-spin text-indigo-400" />}
+                {status === "stopped" && <AlertCircle size={16} className="text-amber-400" />}
+                {status === "error" && <XCircle size={16} className="text-rose-400" />}
+                <div>
+                  <div className="font-bold">
+                    {status === "completed" && "Pipeline Execution Succeeded"}
+                    {status === "running" && `Active Stage: ${currentStage || "Processing..."}`}
+                    {status === "stopped" && "Pipeline Execution Stopped"}
+                    {status === "error" && "Pipeline Execution Error"}
+                  </div>
+                  {completionStats && status === "completed" && (
+                    <div className="text-[0.65rem] opacity-80 mt-0.5">
+                      Finished in {completionStats.duration} at {completionStats.timestamp}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <span className="font-mono text-[0.65rem] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/40 border border-white/10">
+                {status}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Database Quick Health */}
+        <div className="bg-black/30 rounded-2xl p-4 border border-white/[0.06] space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              <Database size={14} className="text-indigo-400" />
+              <span>Telemetry Database State</span>
+              <InfoTooltip content="SQLite stores cumulative reviews across all past runs. If you want only reviews from your new run, click 'Reset DB & Clean Fetch'." />
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                if (window.confirm("Are you sure you want to clear all stored reviews and reset the database?")) {
+                  await fetch("/api/database/reset", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ confirm: "RESET" }),
+                  });
+                  fetchDbStatus();
+                  setLogs(["[system] Database reset: all reviews & classifications cleared."]);
+                }
+              }}
+              className="text-[0.65rem] text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-2 py-0.5 rounded border border-rose-500/20 transition-all cursor-pointer"
+            >
+              Reset DB
+            </button>
+          </div>
+          {dbStatus ? (
+            <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div className="bg-white/[0.02] p-2 rounded-lg border border-white/5">
+                <div className="text-[0.65rem] text-slate-400">Total Ingested</div>
+                <div className="text-sm font-bold text-white mt-0.5">{dbStatus.ingested?.toLocaleString() || 0}</div>
+              </div>
+              <div className="bg-white/[0.02] p-2 rounded-lg border border-white/5">
+                <div className="text-[0.65rem] text-slate-400">Classified</div>
+                <div className="text-sm font-bold text-cyan-400 mt-0.5">{dbStatus.classified?.toLocaleString() || 0}</div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs text-slate-400">Loading database state...</div>
+          )}
+        </div>
+
+        {/* Live Execution Stream */}
+        {logs.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-slate-400">
+              <div className="flex items-center gap-1.5 font-semibold text-slate-300">
+                <Terminal size={14} className="text-indigo-400" />
+                <span>Execution Stream Log</span>
+                <InfoTooltip content="Live Server-Sent Events (SSE) stream directly outputting sub-process console logs." />
+              </div>
+              {isStreaming ? (
+                <span className="inline-flex items-center gap-1 text-[0.65rem] text-emerald-400 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  LIVE
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setLogs([])}
+                  className="text-[0.65rem] text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                >
+                  Clear Logs
+                </button>
+              )}
+            </div>
+            <div className="bg-black/80 border border-white/10 rounded-xl p-3.5 h-48 overflow-y-auto font-mono text-[0.7rem] text-slate-300 space-y-1 shadow-inner">
+              {logs.map((log, i) => (
+                <div
+                  key={i}
+                  className={
+                    log.includes("[error]")
+                      ? "text-rose-400"
+                      : log.includes("✓") || log.includes("[done]")
+                      ? "text-emerald-400 font-bold"
+                      : log.includes("[stage") || log.includes("STAGE:") || log.includes("Executing:")
+                      ? "text-indigo-300 font-semibold"
+                      : "text-slate-400"
+                  }
+                >
+                  {log}
+                </div>
+              ))}
+              <div ref={logEndRef} />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

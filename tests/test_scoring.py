@@ -183,3 +183,38 @@ class TestPriorityScoreFormula:
             actual_scores = [s for s in scores if s["primary_category"] == cat]
             actual_pct = sum(s["frequency_pct"] for s in actual_scores)
             assert abs(actual_pct - expected_pct) < 0.1
+
+    def test_single_review_is_dampened_by_confidence_factor(self):
+        """Single review outlier (N=1) must be dampened from 90 down to <= 20."""
+        from datetime import datetime, timedelta, timezone
+        now = datetime.now(timezone.utc)
+        reviews = [
+            {"game": "hitwicket", "primary_category": "Competition & Social", "subcategory": "Matchmaking",
+             "sentiment": "negative", "severity": 5, "business_impact": 5,
+             "review_date": (now - timedelta(days=2)).isoformat(), "rating": 1}
+        ]
+        scores = compute_priority_scores(reviews)
+        assert len(scores) == 1
+        # N=1 is dampened by 1/5 = 0.20 confidence factor
+        assert scores[0]["priority_score"] <= 20.0
+        assert scores[0]["priority_int"] <= 20
+
+    def test_recurring_issue_outranks_single_review_outlier(self):
+        """A recurring issue with 20 reviews must outrank a 1-review 1-star anomaly."""
+        from datetime import datetime, timedelta, timezone
+        now = datetime.now(timezone.utc)
+        reviews = [
+            # 1 outlier review
+            {"game": "hitwicket", "primary_category": "Competition & Social", "subcategory": "Matchmaking",
+             "sentiment": "negative", "severity": 5, "business_impact": 5,
+             "review_date": (now - timedelta(days=2)).isoformat(), "rating": 1}
+        ] + [
+            # 20 recurring reviews (moderate severity)
+            {"game": "hitwicket", "primary_category": "Experience", "subcategory": "Bugs / crashes",
+             "sentiment": "negative", "severity": 4, "business_impact": 4,
+             "review_date": (now - timedelta(days=i)).isoformat(), "rating": 2}
+            for i in range(20)
+        ]
+        scores = compute_priority_scores(reviews)
+        assert scores[0]["subcategory"] == "Bugs / crashes"
+        assert scores[0]["priority_int"] > scores[1]["priority_int"]

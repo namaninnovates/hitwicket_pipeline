@@ -68,8 +68,8 @@ REVIEW_COUNTRY = "us"
 # Classification settings
 # ─────────────────────────────────────────────
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-GEMINI_MODEL = "gemini-2.0-flash"
-GEMINI_FALLBACK_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
+GEMINI_FALLBACK_MODEL = os.environ.get("GEMINI_FALLBACK_MODEL", "gemini-3.6-flash")
 CLASSIFICATION_MAX_RETRIES = 3
 CLASSIFICATION_BATCH_SIZE = 10   # Number of reviews per LLM call (batched for efficiency)
 MIN_REVIEW_LENGTH = 10           # Skip classification of very short reviews (noise)

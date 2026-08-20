@@ -17,6 +17,7 @@ Data source: Google Play Store only (Android reviews)
 
 ## Task
 Write a founder-facing weekly brief. It must be readable in 90 seconds.
+Do NOT use any emojis anywhere in the markdown headers or text.
 
 Use EXACTLY this structure:
 
@@ -24,27 +25,28 @@ Use EXACTLY this structure:
 # Weekly Review Brief — {game_name}
 **{analysis_date}** | {review_count} reviews analyzed
 
-## ⚡ Biggest Emerging Problem
+## Biggest Emerging Problem
 [2-3 sentences. What is the problem? What evidence proves it?]
 
-## 🕐 Why Now?
+## Why Now?
 [2-3 sentences. What trend data shows this is becoming urgent?]
 
-## 🌍 Competitive Signal
+## Competitive Signal
 [2-3 sentences. Is this unique to us or also in Tennis Clash / Baseball Clash? What does that mean?]
 
-## ✅ Recommendation
+## Recommendation
 [2-4 sentences. Concrete, specific action. Not "investigate" — actual decision.]
 
-## 📈 Expected Impact
+## Expected Impact
 [Which metric moves? By roughly how much? What's the mechanism?]
 
-## ❌ What NOT to Do
+## What NOT to Do
 [1-2 sentences. Where is the evidence telling us NOT to spend effort right now?]
 
 ---
 
 ## Rules
+- No emojis anywhere in the response.
 - No charts, no bullet walls, no "in conclusion"
 - Write as if texting a smart colleague, not filing a report
 - Use exact numbers from the input data — never round to "many" or "some"

@@ -1,90 +1,201 @@
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, AlertTriangle, Flame, TrendingUp, ShieldAlert, Quote, Star, Gamepad2 } from "lucide-react";
+import InfoTooltip from "./Tooltip";
 
 export default function PriorityIssues({ selectedGame }: { selectedGame: string }) {
   const [priorities, setPriorities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
 
   useEffect(() => {
-    const game = selectedGame === "all" ? "hitwicket" : selectedGame;
-    fetch(`/api/priorities?game=${game}`)
-      .then(res => res.json())
-      .then(data => {
+    setLoading(true);
+    fetch(`/api/priorities?game=${selectedGame}`)
+      .then((res) => res.json())
+      .then((data) => {
         setPriorities(data.priorities || []);
         setLoading(false);
       });
   }, [selectedGame]);
 
-  if (loading) return <div className="text-slate-400">Loading priority issues...</div>;
+  const isGlobal = selectedGame === "all";
+
+  if (loading) {
+    return (
+      <div className="glass-panel rounded-3xl p-6 lg:p-8 space-y-4">
+        <div className="h-6 w-48 bg-slate-800/60 rounded animate-pulse" />
+        <div className="h-4 w-72 bg-slate-800/40 rounded animate-pulse mb-6" />
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="glass-card rounded-2xl p-5 h-32 animate-pulse bg-slate-800/40" />
+        ))}
+      </div>
+    );
+  }
+
+  const GAME_NAMES: Record<string, string> = {
+    hitwicket: "Hitwicket",
+    tennis_clash: "Tennis Clash",
+    baseball_clash: "Baseball Clash",
+  };
 
   return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">Prioritized Issues (Formula-Derived)</h2>
-        <p className="text-sm text-slate-400 mb-2">
-          Ranked by explicit Priority Formula: Priority = 0.30 × Frequency + 0.25 × Severity + 0.25 × Business Impact + 0.20 × Trend
-        </p>
-        {selectedGame === "all" && (
-          <div className="bg-indigo-900/30 text-indigo-300 border border-indigo-500/30 px-4 py-2 rounded-lg text-sm inline-block">
-            Displaying priority scores for Hitwicket. Select another game in the sidebar to view its ranking.
+    <div className="glass-panel rounded-3xl p-6 lg:p-8 flex flex-col h-full">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">
+              <ShieldAlert size={18} />
+            </div>
+            <h2 className="text-xl font-bold text-white tracking-tight flex items-center">
+              <span>{isGlobal ? "Global Cross-Game Priority Issues" : "Top Priority Issues"}</span>
+              <InfoTooltip content="Ranked list of highest-friction player problems. In Global view, issues are ranked across all competing titles to see who has the most critical bottleneck." />
+            </h2>
           </div>
-        )}
+          <p className="text-xs text-slate-400 mt-1 flex items-center">
+            <span>Algorithmic formula:</span>
+            <span className="text-slate-300 font-mono ml-1">0.30×Freq + 0.25×Sev + 0.25×Impact + 0.20×Trend</span>
+            <InfoTooltip content="Priority Index Formula: Combines issue frequency (30%), severity (25%), revenue/retention impact (25%), and 30-day trajectory trend (20%)." />
+          </p>
+        </div>
+        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300">
+          {priorities.length} Tracked
+        </span>
       </div>
 
       {priorities.length === 0 ? (
-        <div className="text-amber-400">No classified reviews available for this game yet. Run the classification stage.</div>
+        <div className="p-8 text-center glass-card rounded-2xl border-dashed border-white/10 text-slate-400">
+          No classified issues for this title. Run the intelligence pipeline to generate rankings.
+        </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3.5 flex-1">
           {priorities.map((p, idx) => {
-            const score = p.priority_int;
-            let badgeClass = "bg-emerald-500/20 text-emerald-400 border-emerald-500";
-            if (score >= 45) badgeClass = "bg-red-500/20 text-red-400 border-red-500";
-            else if (score >= 30) badgeClass = "bg-amber-500/20 text-amber-400 border-amber-500";
-
+            const score = p.priority_int || 0;
             const isExpanded = expandedIndex === idx;
+            const itemGame = p.game || (isGlobal ? "hitwicket" : selectedGame);
+            const isHitwicket = itemGame === "hitwicket";
+
+            // Tier styling
+            let scoreColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/30";
+            let borderColor = "hover:border-emerald-500/30";
+            let dotColor = "bg-emerald-400";
+            if (score >= 40) {
+              scoreColor = "text-rose-400 bg-rose-500/10 border-rose-500/30 shadow-[0_0_12px_rgba(244,63,94,0.2)]";
+              borderColor = "hover:border-rose-500/40";
+              dotColor = "bg-rose-400 animate-pulse";
+            } else if (score >= 30) {
+              scoreColor = "text-amber-400 bg-amber-500/10 border-amber-500/30";
+              borderColor = "hover:border-amber-500/40";
+              dotColor = "bg-amber-400";
+            }
 
             return (
-              <div key={idx} className="bg-[#131828] border border-[#232d4b] rounded-xl p-5 hover:border-[#384469] transition-colors">
-                <div className="flex justify-between items-start mb-3">
-                  <h4 className="text-lg m-0 text-white font-bold">
-                    #{idx + 1} {p.primary_category} <span className="text-indigo-400">{p.subcategory}</span>
-                  </h4>
-                  <div className={`border px-3 py-1 rounded-md text-sm font-bold ${badgeClass}`}>
-                    Priority Score: {score}/100
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-4 gap-4 text-sm text-slate-400 mt-3 bg-[#0d1117] p-3 rounded-lg border border-[#1e293b]">
-                  <div><strong className="text-slate-300">Frequency:</strong> {p.frequency_pct.toFixed(1)}% ({p.review_count} reviews)</div>
-                  <div><strong className="text-slate-300">Severity:</strong> {p.avg_severity.toFixed(1)}/5.0</div>
-                  <div><strong className="text-slate-300">Business Impact:</strong> {p.avg_business_impact.toFixed(1)}/5.0</div>
-                  <div><strong className="text-slate-300">Trend:</strong> {p.trend_label}</div>
-                </div>
-
-                {p.sample_note && (
-                  <div className="text-amber-400 text-xs mt-3 bg-amber-500/10 p-2 rounded border border-amber-500/20">
-                    {p.sample_note}
-                  </div>
-                )}
-
-                <button 
+              <div
+                key={idx}
+                className={`glass-card rounded-2xl p-5 transition-all duration-200 border ${
+                  isExpanded ? "border-indigo-500/40 bg-white/[0.05]" : "border-white/[0.07]"
+                } ${borderColor}`}
+              >
+                {/* Header Row */}
+                <div
+                  className="flex items-center justify-between cursor-pointer select-none"
                   onClick={() => setExpandedIndex(isExpanded ? null : idx)}
-                  className="mt-4 text-sm text-indigo-400 hover:text-indigo-300 flex items-center font-medium transition-colors"
                 >
-                  {isExpanded ? <ChevronUp size={16} className="mr-1"/> : <ChevronDown size={16} className="mr-1"/>}
-                  View Sample Reviews ({p.samples?.length || 0} samples)
-                </button>
-
-                {isExpanded && p.samples && (
-                  <div className="mt-3 space-y-3 bg-[#0a0d14] p-4 rounded-lg border border-[#1e293b]">
-                    {p.samples.map((sample: any, sIdx: number) => (
-                      <div key={sIdx} className="text-sm text-slate-300 pb-3 border-b border-[#1e293b] last:border-0 last:pb-0">
-                        <span className="font-bold text-amber-400 mr-2">[{sample.rating}★]</span>
-                        <span className="italic">"{sample.text}"</span>
-                        <span className="text-slate-500 ml-2 font-mono text-xs">— {sample.date}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-slate-300 font-mono">
+                      {idx + 1}
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* In Global mode, show game badge */}
+                        {isGlobal && (
+                          <span
+                            className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-md border ${
+                              isHitwicket
+                                ? "bg-indigo-600/20 text-indigo-300 border-indigo-500/40"
+                                : "bg-white/5 text-slate-400 border-white/10"
+                            }`}
+                          >
+                            {GAME_NAMES[itemGame] || itemGame}
+                          </span>
+                        )}
+                        <span className="text-base font-bold text-white tracking-tight">
+                          {p.primary_category}
+                        </span>
+                        <span className="text-xs px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-medium">
+                          {p.subcategory}
+                        </span>
                       </div>
-                    ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className={`px-3 py-1 rounded-full text-xs font-extrabold border flex items-center gap-1.5 ${scoreColor}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+                      <span>{score} / 100</span>
+                      <InfoTooltip content={`Priority Score: ${score}/100 based on formula weighting.`} size={11} />
+                    </div>
+                    <div className="text-slate-400 hover:text-white transition-colors">
+                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Metric Strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 pt-3 border-t border-white/5">
+                  <div className="bg-black/30 rounded-xl p-2.5 border border-white/5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[0.68rem] uppercase font-medium text-slate-400">Frequency</span>
+                      <InfoTooltip content="Percentage of all classified reviews that mention this specific issue." size={11} />
+                    </div>
+                    <div className="text-sm font-bold text-slate-200 mt-0.5">{p.frequency_pct?.toFixed(1)}%</div>
+                  </div>
+                  <div className="bg-black/30 rounded-xl p-2.5 border border-white/5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[0.68rem] uppercase font-medium text-slate-400">Avg Severity</span>
+                      <InfoTooltip content="Technical & gameplay disruption rating from 1.0 (trivial) to 5.0 (unplayable / crash)." size={11} />
+                    </div>
+                    <div className="text-sm font-bold text-slate-200 mt-0.5">{p.avg_severity?.toFixed(1)} / 5.0</div>
+                  </div>
+                  <div className="bg-black/30 rounded-xl p-2.5 border border-white/5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[0.68rem] uppercase font-medium text-slate-400">Biz Impact</span>
+                      <InfoTooltip content="Estimated churn and monetization risk from 1.0 (low) to 5.0 (critical revenue blocker)." size={11} />
+                    </div>
+                    <div className="text-sm font-bold text-slate-200 mt-0.5">{p.avg_business_impact?.toFixed(1)} / 5.0</div>
+                  </div>
+                  <div className="bg-black/30 rounded-xl p-2.5 border border-white/5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[0.68rem] uppercase font-medium text-slate-400">Trend</span>
+                      <InfoTooltip content="Change in review frequency over the last 30 days vs previous 30 days." size={11} />
+                    </div>
+                    <div className="text-sm font-bold text-indigo-300 mt-0.5 truncate">{p.trend_label || "Stable"}</div>
+                  </div>
+                </div>
+
+                {/* Expandable Authentic Review Quotes */}
+                {isExpanded && p.samples && p.samples.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-white/5 space-y-2.5">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                      <Quote size={13} className="text-indigo-400" />
+                      <span>Authentic User Feedback ({GAME_NAMES[itemGame] || itemGame})</span>
+                      <InfoTooltip content="Raw, unedited review excerpts from players directly expressing this issue on Google Play." size={11} />
+                    </div>
+                    <div className="space-y-2">
+                      {p.samples.map((sample: any, sIdx: number) => (
+                        <div
+                          key={sIdx}
+                          className="bg-black/40 border border-white/[0.06] rounded-xl p-3.5 text-xs leading-relaxed text-slate-300"
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-1 text-amber-400 font-bold">
+                              <span>{sample.rating}</span>
+                              <Star size={12} className="fill-amber-400" />
+                            </div>
+                            <span className="text-[0.65rem] text-slate-400 font-mono">{sample.date}</span>
+                          </div>
+                          <p className="italic text-slate-200">&ldquo;{sample.text}&rdquo;</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

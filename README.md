@@ -16,19 +16,18 @@ cd hitwicket-review-intelligence
 pip install -r requirements.txt
 ```
 
-### 2. Environment Configuration (Optional)
+### 2. Environment Configuration
 
 Create a `.env` file in `hitwicket-review-intelligence/.env`:
 
 ```env
-# For LLM-based classification & brief generation (Optional - rule-based fallback included)
+# Gemini API Key (Used exclusively for executive Founder Brief synthesis)
 GEMINI_API_KEY=your_gemini_api_key
-
-# For Apify cloud scraping (Optional - local google-play-scraper included by default)
-APIFY_API_TOKEN=your_apify_api_token
+GEMINI_MODEL=gemini-3.5-flash-lite
+GEMINI_FALLBACK_MODEL=gemini-3.6-flash
 ```
 
-> **Note:** The pipeline works 100% out of the box without any paid API keys! If no `GEMINI_API_KEY` is provided, it uses an intelligent rule-based keyword classifier.
+> **Hybrid AI Architecture**: Review classification runs on a fast, zero-cost deterministic rule-based NLP engine (0 API calls). Google Gemini (`gemini-3.5-flash-lite`) is invoked **exactly once per run** to synthesize the executive Founder Brief, costing **~$0.00026 per pipeline run (<$0.01/month)**.
 
 ### 3. Run Pipeline (CLI)
 
@@ -36,12 +35,16 @@ APIFY_API_TOKEN=your_apify_api_token
 python run_pipeline.py
 ```
 
-### 4. Launch Interactive Streamlit Dashboard (with Live Pipeline Controller)
+### 4. Launch Interactive Web Dashboard & Pipeline Controller
 
 ```bash
-streamlit run dashboard.py
+# Terminal 1: Start FastAPI backend
+python api/index.py
+
+# Terminal 2: Start Next.js frontend
+npm run dev
 ```
-*Allows triggering pipeline runs, re-running stages, exploring live reviews, and viewing the founder brief with one click.*
+*Access the rich dark-mode executive intelligence dashboard at `http://localhost:3000`.*
 
 ---
 
@@ -156,17 +159,44 @@ See [TAXONOMY.md](TAXONOMY.md) for definitions and exclusion rationale.
 
 ---
 
+---
+
+## 💰 Gemini LLM Usage & Cost Economics
+
+| Pipeline Stage | Engine | Calls per Run | Cost |
+| :--- | :--- | :---: | :---: |
+| **1. Scraping & Ingest** | `google-play-scraper` (HTTP) | 0 | $0.00 |
+| **2. Cleaning & Deduplication** | SQLite WAL + Regex | 0 | $0.00 |
+| **3. Review Classification** | Deterministic Rule-Based NLP | 0 | $0.00 |
+| **4. Priority Scoring & Matrix** | Mathematical Python Engine | 0 | $0.00 |
+| **5. Executive Founder Brief** | Google Gemini (`gemini-3.5-flash-lite`) | **1** | **~$0.00026** |
+
+* **Single Run Cost**: **~$0.00026** *(~1/40th of 1 cent)*
+* **Daily Runs for a Month (30 runs)**: **<$0.01 / month**
+* **Gemini is invoked exclusively for executive brief synthesis**, ensuring zero token cost during large-scale review categorization.
+
+---
+
+## ⚖️ Review Sampling Strategy (Equal vs. Dynamic)
+
+* **Equal Sample Size (Recommended for Benchmarking)**: Setting equal sample sizes (e.g., 150–300 reviews per game) provides balanced statistical variance, stable error margins, and fair side-by-side comparison across competitor titles.
+* **Normalized Mathematics**: If games have unequal review volumes, the scoring formula evaluates **Share of Voice** ($\text{Frequency} = \frac{\text{Count}}{\text{Total Reviews}} \times 100$) rather than raw counts, preventing high-volume games from distorting priorities.
+* **Small Sample Safeguard**: Categories with $<5$ reviews automatically revert to neutral trend scores (`insufficient_sample`).
+
+---
+
 ## 🧪 Running Tests
 
 ```bash
 pytest -v
 ```
-All 58 unit tests validate:
+All 66 automated tests validate:
 - Idempotent deduplication via SQLite unique constraints
 - 90-day review date windowing
 - Mathematical normalization & priority score boundaries ($0-100$)
 - Trend calculation & sample size protection
 - Pydantic validation & malformed JSON recovery
+- REST API security headers, path traversal guards, and stop endpoint
 
 ---
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { History, CheckCircle2, XCircle, Clock, Hash, Layers } from "lucide-react";
 
 export default function PipelineHistory() {
   const [runs, setRuns] = useState<any[]>([]);
@@ -6,52 +7,85 @@ export default function PipelineHistory() {
 
   useEffect(() => {
     fetch("/api/runs")
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setRuns(data.runs || []);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-slate-400">Loading pipeline history...</div>;
-  if (runs.length === 0) return <div className="text-amber-400">No execution runs recorded yet.</div>;
-
   return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">Pipeline Execution Audit Log</h2>
-        <p className="text-sm text-slate-400 mb-2">Record of all pipeline runs, including how many reviews were fetched and classified.</p>
+    <div className="flex flex-col h-full space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+          <History size={20} />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-white tracking-tight">Pipeline Audit Log</h2>
+          <p className="text-xs text-slate-400">Historical records of all data ingestion and classification runs</p>
+        </div>
       </div>
 
-      <div className="bg-[#101524] border border-[#28334e] rounded-xl overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-[#161d31] border-b border-[#28334e] text-slate-300">
-            <tr>
-              <th className="px-6 py-4 font-semibold border-r border-[#28334e]">Run ID</th>
-              <th className="px-6 py-4 font-semibold border-r border-[#28334e]">Timestamp (UTC)</th>
-              <th className="px-6 py-4 font-semibold border-r border-[#28334e]">Stages</th>
-              <th className="px-6 py-4 font-semibold border-r border-[#28334e]">Fetched</th>
-              <th className="px-6 py-4 font-semibold border-r border-[#28334e]">New Added</th>
-              <th className="px-6 py-4 font-semibold border-r border-[#28334e]">Classified</th>
-              <th className="px-6 py-4 font-semibold border-r border-[#28334e]">Failures</th>
-              <th className="px-6 py-4 font-semibold">Model</th>
-            </tr>
-          </thead>
-          <tbody>
-            {runs.map((r, i) => (
-              <tr key={i} className="border-b border-[#1e293b] last:border-0 hover:bg-[#131828] transition-colors">
-                <td className="px-6 py-4 font-medium text-white border-r border-[#1e293b]">{r.id}</td>
-                <td className="px-6 py-4 text-slate-300 border-r border-[#1e293b]">{r.run_at}</td>
-                <td className="px-6 py-4 text-indigo-400 border-r border-[#1e293b]">{r.stages_run}</td>
-                <td className="px-6 py-4 text-slate-300 border-r border-[#1e293b]">{r.reviews_fetched}</td>
-                <td className="px-6 py-4 text-emerald-400 font-bold border-r border-[#1e293b]">{r.new_reviews}</td>
-                <td className="px-6 py-4 text-amber-400 font-bold border-r border-[#1e293b]">{r.classified}</td>
-                <td className="px-6 py-4 text-red-400 border-r border-[#1e293b]">{r.classification_failures}</td>
-                <td className="px-6 py-4 text-slate-300">{r.model_used}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="glass-panel rounded-3xl overflow-hidden flex-1 flex flex-col border border-white/[0.08]">
+        {loading ? (
+          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center">
+            <div className="w-8 h-8 border-3 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-3" />
+            <span className="text-xs">Loading execution history...</span>
+          </div>
+        ) : runs.length === 0 ? (
+          <div className="p-12 text-center text-slate-400 text-xs">
+            No pipeline executions logged in database yet.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-white/[0.03] border-b border-white/[0.08] text-slate-400">
+                  <th className="py-3.5 px-4 font-semibold uppercase tracking-wider">Run ID</th>
+                  <th className="py-3.5 px-4 font-semibold uppercase tracking-wider">Timestamp</th>
+                  <th className="py-3.5 px-4 font-semibold uppercase tracking-wider">Stages</th>
+                  <th className="py-3.5 px-4 font-semibold uppercase tracking-wider">Fetched</th>
+                  <th className="py-3.5 px-4 font-semibold uppercase tracking-wider">New Added</th>
+                  <th className="py-3.5 px-4 font-semibold uppercase tracking-wider">Classified</th>
+                  <th className="py-3.5 px-4 font-semibold uppercase tracking-wider">Failures</th>
+                  <th className="py-3.5 px-4 font-semibold uppercase tracking-wider">Model</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.05]">
+                {runs.map((r, i) => {
+                  const runId = String(r.id ?? r.run_id ?? i + 1);
+                  const timestamp = r.run_at || r.timestamp || "—";
+                  const stages = r.stages_run || r.stages || "all";
+                  const fetched = r.reviews_fetched ?? r.fetched ?? "—";
+                  const newReviews = r.new_reviews ?? r.new ?? "—";
+                  const classified = r.classified ?? "—";
+                  const failures = r.classification_failures ?? r.failures ?? 0;
+                  const model = r.model_used ?? "gemini-2.5-flash";
+
+                  return (
+                    <tr key={i} className="hover:bg-white/[0.03] transition-colors">
+                      <td className="py-3.5 px-4 font-mono font-bold text-indigo-400">#{runId}</td>
+                      <td className="py-3.5 px-4 text-slate-300 font-mono text-[0.7rem] whitespace-nowrap">
+                        {timestamp}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="inline-flex px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[0.7rem] text-slate-300 font-medium">
+                          {stages}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-slate-200">{fetched}</td>
+                      <td className="py-3.5 px-4 font-mono text-emerald-400 font-bold">{newReviews}</td>
+                      <td className="py-3.5 px-4 font-mono text-cyan-400 font-bold">{classified}</td>
+                      <td className="py-3.5 px-4 font-mono text-rose-400">{failures}</td>
+                      <td className="py-3.5 px-4 text-slate-400 font-mono text-[0.7rem]">{model}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

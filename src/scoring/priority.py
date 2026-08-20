@@ -210,13 +210,20 @@ def compute_priority_scores(
         prior_count = prior_groups.get(key, 0)
         trend_score, trend_label = _compute_trend(current_count, prior_count)
 
+        # Statistical confidence dampener to eliminate single-review bias
+        # For small sample sizes (count < 5), scale score by min(1.0, count / 5.0)
+        # and do not grant unearned neutral trend points
+        confidence_factor = min(1.0, count / 5.0)
+        effective_trend_score = trend_score if count >= 5 else 0.0
+
         # Composite priority score
-        priority = (
+        raw_priority = (
             SCORE_WEIGHT_FREQUENCY * freq_score
             + SCORE_WEIGHT_SEVERITY * severity_score
             + SCORE_WEIGHT_BUSINESS_IMPACT * impact_score
-            + SCORE_WEIGHT_TREND * trend_score
+            + SCORE_WEIGHT_TREND * effective_trend_score
         )
+        priority = raw_priority * confidence_factor
 
         # Auxiliary stats
         ratings = [r.get("rating") for r in group_reviews if r.get("rating")]

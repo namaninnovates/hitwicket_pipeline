@@ -18,7 +18,7 @@ Primary categories (choose exactly one):
 ## Output Format
 Return ONLY a valid JSON object. No explanation, no markdown, no code blocks.
 
-{
+{{
   "primary_category": "<one of the 5 categories above>",
   "subcategory": "<specific subcategory within the primary category>",
   "sentiment": "<positive|negative|mixed|neutral>",
@@ -27,7 +27,7 @@ Return ONLY a valid JSON object. No explanation, no markdown, no code blocks.
   "issue": "<one sentence: the core complaint or praise, plain English>",
   "actionability": <1-5 integer, where 1=cannot fix, 5=clear product action exists>,
   "confidence": <0.0-1.0 float, your confidence in this classification>
-}
+}}
 
 ## Rules
 - If the review is too short or ambiguous to classify confidently, still return JSON with low confidence (<0.5)

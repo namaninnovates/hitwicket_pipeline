@@ -164,3 +164,34 @@ Documented this finding honestly in `SOURCE_RESEARCH.md`, selected Google Play a
 
 **Lesson:**
 Public endpoints for closed ecosystems are unstable. A pipeline must be built with graceful fallbacks and clear source attribution.
+
+---
+
+### Mistake 3: Overly Strict Pydantic Query Range on `limit`
+
+**Claim:**
+During endpoint security hardening, `limit: int = Query(200, ge=1, le=1000)` was added to `/api/reviews` to prevent oversized payloads.
+
+**How I caught it:**
+When clicking "All" in the Review Explorer UI, the frontend sent `limit=0` (signifying unbounded query). The API returned an `HTTP 422 Unprocessable Entity`, causing the UI to display `0 matching reviews`.
+
+**Correction:**
+Updated the parameter definition to `Query(200, ge=0, le=10000)` where `0` explicitly indicates "All records" and bounded the upper limit safely to 10,000.
+
+**Lesson:**
+Always cross-reference API parameter boundary constraints with frontend UI state conventions (such as `0` or `null` for "All").
+
+---
+
+## 4. Key Architectural Decisions & Optimizations
+
+### 1. Hybrid Intelligence Model (Zero-Cost Classification + Gemini Brief)
+- **Review Classification**: Moved to a high-speed, deterministic rule-based NLP engine ([`src/classification/classifier.py`](file:///Users/guptanaman/Projects/hitwicket-review-intelligence/src/classification/classifier.py)) implementing the complete 5-category taxonomy. Eliminates external API dependencies and reduces review categorization time from minutes to milliseconds at **$0.00 cost**.
+- **Founder Brief Synthesis**: Google Gemini (`gemini-3.5-flash-lite`) is invoked **strictly once per pipeline execution** to synthesize high-level strategic takeaways, competitor matrices, and 90-second executive summaries (**~$0.00026 / run**).
+
+### 2. Review Sampling Strategy (Equal vs. Dynamic Volume)
+- **Equal Sample Sizes**: Recommended for competitive benchmarking (150–300 reviews per title) to ensure consistent statistical variance, stable error margins, and reliable trend detection.
+- **Normalized Frequency**: All category metrics are computed as percentages within each game independently ($\frac{\text{Count}}{\text{Total Game Reviews}} \times 100$), ensuring fair comparisons even when review volumes differ.
+
+### 3. Pipeline Lifecycle Management (Live Progress & Process Stop)
+- Added real-time stage progress tracking and an explicit `POST /api/pipeline/stop` endpoint allowing users to terminate long-running scraping or analysis tasks cleanly with immediate subprocess `SIGTERM`/`SIGKILL` and concurrency lock release.
