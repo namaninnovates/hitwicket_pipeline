@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, AlertTriangle, Flame, TrendingUp, ShieldAlert, Quote, Star, Gamepad2 } from "lucide-react";
 import InfoTooltip from "./Tooltip";
-import { telemetryCache } from "../lib/telemetryCache";
+
 
 export default function PriorityIssues({ selectedGame, refreshKey = 0 }: { selectedGame: string; refreshKey?: number }) {
   const [priorities, setPriorities] = useState<any[]>([]);
@@ -10,22 +10,6 @@ export default function PriorityIssues({ selectedGame, refreshKey = 0 }: { selec
 
   useEffect(() => {
     const loadPriorities = async () => {
-      if (telemetryCache.priorities) {
-        let list: any[] = [];
-        if (selectedGame === "all") {
-          Object.values(telemetryCache.priorities).forEach((arr: any) => {
-            if (Array.isArray(arr)) list.push(...arr);
-          });
-          list.sort((a, b) => (b.priority_score || 0) - (a.priority_score || 0));
-        } else if (telemetryCache.priorities[selectedGame]) {
-          list = telemetryCache.priorities[selectedGame];
-        }
-        if (list.length > 0) {
-          setPriorities(list);
-          setLoading(false);
-          return;
-        }
-      }
       // Fetch directly from API
       setLoading(true);
       setLoading(true);

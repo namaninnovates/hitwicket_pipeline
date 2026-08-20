@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { BarChart3, Star, Percent } from "lucide-react";
 import InfoTooltip from "./Tooltip";
-import { telemetryCache } from "../lib/telemetryCache";
+
 
 export default function GameAnalytics({ refreshKey = 0 }: { refreshKey?: number }) {
   const [analytics, setAnalytics] = useState<any[]>([]);
@@ -9,21 +9,6 @@ export default function GameAnalytics({ refreshKey = 0 }: { refreshKey?: number 
 
   useEffect(() => {
     const loadAnalytics = async () => {
-      if (telemetryCache.metrics && telemetryCache.metrics.games) {
-        const list = Object.entries(telemetryCache.metrics.games).map(([gk, gm]: [string, any]) => ({
-          game: gk,
-          avgRating: gm.avgRating || 0,
-          posPct: gm.posPct || 0,
-          negPct: gm.negPct || 0,
-          ingested: gm.ingested || 0,
-          rank: gm.rank || 1,
-        }));
-        if (list.length > 0) {
-          setAnalytics(list);
-          setLoading(false);
-          return;
-        }
-      }
       setLoading(true);
       fetch("/api/analytics")
         .then((res) => res.json())

@@ -93,33 +93,26 @@ export default function Dashboard() {
     setIsRefreshingData(true);
 
     try {
-      let activeMetrics, activeB;
-      
-      if (payload && payload.metrics) {
-        activeMetrics = selectedGame === "all" ? payload.metrics.overall : payload.metrics.games?.[selectedGame];
-        activeB = payload.briefs?.[selectedGame] || payload.briefs?.["all"] || null;
-      } else {
-        const [gamesRes, metricsRes, briefRes] = await Promise.all([
-          fetch("/api/games").then((r) => r.json()).catch(() => ({})),
-          fetch("/api/metrics").then((r) => r.json()).catch(() => ({})),
-          fetch(`/api/brief?game=${selectedGame}`).then((r) => r.json()).catch(() => ({})),
-        ]);
-        if (gamesRes?.games) setGames(gamesRes.games);
-        activeMetrics = selectedGame === "all" ? metricsRes?.overall : metricsRes?.games?.[selectedGame];
-        activeB = briefRes?.brief || null;
-      }
+      // Data is already saved in Postgres by the backend pipeline
+      const [gamesRes, metricsRes, briefRes] = await Promise.all([
+        fetch("/api/games").then((r) => r.json()).catch(() => ({})),
+        fetch("/api/metrics").then((r) => r.json()).catch(() => ({})),
+        fetch(`/api/brief?game=${selectedGame}`).then((r) => r.json()).catch(() => ({})),
+      ]);
+      if (gamesRes?.games) setGames(gamesRes.games);
 
+      const activeMetrics = selectedGame === "all" ? metricsRes?.overall : metricsRes?.games?.[selectedGame];
       if (activeMetrics) {
         const newSnap: HistorySnapshot = {
           id: "snap_" + Date.now(),
-          title: selectedGame === "all" ? "Global Market Synthesis" : `${games?.[selectedGame]?.name || selectedGame} Analysis`,
+          title: selectedGame === "all" ? "Global Market Synthesis" : `${gamesRes?.games?.[selectedGame]?.name || selectedGame} Analysis`,
           timestamp: new Date().toISOString(),
           game: selectedGame,
           totalReviews: activeMetrics.ingested || 0,
           avgRating: activeMetrics.avgRating || 0,
           positivePct: activeMetrics.posPct || 0,
           topPriority: activeMetrics.topPriority || undefined,
-          brief: activeB,
+          brief: briefRes?.brief || null,
         };
         await fetch("/api/history", {
           method: "POST",

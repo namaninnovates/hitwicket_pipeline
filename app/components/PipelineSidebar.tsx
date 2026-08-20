@@ -21,7 +21,8 @@ import {
   SquareDashed
 } from "lucide-react";
 import InfoTooltip from "./Tooltip";
-import { setTelemetryCache, clearTelemetryCache } from "../lib/telemetryCache";
+
+
 export default function PipelineSidebar({
   games,
   selectedGame,
@@ -136,7 +137,6 @@ export default function PipelineSidebar({
                   else if (msg.includes("STAGE: GENERATE BRIEF")) setCurrentStage("Synthesizing Memo");
                 } else if (data.type === "complete_payload" && data.payload) {
                   const p = data.payload;
-                  setTelemetryCache(p);
                   if (onComplete) {
                     onComplete(p);
                   }
@@ -532,7 +532,6 @@ export default function PipelineSidebar({
               type="button"
               onClick={async () => {
                 if (window.confirm("Are you sure you want to clear all locally stored reviews and reset your database?")) {
-                  clearTelemetryCache();
                   await fetch("/api/database/reset", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },

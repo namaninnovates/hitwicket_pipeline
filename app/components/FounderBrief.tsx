@@ -4,7 +4,6 @@ import remarkGfm from "remark-gfm";
 import { RefreshCw, FileText, Sparkles, Copy, Check, Globe } from "lucide-react";
 import InfoTooltip from "./Tooltip";
 import CricketLoader from "./CricketLoader";
-import { telemetryCache } from "../lib/telemetryCache";
 
 
 // Client-side in-memory cache across tab switches (0ms instant loading)
@@ -34,12 +33,6 @@ export default function FounderBrief({
       // 1. Instant return from in-memory cache (0ms)
       if (briefMemoryCache[gameKey]) {
         setBrief(briefMemoryCache[gameKey]);
-        setLoading(false);
-        return;
-      }
-      if (telemetryCache.briefs && telemetryCache.briefs[gameKey]) {
-        setBrief(telemetryCache.briefs[gameKey]);
-        briefMemoryCache[gameKey] = telemetryCache.briefs[gameKey];
         setLoading(false);
         return;
       }
