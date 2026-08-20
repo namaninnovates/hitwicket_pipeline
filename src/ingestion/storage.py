@@ -553,7 +553,7 @@ def get_history_snapshots(conn: Any, limit: int = 50) -> list[dict]:
         logger.error(f"Failed to fetch history snapshots: {e}")
         return []
 
-def get_latest_brief_for_game(conn: Any, game: str) -> str | None:
+def get_latest_brief_for_game(conn: Any, game: str) -> Optional[str]:
     try:
         query = "SELECT brief FROM history_snapshots WHERE game = "
         if is_postgres_connection(conn):
