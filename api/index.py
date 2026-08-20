@@ -151,20 +151,6 @@ def load_data_df():
                 conn.close()
             except Exception:
                 pass
-
-    # If database is empty on serverless cold-start before first run, fallback to bundled authentic reviews
-    if df.empty:
-        for csv_path in [
-            PROJECT_ROOT / "data" / "scraped_reviews_export.csv",
-            Path("data/scraped_reviews_export.csv"),
-            Path("/var/task/data/scraped_reviews_export.csv")
-        ]:
-            if csv_path.exists():
-                try:
-                    df = pd.read_csv(csv_path)
-                    break
-                except Exception:
-                    pass
     
     return df, runs_df
 
@@ -571,7 +557,7 @@ def get_latest_brief(game: str = "all"):
         content = _brief_file_cache[sanitized_game]
         return {"brief": content, "content": content, "game": sanitized_game, "status": "ok"}
 
-    search_dirs = [OUTPUTS_DIR.resolve(), (PROJECT_ROOT / "outputs").resolve()]
+    search_dirs = [OUTPUTS_DIR.resolve()]
     target_files = []
 
     for d in search_dirs:
