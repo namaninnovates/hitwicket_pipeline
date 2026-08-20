@@ -7,14 +7,16 @@ import CricketLoader from "./CricketLoader";
 import { saveLocalBrief, getLocalBrief, saveHistorySnapshot } from "../lib/localDb";
 
 // Client-side in-memory cache across tab switches (0ms instant loading)
-const briefMemoryCache: Record<string, string> = {};
+let briefMemoryCache: Record<string, string> = {};
 
 export default function FounderBrief({
   selectedGame = "all",
   historicalBrief,
+  refreshKey = 0,
 }: {
   selectedGame?: string;
   historicalBrief?: string | null;
+  refreshKey?: number;
 }) {
   const [brief, setBrief] = useState<string>(
     historicalBrief || briefMemoryCache[selectedGame] || ""
@@ -26,38 +28,40 @@ export default function FounderBrief({
 
   const isGlobal = selectedGame === "all" || selectedGame === "global";
 
-  const loadBriefForGame = async (gameKey: string) => {
-    // 1. Instant return from in-memory cache (0ms)
-    if (briefMemoryCache[gameKey]) {
-      setBrief(briefMemoryCache[gameKey]);
-      setLoading(false);
-      return;
+  const loadBriefForGame = async (gameKey: string, forceFresh = false) => {
+    if (!forceFresh) {
+      // 1. Instant return from in-memory cache (0ms)
+      if (briefMemoryCache[gameKey]) {
+        setBrief(briefMemoryCache[gameKey]);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Instant return from local IndexedDB / storage (0ms)
+      const localSaved = await getLocalBrief(gameKey);
+      if (localSaved) {
+        briefMemoryCache[gameKey] = localSaved;
+        setBrief(localSaved);
+        setLoading(false);
+        return;
+      }
     }
 
-    // 2. Instant return from local IndexedDB / storage (0ms)
-    const localSaved = await getLocalBrief(gameKey);
-    if (localSaved) {
-      briefMemoryCache[gameKey] = localSaved;
-      setBrief(localSaved);
-      setLoading(false);
-      return;
-    }
-
-    // 3. Otherwise, fetch pre-generated static markdown from server
+    // 3. Otherwise, fetch generated brief from server
     setLoading(true);
     try {
       const res = await fetch(`/api/brief?game=${gameKey}`);
       if (res.ok) {
         const data = await res.json();
         const text = data.brief || data.content || "";
+        briefMemoryCache[gameKey] = text;
         if (text) {
-          briefMemoryCache[gameKey] = text;
           saveLocalBrief(gameKey, text);
         }
         setBrief(text);
       }
     } catch (e) {
-      console.warn("Could not fetch pre-generated brief:", e);
+      console.warn("Could not fetch generated brief:", e);
     } finally {
       setLoading(false);
     }
@@ -68,9 +72,14 @@ export default function FounderBrief({
       setBrief(historicalBrief);
       setLoading(false);
     } else {
-      loadBriefForGame(selectedGame);
+      // When refreshKey updates (pipeline complete), force reload fresh brief
+      const isFreshPipelineRun = refreshKey > 0;
+      if (isFreshPipelineRun) {
+        briefMemoryCache = {};
+      }
+      loadBriefForGame(selectedGame, isFreshPipelineRun);
     }
-  }, [selectedGame, historicalBrief]);
+  }, [selectedGame, historicalBrief, refreshKey]);
 
   const copyToClipboard = () => {
     if (!brief) return;

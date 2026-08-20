@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, AlertTriangle, Flame, TrendingUp, ShieldAlert, Quote, Star, Gamepad2 } from "lucide-react";
 import InfoTooltip from "./Tooltip";
 
-export default function PriorityIssues({ selectedGame }: { selectedGame: string }) {
+export default function PriorityIssues({ selectedGame, refreshKey = 0 }: { selectedGame: string; refreshKey?: number }) {
   const [priorities, setPriorities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
@@ -15,7 +15,7 @@ export default function PriorityIssues({ selectedGame }: { selectedGame: string 
         setPriorities(data.priorities || []);
         setLoading(false);
       });
-  }, [selectedGame]);
+  }, [selectedGame, refreshKey]);
 
   const isGlobal = selectedGame === "all";
 

@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { Swords, AlertCircle, Compass, CheckCircle } from "lucide-react";
 import InfoTooltip from "./Tooltip";
 
-export default function CompetitorBenchmark() {
+export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: number }) {
   const [matrixData, setMatrixData] = useState<any>(null);
   const [insights, setInsights] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     fetch("/api/matrix")
       .then((res) => res.json())
       .then((data) => {
@@ -15,7 +16,7 @@ export default function CompetitorBenchmark() {
         setInsights(data.insights || []);
         setLoading(false);
       });
-  }, []);
+  }, [refreshKey]);
 
   if (loading) {
     return (

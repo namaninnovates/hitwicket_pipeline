@@ -2,18 +2,19 @@ import { useState, useEffect } from "react";
 import { BarChart3, Star, Percent } from "lucide-react";
 import InfoTooltip from "./Tooltip";
 
-export default function GameAnalytics() {
+export default function GameAnalytics({ refreshKey = 0 }: { refreshKey?: number }) {
   const [analytics, setAnalytics] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     fetch("/api/analytics")
       .then((res) => res.json())
       .then((data) => {
         setAnalytics(data.analytics || []);
         setLoading(false);
       });
-  }, []);
+  }, [refreshKey]);
 
   if (loading) {
     return (

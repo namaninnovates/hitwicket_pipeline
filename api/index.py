@@ -859,6 +859,7 @@ def stream_pipeline(
                     output_dir=OUTPUTS_DIR,
                 )
                 yield f"data: {json.dumps({'type': 'log', 'msg': 'Global market intelligence brief generated successfully.'})}\n\n"
+                _brief_file_cache.clear()
 
             # Record run log to Neon PostgreSQL
             try:

@@ -311,20 +311,20 @@ export default function Dashboard() {
 
                 {/* 2. 90-Second Executive Founder Brief */}
                 <section>
-                  <FounderBrief selectedGame={selectedGame} historicalBrief={activeSnapshot?.brief} />
+                  <FounderBrief selectedGame={selectedGame} historicalBrief={activeSnapshot?.brief} refreshKey={refreshKey} />
                 </section>
 
                 {/* 3. Priority Issues & Competitor Benchmark Matrix */}
                 <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                   {/* Left Column: Top Prioritized Issues */}
                   <div className="lg:col-span-7 h-full">
-                    <PriorityIssues selectedGame={selectedGame} />
+                    <PriorityIssues selectedGame={selectedGame} refreshKey={refreshKey} />
                   </div>
 
                   {/* Right Column: Benchmark Matrix & Comparison Telemetry */}
                   <div className="lg:col-span-5 space-y-8">
-                    <CompetitorBenchmark />
-                    <GameAnalytics />
+                    <CompetitorBenchmark refreshKey={refreshKey} />
+                    <GameAnalytics refreshKey={refreshKey} />
                   </div>
                 </section>
               </div>
