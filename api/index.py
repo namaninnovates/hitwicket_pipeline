@@ -529,26 +529,29 @@ def get_runs():
 @app.get("/api/brief")
 @app.get("/api/briefs/latest")
 def get_latest_brief(game: str = "all"):
+    """
+    Read-only endpoint to retrieve the most recently generated Founder Brief.
+    Strictly NEVER triggers Gemini or generates briefs dynamically on GET requests.
+    Briefs are exclusively generated once during Pipeline Execution.
+    """
     sanitized_game = game.strip().lower()
+    # Normalize common game aliases
+    if sanitized_game == "tennis":
+        sanitized_game = "tennis_clash"
+    elif sanitized_game == "baseball":
+        sanitized_game = "baseball_clash"
+
     if sanitized_game != "all" and sanitized_game not in GAMES:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid game parameter '{game}'. Allowed: {list(GAMES.keys())} or 'all'"
         )
 
-    # 1. First check if DB is empty
-    df, _ = load_data_df()
-    if df.empty or len(df[df["primary_category"].notna()]) == 0:
-        return {"brief": None, "content": None, "game": sanitized_game, "status": "empty"}
-
-    classified_records = df[df["primary_category"].notna()].to_dict("records")
-    if not classified_records:
-        return {"brief": None, "content": None, "game": sanitized_game, "status": "empty"}
-
     outputs_resolved = OUTPUTS_DIR.resolve()
     outputs_resolved.mkdir(parents=True, exist_ok=True)
 
-    # 2. Check if a game-specific or global brief already exists for current dataset
+    # Search for pre-generated brief file in outputs directory
+    target_files = []
     if sanitized_game == "all":
         target_files = [f for f in outputs_resolved.glob("**/founder_brief_global.md") if f.is_file()] or \
                        [f for f in outputs_resolved.glob("**/founder_brief_all.md") if f.is_file()]
@@ -560,49 +563,19 @@ def get_latest_brief(game: str = "all"):
         try:
             target_file.resolve().relative_to(outputs_resolved)
             content = target_file.read_text(encoding="utf-8")
-            if "0 reviews analyzed" not in content:
-                return {"brief": content, "content": content, "game": sanitized_game}
-        except Exception:
-            pass
+            if "0 reviews analyzed" not in content and len(content.strip()) > 20:
+                return {"brief": content, "content": content, "game": sanitized_game, "status": "ok"}
+        except Exception as e:
+            logger.warning(f"Error reading pre-generated brief file: {e}")
 
-    # 3. If brief doesn't exist yet, generate on demand from active database records
-    try:
-        from src.scoring.priority import compute_priority_scores
-        from src.analysis.competitor import build_competitor_matrix
-        from src.reporting.brief import generate_founder_brief, generate_global_market_brief
-
-        matrix_data = build_competitor_matrix(classified_records)
-
-        if sanitized_game == "all":
-            priority_by_game = {
-                g: compute_priority_scores(classified_records, game=g)
-                for g in GAMES.keys()
-            }
-            brief_path = generate_global_market_brief(
-                all_classified=classified_records,
-                priority_by_game=priority_by_game,
-                matrix_data=matrix_data,
-                output_dir=OUTPUTS_DIR,
-            )
-        else:
-            game_reviews = [r for r in classified_records if r.get("game") == sanitized_game]
-            if not game_reviews:
-                return {"brief": None, "content": None, "game": sanitized_game, "status": "empty"}
-            priorities = compute_priority_scores(classified_records, game=sanitized_game)
-            brief_path = generate_founder_brief(
-                game_key=sanitized_game,
-                classified_reviews=game_reviews,
-                priority_scores=priorities,
-                matrix_data=matrix_data,
-                output_dir=OUTPUTS_DIR,
-            )
-
-        content = brief_path.read_text(encoding="utf-8")
-        return {"brief": content, "content": content, "game": sanitized_game}
-    except Exception as e:
-        logger.error(f"Failed to generate on-demand brief for {sanitized_game}: {e}")
-
-    return {"brief": None, "content": None, "game": sanitized_game, "status": "empty"}
+    # If no pre-generated brief file is found, return not_generated (Zero LLM calls on GET)
+    return {
+        "brief": None,
+        "content": None,
+        "game": sanitized_game,
+        "status": "not_generated",
+        "message": f"No pre-generated brief exists for {sanitized_game}. Run the pipeline to synthesize an executive brief."
+    }
 
 @app.get("/api/docs/{doc_name}")
 def get_doc(doc_name: str):

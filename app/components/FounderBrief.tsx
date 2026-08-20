@@ -119,8 +119,8 @@ export default function FounderBrief({
       {loading ? (
         <div className="py-12">
           <CricketLoader
-            label="Synthesizing Executive Brief with Gemini..."
-            subtext="Analyzing 90-day review trajectories and competitor matrices"
+            label="Loading Saved Executive Brief..."
+            subtext="Retrieving pre-generated intelligence memo from database"
             size="md"
           />
         </div>
@@ -133,9 +133,9 @@ export default function FounderBrief({
       ) : (
         <div className="p-8 text-center glass-card rounded-2xl border-dashed border-amber-500/30 bg-amber-500/5 text-amber-300">
           <Sparkles className="mx-auto mb-2 text-amber-400" size={24} />
-          <p className="font-semibold text-white">Database is currently empty — No brief generated</p>
+          <p className="font-semibold text-white">No Executive Brief Generated for this Selection Yet</p>
           <p className="text-xs text-slate-400 mt-1">
-            Click &quot;Setup Pipeline&quot; in the top right to ingest reviews and synthesize your 90-second executive intelligence memo.
+            Briefs are synthesized exclusively during pipeline executions. Click &quot;Setup Pipeline&quot; in the top-right to run the pipeline for this game.
           </p>
         </div>
       )}
