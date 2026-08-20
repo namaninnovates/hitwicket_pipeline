@@ -50,9 +50,6 @@ export default function FounderBrief({
     } else {
       // When refreshKey updates (pipeline complete), force reload fresh brief
       const isFreshPipelineRun = refreshKey > 0;
-      if (isFreshPipelineRun) {
-        briefMemoryCache = {};
-      }
       loadBriefForGame(selectedGame, isFreshPipelineRun);
     }
   }, [selectedGame, historicalBrief, refreshKey]);
