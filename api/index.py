@@ -161,8 +161,18 @@ def reset_database(payload: ResetDbPayload):
         )
     conn = get_connection()
     if not conn:
-        raise HTTPException(status_code=404, detail="Database not found")
+        raise HTTPException(
+            status_code=500,
+            detail="Database connection failed. Please verify that DATABASE_URL is configured in your Vercel project environment variables."
+        )
     try:
+        # Guarantee tables exist before deletion
+        try:
+            if initialize_db:
+                initialize_db(conn)
+        except Exception:
+            pass
+
         if is_postgres_connection(conn):
             with conn.cursor() as cur:
                 cur.execute("DELETE FROM classifications;")
@@ -173,24 +183,33 @@ def reset_database(payload: ResetDbPayload):
                 conn.execute("DELETE FROM classifications")
                 conn.execute("DELETE FROM reviews")
                 conn.execute("DELETE FROM pipeline_runs")
-            
-            conn.isolation_level = None
-            conn.execute("VACUUM")
+            try:
+                conn.isolation_level = None
+                conn.execute("VACUUM")
+            except Exception:
+                pass
 
-        # Also purge any cached/generated briefs from outputs directory
-        outputs_resolved = OUTPUTS_DIR.resolve()
-        if outputs_resolved.exists():
-            for f in outputs_resolved.glob("**/founder_brief_*.md"):
-                try:
-                    f.unlink()
-                except Exception:
-                    pass
+        # Safely attempt to purge generated briefs from outputs directory if writable
+        try:
+            outputs_resolved = OUTPUTS_DIR.resolve()
+            if outputs_resolved.exists():
+                for f in outputs_resolved.glob("**/founder_brief_*.md"):
+                    try:
+                        f.unlink(missing_ok=True)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
 
         return {"status": "success", "message": "Database and telemetry reset successfully"}
     except Exception as e:
+        logger.error(f"Failed to reset database: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to reset database: {e}")
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except Exception:
+            pass
 
 @app.get("/api/config/key")
 def get_key_status():

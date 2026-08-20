@@ -12,21 +12,37 @@ ROOT_DIR = Path(__file__).parent.parent
 load_dotenv(ROOT_DIR / ".env")
 
 # ─────────────────────────────────────────────
-# Directories
+# Directories (Vercel Serverless Compatible: /tmp writable)
 # ─────────────────────────────────────────────
-DATA_DIR = ROOT_DIR / "data"
-OUTPUTS_DIR = ROOT_DIR / "outputs"
-PROMPTS_DIR = ROOT_DIR / "prompts"
-LOGS_DIR = DATA_DIR / "logs"
+is_serverless = bool(os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
+if is_serverless:
+    DATA_DIR = Path("/tmp/data")
+    OUTPUTS_DIR = Path("/tmp/outputs")
+    LOGS_DIR = Path("/tmp/data/logs")
+    PROMPTS_DIR = ROOT_DIR / "prompts"
+else:
+    DATA_DIR = ROOT_DIR / "data"
+    OUTPUTS_DIR = ROOT_DIR / "outputs"
+    LOGS_DIR = DATA_DIR / "logs"
+    PROMPTS_DIR = ROOT_DIR / "prompts"
 
-DATA_DIR.mkdir(exist_ok=True)
-OUTPUTS_DIR.mkdir(exist_ok=True)
-LOGS_DIR.mkdir(exist_ok=True)
+try:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
 
 # ─────────────────────────────────────────────
-# Database
+# Database (Neon Serverless PostgreSQL)
 # ─────────────────────────────────────────────
-DATABASE_URL = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL") or os.environ.get("NEON_DATABASE_URL")
+DATABASE_URL = (
+    os.environ.get("DATABASE_URL")
+    or os.environ.get("POSTGRES_URL")
+    or os.environ.get("POSTGRES_PRISMA_URL")
+    or os.environ.get("POSTGRES_URL_NON_POOLING")
+    or os.environ.get("NEON_DATABASE_URL")
+)
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
