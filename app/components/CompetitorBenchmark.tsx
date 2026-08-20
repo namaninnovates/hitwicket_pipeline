@@ -14,7 +14,7 @@ export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: n
       try {
         const local = await getLocalTelemetry();
         if (local?.matrix && Object.keys(local.matrix).length > 0) {
-          setMatrixData(local.matrix);
+          setMatrixData(local.matrix.matrix || local.matrix);
           setLoading(false);
           return;
         }

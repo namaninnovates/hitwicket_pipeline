@@ -30,14 +30,24 @@ except ImportError:
 
 def is_postgres_connection(conn: Any) -> bool:
     """Check if the provided connection is a PostgreSQL connection."""
-    return False
+    if not PSYCOPG2_AVAILABLE: return False
+    return hasattr(conn, "cursor") and not isinstance(conn, sqlite3.Connection)
 
 
-def get_connection(db_path: Optional[Union[Path, str]] = None) -> sqlite3.Connection:
+def get_connection(db_path: Optional[Union[Path, str]] = None) -> Any:
     """
-    Return a local SQLite database connection.
-    Guarantees fast, isolated local storage with zero cloud credentials.
+    Return a database connection (PostgreSQL if configured, else local SQLite).
     """
+    if IS_POSTGRES and PSYCOPG2_AVAILABLE and DATABASE_URL:
+        try:
+            conn = psycopg2.connect(DATABASE_URL)
+            conn.autocommit = True
+            initialize_db(conn)
+            return conn
+        except Exception as e:
+            logger.error(f"Failed to connect to PostgreSQL: {e}")
+            # Fallback to sqlite
+    
     target = Path(db_path) if db_path else DB_PATH
     try:
         target.parent.mkdir(parents=True, exist_ok=True)

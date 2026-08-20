@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 # Load .env file from project root
 ROOT_DIR = Path(__file__).parent.parent
 load_dotenv(ROOT_DIR / ".env")
+load_dotenv(ROOT_DIR / ".env.local")
 
 # ─────────────────────────────────────────────
 # Directories (Vercel Serverless Compatible: /tmp writable)
@@ -37,8 +38,8 @@ except Exception:
 # Database (Local SQLite Database)
 # ─────────────────────────────────────────────
 DB_PATH = DATA_DIR / "reviews.db"
-DATABASE_URL = None
-IS_POSTGRES = False
+DATABASE_URL = os.environ.get("DATABASE_URL")
+IS_POSTGRES = bool(DATABASE_URL and DATABASE_URL.startswith("postgres"))
 
 
 # ─────────────────────────────────────────────

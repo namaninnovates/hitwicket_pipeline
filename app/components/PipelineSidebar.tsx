@@ -138,14 +138,16 @@ export default function PipelineSidebar({
                 } else if (data.type === "complete_payload" && data.payload) {
                   const p = data.payload;
                   if (p.reviews && p.reviews.length > 0) {
-                    saveLocalReviews(p.reviews);
+                    await saveLocalReviews(p.reviews);
                   }
                   if (p.briefs) {
-                    Object.entries(p.briefs).forEach(([gk, bText]: [string, any]) => {
-                      if (bText) saveLocalBrief(gk, bText);
-                    });
+                    await Promise.all(
+                      Object.entries(p.briefs).map(async ([gk, bText]: [string, any]) => {
+                        if (bText) await saveLocalBrief(gk, bText);
+                      })
+                    );
                   }
-                  saveLocalTelemetry({
+                  await saveLocalTelemetry({
                     metrics: p.metrics,
                     priorities: p.priorities,
                     matrix: p.matrix,
@@ -164,11 +166,6 @@ export default function PipelineSidebar({
                     timestamp: new Date().toLocaleTimeString(),
                   });
                   fetchDbStatus();
-                  if (onComplete) {
-                    setTimeout(() => {
-                      onComplete();
-                    }, 500);
-                  }
                 } else if (data.type === "error") {
                   setLogs((prev) => [...prev, `[error] ${data.msg}`]);
                   setStatus("error");
@@ -557,6 +554,7 @@ export default function PipelineSidebar({
                   }).catch(() => {});
                   fetchDbStatus();
                   setLogs(["[system] Local database reset: all reviews & classifications cleared."]);
+                  window.location.reload();
                 }
               }}
               className="text-[0.65rem] text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-2 py-0.5 rounded border border-rose-500/20 transition-all cursor-pointer"

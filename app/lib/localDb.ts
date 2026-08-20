@@ -274,6 +274,7 @@ export async function resetLocalDatabase(): Promise<void> {
           localStorage.removeItem("hw_local_reviews");
           localStorage.removeItem("hw_local_seeded");
           localStorage.removeItem("hw_snapshots");
+          localStorage.removeItem("hw_active_telemetry");
           Object.keys(localStorage)
             .filter((k) => k.startsWith("hw_brief_"))
             .forEach((k) => localStorage.removeItem(k));
