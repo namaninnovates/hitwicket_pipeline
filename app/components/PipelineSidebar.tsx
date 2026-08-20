@@ -534,7 +534,9 @@ export default function PipelineSidebar({
                 if (window.confirm("Are you sure you want to clear all locally stored reviews and reset your database?")) {
                   clearTelemetryCache();
                   await fetch("/api/database/reset", {
-                    method: "DELETE",
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ confirm: "RESET" }),
                   }).catch(() => {});
                   fetchDbStatus();
                   setLogs(["[system] Local database reset: all reviews & classifications cleared."]);

@@ -74,7 +74,9 @@ export default function Dashboard() {
     setIsResetting(true);
     try {
       await fetch("/api/database/reset", {
-        method: "DELETE",
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: "RESET" }),
       }).catch(() => {});
 
       window.location.reload();
