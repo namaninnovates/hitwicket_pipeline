@@ -902,12 +902,15 @@ def stream_pipeline(
             if not df_all.empty:
                 def _calc_m(sub):
                     if sub.empty:
-                        return {"ingested": 0, "avgRating": 0, "negPct": 0, "posPct": 0, "classified": 0}
+                        return {"ingested": 0, "avgRating": 0.0, "negPct": 0.0, "posPct": 0.0, "classified": 0}
+                    avg = sub["rating"].mean()
+                    neg = (sub["rating"] <= 2).mean()
+                    pos = (sub["rating"] >= 4).mean()
                     return {
                         "ingested": len(sub),
-                        "avgRating": round(float(sub["rating"].mean()), 2),
-                        "negPct": round(float((sub["rating"] <= 2).mean() * 100), 1),
-                        "posPct": round(float((sub["rating"] >= 4).mean() * 100), 1),
+                        "avgRating": 0.0 if pd.isna(avg) else round(float(avg), 2),
+                        "negPct": 0.0 if pd.isna(neg) else round(float(neg * 100), 1),
+                        "posPct": 0.0 if pd.isna(pos) else round(float(pos * 100), 1),
                         "classified": int(sub["primary_category"].notna().sum()) if "primary_category" in sub else len(sub)
                     }
                 metrics_payload["overall"] = _calc_m(df_all)

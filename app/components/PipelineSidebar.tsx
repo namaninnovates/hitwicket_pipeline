@@ -171,7 +171,9 @@ export default function PipelineSidebar({
                   setStatus("error");
                   setCurrentStage("Error");
                 }
-              } catch (e) {}
+              } catch (e: any) {
+                console.error("Pipeline stream processing error:", e, line);
+              }
             }
           }
         }
