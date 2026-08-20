@@ -370,22 +370,21 @@ export default function Dashboard() {
       {isPipelineOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
-            onClick={() => setIsPipelineOpen(false)}
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity cursor-pointer"
+            onClick={() => {
+              const closeBtn = document.getElementById("pipeline-close-trigger");
+              if (closeBtn) closeBtn.click();
+              else setIsPipelineOpen(false);
+            }}
           />
           <div className="relative w-full sm:max-w-lg glass-panel h-full shadow-2xl border-l border-white/10 rounded-l-none sm:rounded-l-3xl overflow-hidden flex flex-col z-10 animate-in slide-in-from-right duration-300">
-            <button
-              onClick={() => setIsPipelineOpen(false)}
-              className="absolute top-4 sm:top-5 right-4 sm:right-5 z-20 text-slate-400 hover:text-white bg-black/60 p-2 rounded-full border border-white/10 hover:bg-white/10 transition-all cursor-pointer"
-            >
-              <X size={18} />
-            </button>
             <PipelineSidebar
               games={games}
               selectedGame={selectedGame}
               setSelectedGame={setSelectedGame}
               hideFilters
               onComplete={handlePipelineComplete}
+              onClose={() => setIsPipelineOpen(false)}
             />
           </div>
         </div>

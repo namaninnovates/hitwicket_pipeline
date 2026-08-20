@@ -6,6 +6,8 @@ import {
   Terminal,
   Cpu,
   AlertCircle,
+  AlertTriangle,
+  X,
   CheckCircle2,
   XCircle,
   RefreshCw,
@@ -27,12 +29,14 @@ export default function PipelineSidebar({
   setSelectedGame,
   hideFilters = false,
   onComplete,
+  onClose,
 }: any) {
   const [maxRevs, setMaxRevs] = useState(150);
   const [windowDays, setWindowDays] = useState(90);
   const [selectedGameList, setSelectedGameList] = useState<string[]>(["hitwicket", "tennis_clash", "baseball_clash"]);
   const [freshMode, setFreshMode] = useState(true);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [showCautionModal, setShowCautionModal] = useState(false);
   const [status, setStatus] = useState<"idle" | "running" | "completed" | "stopped" | "error">("idle");
   const [currentStage, setCurrentStage] = useState<string>("");
   const [completionStats, setCompletionStats] = useState<{ duration?: string; timestamp?: string } | null>(null);
@@ -41,6 +45,14 @@ export default function PipelineSidebar({
   const logEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const startTimeRef = useRef<number>(0);
+
+  const handleRequestClose = () => {
+    if (isStreaming || status === "running") {
+      setShowCautionModal(true);
+    } else {
+      onClose?.();
+    }
+  };
 
   const fetchDbStatus = () => {
     fetch("/api/metrics")
@@ -219,8 +231,8 @@ export default function PipelineSidebar({
           </div>
         </div>
 
-        {/* Global Pipeline Status Pill in Header */}
-        <div>
+        {/* Global Pipeline Status Pill & Close Trigger in Header */}
+        <div className="flex items-center gap-2">
           {status === "running" && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-semibold animate-pulse">
               <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
@@ -245,6 +257,17 @@ export default function PipelineSidebar({
               Failed
             </span>
           )}
+
+          {/* Close button with Caution intercept */}
+          <button
+            type="button"
+            id="pipeline-close-trigger"
+            onClick={handleRequestClose}
+            className="text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-full border border-white/10 transition-all cursor-pointer"
+            title="Close Console"
+          >
+            <X size={16} />
+          </button>
         </div>
       </div>
 
@@ -580,6 +603,53 @@ export default function PipelineSidebar({
           </div>
         )}
       </div>
+
+      {/* Running Pipeline Caution Modal */}
+      {showCautionModal && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="max-w-sm w-full glass-panel rounded-3xl p-6 border border-amber-500/30 shadow-2xl bg-[#0d121f] text-center space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="w-12 h-12 mx-auto rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <AlertTriangle size={24} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white tracking-tight">Pipeline Execution in Progress</h3>
+              <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                The review intelligence pipeline is actively executing. What would you like to do?
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCautionModal(false);
+                  onClose?.();
+                }}
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-[0_0_15px_rgba(99,102,241,0.3)] cursor-pointer"
+              >
+                Keep Running in Background
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  await stopPipeline();
+                  setShowCautionModal(false);
+                  onClose?.();
+                }}
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 transition-all cursor-pointer"
+              >
+                End Pipeline &amp; Close
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCautionModal(false)}
+                className="py-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                Cancel &amp; Stay in Console
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
