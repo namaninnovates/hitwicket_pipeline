@@ -8,6 +8,7 @@ import {
   Play,
   X,
   RotateCcw,
+  History,
 } from "lucide-react";
 import Overview from "./components/Overview";
 import PriorityIssues from "./components/PriorityIssues";
@@ -17,17 +18,28 @@ import GameAnalytics from "./components/GameAnalytics";
 import ReviewExplorer from "./components/ReviewExplorer";
 import PipelineHistory from "./components/PipelineHistory";
 import PipelineSidebar from "./components/PipelineSidebar";
+import HistorySidebar from "./components/HistorySidebar";
 import Documentation from "./components/Documentation";
 import Footer from "./components/Footer";
 import CricketLoader from "./components/CricketLoader";
 
-import { getLocalReviews, saveLocalReviews, resetLocalDatabase } from "./lib/localDb";
+import {
+  getLocalReviews,
+  saveLocalReviews,
+  resetLocalDatabase,
+  getAllHistorySnapshots,
+  saveHistorySnapshot,
+  HistorySnapshot,
+} from "./lib/localDb";
 
 export default function Dashboard() {
   const [activeView, setActiveView] = useState<"dashboard" | "data" | "docs">("dashboard");
   const [games, setGames] = useState<Record<string, any>>({});
   const [selectedGame, setSelectedGame] = useState("all");
   const [isPipelineOpen, setIsPipelineOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [activeSnapshot, setActiveSnapshot] = useState<HistorySnapshot | null>(null);
+  const [historyCount, setHistoryCount] = useState(0);
   const [isResetting, setIsResetting] = useState(false);
   const [isRefreshingData, setIsRefreshingData] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -53,6 +65,11 @@ export default function Dashboard() {
           console.warn("Auto-seed local database skipped:", e);
         }
       }
+    });
+
+    // Load history snapshots count
+    getAllHistorySnapshots().then((snaps) => {
+      setHistoryCount(snaps.length);
     });
   }, []);
 
@@ -80,20 +97,42 @@ export default function Dashboard() {
     }
   };
 
-  const handlePipelineComplete = () => {
+  const handlePipelineComplete = async () => {
     setIsPipelineOpen(false);
     setIsRefreshingData(true);
-    fetch("/api/games")
-      .then((res) => res.json())
-      .then((data) => {
-        setGames(data.games || {});
-      })
-      .finally(() => {
-        setRefreshKey((prev) => prev + 1);
-        setTimeout(() => {
-          setIsRefreshingData(false);
-        }, 1200);
-      });
+
+    try {
+      const [gamesRes, metricsRes, briefRes] = await Promise.all([
+        fetch("/api/games").then((r) => r.json()),
+        fetch("/api/metrics").then((r) => r.json()),
+        fetch(`/api/brief?game=${selectedGame}`).then((r) => r.json()).catch(() => ({})),
+      ]);
+      setGames(gamesRes.games || {});
+
+      const activeMetrics = selectedGame === "all" ? metricsRes.overall : metricsRes.games?.[selectedGame];
+      if (activeMetrics) {
+        const newSnap: HistorySnapshot = {
+          id: "snap_" + Date.now(),
+          title: selectedGame === "all" ? "Global Market Synthesis" : `${gamesRes.games?.[selectedGame]?.name || selectedGame} Analysis`,
+          timestamp: new Date().toISOString(),
+          game: selectedGame,
+          totalReviews: activeMetrics.ingested || 0,
+          avgRating: activeMetrics.avgRating || 0,
+          positivePct: activeMetrics.sentimentDist?.positive || 0,
+          topPriority: activeMetrics.topPriority || undefined,
+          brief: briefRes?.brief || null,
+        };
+        await saveHistorySnapshot(newSnap);
+        setHistoryCount((prev) => prev + 1);
+      }
+    } catch (e) {
+      console.warn("Snapshot auto-save on pipeline complete:", e);
+    } finally {
+      setRefreshKey((prev) => prev + 1);
+      setTimeout(() => {
+        setIsRefreshingData(false);
+      }, 1200);
+    }
   };
 
   return (
@@ -184,6 +223,22 @@ export default function Dashboard() {
               </div>
             )}
 
+            {/* ChatGPT-style History Button */}
+            <button
+              type="button"
+              onClick={() => setIsHistoryOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all shadow-sm hover:scale-[1.02] cursor-pointer"
+              title="View ChatGPT-style history of previous intelligence snapshots and runs"
+            >
+              <History size={13} className="text-indigo-400" />
+              <span>History</span>
+              {historyCount > 0 && (
+                <span className="text-[0.65rem] font-bold px-1.5 py-0.2 bg-indigo-500/20 text-indigo-300 rounded-full border border-indigo-500/30 font-mono">
+                  {historyCount}
+                </span>
+              )}
+            </button>
+
             {/* Reset Everything Button */}
             <button
               type="button"
@@ -210,6 +265,31 @@ export default function Dashboard() {
 
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 flex-1 w-full">
+        {/* Active Historical Snapshot Banner */}
+        {activeSnapshot && (
+          <div className="mb-6 p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 backdrop-blur-md animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                <History size={16} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white tracking-tight">
+                  Viewing Historical Snapshot: <span className="text-indigo-300">{activeSnapshot.title}</span>
+                </p>
+                <p className="text-[0.68rem] text-slate-400">
+                  Preserved from {new Date(activeSnapshot.timestamp).toLocaleString()} &bull; {activeSnapshot.totalReviews} reviews ({activeSnapshot.avgRating}★)
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveSnapshot(null)}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-sm cursor-pointer whitespace-nowrap"
+            >
+              Exit Snapshot &amp; Return to Live
+            </button>
+          </div>
+        )}
+
         {isRefreshingData ? (
           <div className="py-24 flex flex-col items-center justify-center min-h-[400px]">
             <CricketLoader
@@ -229,7 +309,7 @@ export default function Dashboard() {
 
                 {/* 2. 90-Second Executive Founder Brief */}
                 <section>
-                  <FounderBrief selectedGame={selectedGame} />
+                  <FounderBrief selectedGame={selectedGame} historicalBrief={activeSnapshot?.brief} />
                 </section>
 
                 {/* 3. Priority Issues & Competitor Benchmark Matrix */}
@@ -266,6 +346,23 @@ export default function Dashboard() {
 
       {/* Footer Attribution */}
       <Footer />
+
+      {/* ChatGPT-style History Sidebar Drawer */}
+      <HistorySidebar
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        activeSnapshotId={activeSnapshot?.id || null}
+        onSelectSnapshot={(snap) => {
+          setActiveSnapshot(snap);
+          if (snap) {
+            setSelectedGame(snap.game);
+          }
+        }}
+        onNewAnalysis={() => {
+          setActiveSnapshot(null);
+          setIsPipelineOpen(true);
+        }}
+      />
 
       {/* Slide-out Execution Controller Panel */}
       {isPipelineOpen && (

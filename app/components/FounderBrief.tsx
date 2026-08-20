@@ -4,10 +4,17 @@ import remarkGfm from "remark-gfm";
 import { RefreshCw, FileText, Sparkles, Copy, Check, Globe } from "lucide-react";
 import InfoTooltip from "./Tooltip";
 import CricketLoader from "./CricketLoader";
+import { saveLocalBrief, saveHistorySnapshot } from "../lib/localDb";
 
-export default function FounderBrief({ selectedGame = "all" }: { selectedGame?: string }) {
-  const [brief, setBrief] = useState("");
-  const [loading, setLoading] = useState(true);
+export default function FounderBrief({
+  selectedGame = "all",
+  historicalBrief,
+}: {
+  selectedGame?: string;
+  historicalBrief?: string | null;
+}) {
+  const [brief, setBrief] = useState(historicalBrief || "");
+  const [loading, setLoading] = useState(!historicalBrief);
   const [copied, setCopied] = useState(false);
 
   const isGlobal = selectedGame === "all" || selectedGame === "global";
@@ -17,15 +24,24 @@ export default function FounderBrief({ selectedGame = "all" }: { selectedGame?: 
     fetch(`/api/brief?game=${selectedGame}`)
       .then((res) => res.json())
       .then((data) => {
-        setBrief(data.brief || data.content || "");
+        const text = data.brief || data.content || "";
+        setBrief(text);
         setLoading(false);
+        if (text) {
+          saveLocalBrief(selectedGame, text);
+        }
       })
       .catch(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchBrief();
-  }, [selectedGame]);
+    if (historicalBrief !== undefined && historicalBrief !== null) {
+      setBrief(historicalBrief);
+      setLoading(false);
+    } else {
+      fetchBrief();
+    }
+  }, [selectedGame, historicalBrief]);
 
   const copyToClipboard = () => {
     if (!brief) return;

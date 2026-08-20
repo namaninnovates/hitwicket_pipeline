@@ -6,10 +6,25 @@
  */
 
 const DB_NAME = "HitwicketIntelligenceDB";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_REVIEWS = "reviews";
 const STORE_BRIEFS = "briefs";
+const STORE_SNAPSHOTS = "snapshots";
 const STORE_META = "meta";
+
+export interface HistorySnapshot {
+  id: string;
+  title: string;
+  timestamp: string;
+  game: string;
+  totalReviews: number;
+  avgRating: number;
+  positivePct: number;
+  topPriority?: string;
+  brief?: string | null;
+  priorities?: any[];
+  matrix?: any;
+}
 
 let dbInstance: IDBDatabase | null = null;
 
@@ -43,6 +58,13 @@ export function openLocalDatabase(): Promise<IDBDatabase> {
       // Briefs Store
       if (!db.objectStoreNames.contains(STORE_BRIEFS)) {
         db.createObjectStore(STORE_BRIEFS, { keyPath: "game" });
+      }
+
+      // Snapshots (ChatGPT-style History) Store
+      if (!db.objectStoreNames.contains(STORE_SNAPSHOTS)) {
+        const snapStore = db.createObjectStore(STORE_SNAPSHOTS, { keyPath: "id" });
+        snapStore.createIndex("timestamp", "timestamp", { unique: false });
+        snapStore.createIndex("game", "game", { unique: false });
       }
 
       // Metadata Store
@@ -167,20 +189,91 @@ export async function getLocalBrief(game: string): Promise<string | null> {
 }
 
 /**
+ * Save a historical analysis snapshot (ChatGPT-style session).
+ */
+export async function saveHistorySnapshot(snapshot: HistorySnapshot): Promise<void> {
+  try {
+    const db = await openLocalDatabase();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_SNAPSHOTS, "readwrite");
+      const store = tx.objectStore(STORE_SNAPSHOTS);
+      store.put(snapshot);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (err) {
+    try {
+      const existing = JSON.parse(localStorage.getItem("hw_snapshots") || "[]");
+      const updated = [snapshot, ...existing.filter((s: any) => s.id !== snapshot.id)].slice(0, 50);
+      localStorage.setItem("hw_snapshots", JSON.stringify(updated));
+    } catch {}
+  }
+}
+
+/**
+ * Retrieve all historical analysis snapshots sorted by timestamp descending.
+ */
+export async function getAllHistorySnapshots(): Promise<HistorySnapshot[]> {
+  try {
+    const db = await openLocalDatabase();
+    return new Promise((resolve) => {
+      const tx = db.transaction(STORE_SNAPSHOTS, "readonly");
+      const store = tx.objectStore(STORE_SNAPSHOTS);
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const list = (request.result || []) as HistorySnapshot[];
+        list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        resolve(list);
+      };
+      request.onerror = () => resolve([]);
+    });
+  } catch {
+    try {
+      return JSON.parse(localStorage.getItem("hw_snapshots") || "[]");
+    } catch {
+      return [];
+    }
+  }
+}
+
+/**
+ * Delete a specific snapshot from history.
+ */
+export async function deleteHistorySnapshot(id: string): Promise<void> {
+  try {
+    const db = await openLocalDatabase();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_SNAPSHOTS, "readwrite");
+      const store = tx.objectStore(STORE_SNAPSHOTS);
+      store.delete(id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch {
+    try {
+      const existing = JSON.parse(localStorage.getItem("hw_snapshots") || "[]");
+      localStorage.setItem("hw_snapshots", JSON.stringify(existing.filter((s: any) => s.id !== id)));
+    } catch {}
+  }
+}
+
+/**
  * Completely clear the current user's local database.
  */
 export async function resetLocalDatabase(): Promise<void> {
   try {
     const db = await openLocalDatabase();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction([STORE_REVIEWS, STORE_BRIEFS, STORE_META], "readwrite");
-      tx.objectStore(STORE_REVIEWS).clear();
-      tx.objectStore(STORE_BRIEFS).clear();
-      tx.objectStore(STORE_META).clear();
+      const stores = [STORE_REVIEWS, STORE_BRIEFS, STORE_SNAPSHOTS, STORE_META].filter((s) =>
+        db.objectStoreNames.contains(s)
+      );
+      const tx = db.transaction(stores, "readwrite");
+      stores.forEach((s) => tx.objectStore(s).clear());
       tx.oncomplete = () => {
         try {
           localStorage.removeItem("hw_local_reviews");
           localStorage.removeItem("hw_local_seeded");
+          localStorage.removeItem("hw_snapshots");
           Object.keys(localStorage)
             .filter((k) => k.startsWith("hw_brief_"))
             .forEach((k) => localStorage.removeItem(k));
@@ -199,9 +292,12 @@ export async function resetLocalDatabase(): Promise<void> {
  */
 export async function exportLocalDatabaseJson(): Promise<string> {
   const reviews = await getLocalReviews();
+  const snapshots = await getAllHistorySnapshots();
   const exportPayload = {
     exportedAt: new Date().toISOString(),
     totalReviews: reviews.length,
+    snapshotsCount: snapshots.length,
+    snapshots,
     reviews,
   };
   return JSON.stringify(exportPayload, null, 2);
