@@ -658,6 +658,7 @@ def stream_pipeline(
             from src.reporting.brief import generate_founder_brief, generate_global_market_brief
             from src.ingestion.storage import (
                 get_connection,
+                initialize_db,
                 insert_review,
                 insert_classification,
                 purge_game_reviews,
@@ -674,6 +675,8 @@ def stream_pipeline(
             conn = get_connection()
             if not conn:
                 raise RuntimeError("Failed to connect to local telemetry database.")
+            
+            initialize_db(conn)
 
             # ─────────────────────────────────────────────
             # 1. INGEST STAGE (Per-game streaming logs)
