@@ -1,13 +1,18 @@
 import { useState, useEffect } from "react";
 import { Inbox, Star, ThumbsDown, ThumbsUp, CheckCircle2, TrendingUp, Sparkles, Trophy, ArrowUpRight, ArrowDownRight, Scale } from "lucide-react";
 import InfoTooltip from "./Tooltip";
-
+import { telemetryCache } from "../lib/telemetryCache";
 
 export default function Overview({ selectedGame, games = {}, refreshKey }: any) {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchMetrics = async () => {
+    if (telemetryCache.metrics && telemetryCache.metrics.overall) {
+      setMetrics(telemetryCache.metrics);
+      setLoading(false);
+      return;
+    }
     // Fetch directly from API
     fetch("/api/metrics")
       .then((res) => res.json())

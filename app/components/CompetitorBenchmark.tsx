@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Swords, AlertCircle, Compass, CheckCircle } from "lucide-react";
 import InfoTooltip from "./Tooltip";
-
+import { telemetryCache } from "../lib/telemetryCache";
 
 export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: number }) {
   const [matrixData, setMatrixData] = useState<any>(null);
@@ -10,6 +10,11 @@ export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: n
 
   useEffect(() => {
     const loadMatrix = async () => {
+      if (telemetryCache.matrix && Object.keys(telemetryCache.matrix).length > 0) {
+        setMatrixData(telemetryCache.matrix.matrix || telemetryCache.matrix);
+        setLoading(false);
+        return;
+      }
       // Fetch directly from API
       setLoading(true);
       fetch("/api/matrix")
