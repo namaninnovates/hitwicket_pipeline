@@ -22,8 +22,8 @@ Do NOT use any emojis anywhere in the markdown headers or text.
 Use EXACTLY this structure:
 
 ---
-# Weekly Review Brief — {game_name}
-**{analysis_date}** | {review_count} reviews analyzed
+# 90-Day Review Intelligence Brief — {game_name}
+**{analysis_date}** | {review_count} reviews analyzed (Last 90 Days)
 
 ## Biggest Emerging Problem
 [2-3 sentences. What is the problem? What evidence proves it?]

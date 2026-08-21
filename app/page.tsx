@@ -92,54 +92,56 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           {/* Main Top Row */}
           <div className="h-14 sm:h-16 flex items-center justify-between gap-2">
-            {/* Left: Logo & Branding */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              <div className="flex flex-col">
-                <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">
-                  HITWICKET — Market Intelligence
-                </span>
-                <span className="text-[0.65rem] sm:text-xs text-indigo-200 font-medium">
-                  Founder’s Office Intelligence Dashboard
-                </span>
+            {/* Left: Logo & Branding + Fixed Desktop Navigation Tabs */}
+            <div className="flex items-center gap-4 lg:gap-8 shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                <div className="flex flex-col">
+                  <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">
+                    HITWICKET — Market Intelligence
+                  </span>
+                  <span className="text-[0.65rem] sm:text-xs text-indigo-200 font-medium">
+                    Founder’s Office Intelligence Dashboard
+                  </span>
+                </div>
               </div>
-            </div>
 
-            {/* Desktop Center Navigation Tabs */}
-            <nav className="hidden md:flex items-center gap-1 bg-indigo-900/80 p-1 rounded-2xl border border-indigo-800/80 shrink-0">
-              <button
-                onClick={() => setActiveView("dashboard")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  activeView === "dashboard"
-                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-500"
-                    : "text-indigo-200 hover:text-white hover:bg-indigo-800/60"
-                }`}
-              >
-                <LayoutDashboard size={13} />
-                <span>Intelligence</span>
-              </button>
-              <button
-                onClick={() => setActiveView("data")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  activeView === "data"
-                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-500"
-                    : "text-indigo-200 hover:text-white hover:bg-indigo-800/60"
-                }`}
-              >
-                <Database size={13} />
-                <span>Explorer</span>
-              </button>
-              <button
-                onClick={() => setActiveView("docs")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  activeView === "docs"
-                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-500"
-                    : "text-indigo-200 hover:text-white hover:bg-indigo-800/60"
-                }`}
-              >
-                <BookOpen size={13} />
-                <span>Documentation</span>
-              </button>
-            </nav>
+              {/* Desktop Navigation Tabs (Permanently Fixed in Position) */}
+              <nav className="hidden md:flex items-center gap-1 bg-indigo-900/80 p-1 rounded-2xl border border-indigo-800/80 shrink-0">
+                <button
+                  onClick={() => setActiveView("dashboard")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    activeView === "dashboard"
+                      ? "bg-indigo-600 text-white shadow-xs border border-indigo-500 font-bold"
+                      : "text-indigo-200 hover:text-white hover:bg-indigo-800/60"
+                  }`}
+                >
+                  <LayoutDashboard size={13} />
+                  <span>Intelligence</span>
+                </button>
+                <button
+                  onClick={() => setActiveView("data")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    activeView === "data"
+                      ? "bg-indigo-600 text-white shadow-xs border border-indigo-500 font-bold"
+                      : "text-indigo-200 hover:text-white hover:bg-indigo-800/60"
+                  }`}
+                >
+                  <Database size={13} />
+                  <span>Explorer</span>
+                </button>
+                <button
+                  onClick={() => setActiveView("docs")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    activeView === "docs"
+                      ? "bg-indigo-600 text-white shadow-xs border border-indigo-500 font-bold"
+                      : "text-indigo-200 hover:text-white hover:bg-indigo-800/60"
+                  }`}
+                >
+                  <BookOpen size={13} />
+                  <span>Documentation</span>
+                </button>
+              </nav>
+            </div>
 
             {/* Right Action Buttons */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
@@ -303,7 +305,7 @@ export default function Dashboard() {
                 {/* 3. Priority Issues & Competitor Benchmark Matrix */}
                 <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                   {/* Left Column: Top Prioritized Issues */}
-                  <div className="lg:col-span-7 h-full">
+                  <div className="lg:col-span-7">
                     <PriorityIssues selectedGame={selectedGame} refreshKey={refreshKey} />
                   </div>
 

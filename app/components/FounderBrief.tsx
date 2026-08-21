@@ -20,6 +20,7 @@ export default function FounderBrief({
 
   const loadBriefForGame = async (gameKey: string) => {
     setLoading(true);
+    setBrief("");
     try {
       const res = await fetch(`/api/brief?game=${gameKey}`);
       if (res.ok) {
@@ -120,14 +121,14 @@ export default function FounderBrief({
           />
         </div>
       ) : brief ? (
-        <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-indigo-900/80 bg-indigo-900/30 text-slate-100 leading-relaxed text-sm">
-          <div className="prose prose-invert max-w-none prose-headings:text-white prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-xl prose-h2:text-base prose-h2:border-b prose-h2:border-indigo-800 prose-h2:pb-1.5 prose-h3:text-sm prose-p:text-indigo-100 prose-p:text-xs prose-p:leading-relaxed prose-li:text-indigo-100 prose-li:text-xs prose-strong:text-white prose-strong:font-bold prose-hr:border-indigo-800">
+        <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border-2 border-indigo-900 bg-white text-slate-800 leading-relaxed text-sm shadow-sm">
+          <div className="prose prose-slate max-w-none prose-headings:text-indigo-900 prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-xl prose-h1:text-indigo-950 prose-h1:border-b prose-h1:border-slate-200 prose-h1:pb-2 prose-h2:text-base prose-h2:text-indigo-800 prose-h2:border-b prose-h2:border-slate-200 prose-h2:pb-1.5 prose-h2:mt-6 prose-h3:text-sm prose-h3:text-indigo-700 prose-h3:mt-4 prose-p:text-slate-700 prose-p:text-xs sm:prose-p:text-sm prose-p:leading-relaxed prose-li:text-slate-700 prose-li:text-xs sm:prose-li:text-sm prose-strong:text-slate-900 prose-strong:font-bold prose-hr:border-slate-200">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
                 pre: ({ children, ...props }) => (
-                  <div className="not-prose my-4 rounded-xl overflow-hidden border border-indigo-800 bg-indigo-950/80 shadow-sm">
-                    <pre className="p-3.5 text-indigo-100 font-mono text-xs overflow-x-auto leading-relaxed bg-transparent m-0 border-0" {...props}>
+                  <div className="not-prose my-4 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-xs">
+                    <pre className="p-3.5 text-slate-800 font-mono text-xs overflow-x-auto leading-relaxed bg-transparent m-0 border-0" {...props}>
                       {children}
                     </pre>
                   </div>
@@ -136,28 +137,28 @@ export default function FounderBrief({
                   const isBlock = className || String(children).includes("\n");
                   if (inline || !isBlock) {
                     return (
-                      <code className="text-indigo-200 bg-indigo-900/60 border border-indigo-800 px-1.5 py-0.5 rounded font-mono text-xs" {...props}>
+                      <code className="text-indigo-900 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded font-mono text-xs font-semibold" {...props}>
                         {children}
                       </code>
                     );
                   }
                   return (
-                    <code className="font-mono text-indigo-100 text-xs bg-transparent border-0 p-0" {...props}>
+                    <code className="font-mono text-slate-800 text-xs bg-transparent border-0 p-0" {...props}>
                       {children}
                     </code>
                   );
                 },
               }}
             >
-              {brief}
+              {brief.replace(/# Weekly Review Brief/gi, "# 90-Day Review Intelligence Brief").replace(/Weekly Review Brief/gi, "90-Day Review Intelligence Brief")}
             </ReactMarkdown>
           </div>
         </div>
       ) : (
-        <div className="rounded-xl sm:rounded-2xl p-8 border border-indigo-800 bg-indigo-900/40 text-indigo-200 text-center text-sm">
-          <Sparkles className="mx-auto mb-2 text-amber-400" size={24} />
-          <p className="font-semibold text-white">No Executive Brief Generated for this Selection Yet</p>
-          <p className="text-xs text-indigo-300 mt-1">
+        <div className="rounded-xl sm:rounded-2xl p-8 border-2 border-indigo-900 bg-white text-slate-800 text-center text-sm shadow-sm">
+          <Sparkles className="mx-auto mb-2 text-indigo-600" size={24} />
+          <p className="font-bold text-slate-900">No Executive Brief Generated for this Selection Yet</p>
+          <p className="text-xs text-slate-600 mt-1">
             Briefs are synthesized exclusively during pipeline executions. Click &quot;Setup Pipeline&quot; in the top-right to run the pipeline for this game.
           </p>
         </div>

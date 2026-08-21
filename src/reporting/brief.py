@@ -254,7 +254,7 @@ def _generate_template_brief(
     second = priorities[1] if len(priorities) > 1 else None
 
     brief_lines = [
-        f"# Weekly Review Brief — {game_name}",
+        f"# 90-Day Review Intelligence Brief — {game_name}",
         f"**{analysis_date}** | {review_count} reviews analyzed (Google Play, last 90 days)",
         "",
         "## Biggest Emerging Problem",

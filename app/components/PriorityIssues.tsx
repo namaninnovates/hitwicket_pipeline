@@ -103,18 +103,32 @@ export default function PriorityIssues({
 
   if (loading) {
     return (
-      <div className="glass-panel rounded-3xl p-6 lg:p-8 space-y-4">
-        <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
-        <div className="h-4 w-72 bg-slate-100 rounded animate-pulse mb-6" />
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="rounded-2xl p-4 h-16 animate-pulse bg-slate-100 border border-slate-200" />
-        ))}
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 space-y-4 border-2 border-slate-200 shadow-sm animate-in fade-in duration-300">
+        <div className="flex items-center justify-between mb-2">
+          <div className="space-y-2">
+            <div className="h-6 w-56 bg-slate-200 rounded-lg animate-pulse" />
+            <div className="h-3 w-80 bg-slate-100 rounded animate-pulse" />
+          </div>
+          <div className="h-6 w-24 bg-slate-100 rounded-full animate-pulse" />
+        </div>
+        <div className="space-y-2.5 pt-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="rounded-2xl p-4 h-14 animate-pulse bg-slate-50 border-2 border-slate-200 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full bg-slate-200" />
+                <div className="h-4 w-36 bg-slate-200 rounded" />
+                <div className="h-4 w-20 bg-slate-100 rounded" />
+              </div>
+              <div className="h-6 w-20 bg-slate-200 rounded-full" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col h-full border-2 border-slate-200 shadow-sm">
+    <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col border-2 border-slate-200 shadow-sm">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>

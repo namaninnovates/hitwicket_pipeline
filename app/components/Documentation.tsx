@@ -285,7 +285,7 @@ export default function Documentation() {
 
       {/* Interactive Scoring Simulator (When scoring doc is active) */}
       {activeDoc === "scoring" && (
-        <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-slate-200 bg-white relative z-20 shadow-sm">
+        <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border-2 border-slate-200 bg-white relative z-20 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
@@ -448,7 +448,7 @@ export default function Documentation() {
       </div>
 
       {/* Document Content Container */}
-      <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-10 border border-slate-200 bg-white shadow-sm relative">
+      <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-10 border-2 border-slate-200 bg-white shadow-sm relative">
         {/* Document Subheader & In-doc Search */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-8 border-b border-slate-200">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">

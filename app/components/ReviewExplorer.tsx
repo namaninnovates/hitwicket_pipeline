@@ -156,7 +156,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
       </div>
 
       {/* Button-Based Multi-Criteria Filter Console */}
-      <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 space-y-4">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border-2 border-slate-200 space-y-4 shadow-sm">
         {/* Search Query Input */}
         <form onSubmit={handleSearch} className="flex gap-2">
           <div className="flex-1 relative">
@@ -425,7 +425,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
       </div>
 
       {/* Results Table */}
-      <div className="glass-panel rounded-3xl overflow-hidden flex-1 flex flex-col border border-slate-200">
+      <div className="rounded-3xl overflow-hidden flex-1 flex flex-col border-2 border-slate-200">
         <div className="px-6 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
           <span>
             Displaying <strong className="text-slate-900">{reviews.length}</strong> matching reviews

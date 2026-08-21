@@ -27,9 +27,9 @@ export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: n
 
   if (loading) {
     return (
-      <div className="glass-panel rounded-3xl p-6 lg:p-8 space-y-4">
-        <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
-        <div className="h-40 bg-slate-100 rounded-2xl animate-pulse border border-slate-200" />
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 space-y-4 border-2 border-slate-200 shadow-sm animate-in fade-in duration-300">
+        <div className="h-6 w-56 bg-slate-200 rounded-lg animate-pulse" />
+        <div className="h-44 bg-slate-50 rounded-2xl animate-pulse border-2 border-slate-200" />
       </div>
     );
   }
