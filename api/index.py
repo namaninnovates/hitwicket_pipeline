@@ -691,6 +691,8 @@ def stream_pipeline(
                 log_pipeline_run,
                 hydrate_from_master,
                 get_latest_master_review_date,
+                insert_reviews_batch,
+                insert_classifications_batch,
             )
 
             target_games = games_list if games_list and "all" not in games_list else list(GAMES.keys())
@@ -750,22 +752,8 @@ def stream_pipeline(
                     n_skipped = clean_res["skipped_empty"]
                     yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Cleaned: {n_cleaned} reviews within {days}-day window (skipped {n_skipped} short/empty).'})}\n\n"
 
-                    # Persist to Local Database
-                    new_count = 0
-                    for rev in clean_res["cleaned"]:
-                        ok = insert_review(
-                            conn,
-                            game=rev["game"],
-                            review_id=rev["review_id"],
-                            review_date=rev["review_date"],
-                            rating=rev["rating"],
-                            review_text=rev["review_text"],
-                            app_version=rev.get("app_version"),
-                            thumbs_up=rev.get("thumbs_up", 0),
-                        )
-                        if ok:
-                            new_count += 1
-
+                    # High-speed Batch Persist to Database
+                    new_count = insert_reviews_batch(conn, clean_res["cleaned"])
                     total_stored_all += new_count
                     
                     try:
@@ -803,26 +791,13 @@ def stream_pipeline(
                     total_unclass = len(unclassified)
                     yield f"data: {json.dumps({'type': 'log', 'msg': f'Found {total_unclass} reviews requiring NLP taxonomy classification.'})}\n\n"
 
-                    chunk_size = 15
+                    chunk_size = 200
                     for i in range(0, total_unclass, chunk_size):
                         chunk = unclassified[i : i + chunk_size]
                         chunk_results = classify_batch(chunk)
 
-                        for review, classification, model_used, is_fallback in chunk_results:
-                            insert_classification(
-                                conn,
-                                review_db_id=review["id"],
-                                primary_category=classification.primary_category,
-                                subcategory=classification.subcategory,
-                                sentiment=classification.sentiment,
-                                severity=classification.severity,
-                                business_impact=classification.business_impact,
-                                issue=classification.issue,
-                                actionability=classification.actionability,
-                                confidence=classification.confidence,
-                                model_used=model_used,
-                            )
-                            total_classified += 1
+                        insert_classifications_batch(conn, chunk_results)
+                        total_classified += len(chunk_results)
 
                         pct = int((total_classified / total_unclass) * 100)
                         sample_cat = chunk_results[0][1].primary_category if chunk_results else "Gameplay"

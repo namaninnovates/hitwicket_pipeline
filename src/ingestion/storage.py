@@ -300,13 +300,168 @@ def insert_review(
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (game, source, review_id, review_date, rating, review_text,
-                     app_version, thumbs_up, retrieved_at),
+                        app_version, thumbs_up, retrieved_at),
                 )
                 conn.commit()
                 return cursor.rowcount > 0
     except Exception as e:
-        logger.error(f"DB insert error for review {review_id}: {e}")
+        logger.error(f"DB insert classification error for review {review_db_id}: {e}")
         return False
+
+
+def insert_classifications_batch(conn: Any, batch_results: list[tuple[dict, Any, str, bool]]) -> int:
+    """Insert multiple classification results in a single high-speed database query."""
+    if not batch_results:
+        return 0
+    classified_at = datetime.now(timezone.utc).isoformat()
+    try:
+        if is_postgres_connection(conn):
+            from psycopg2.extras import execute_values
+            tuples = [
+                (
+                    review["id"],
+                    classification.primary_category,
+                    classification.subcategory,
+                    classification.sentiment,
+                    classification.severity,
+                    classification.business_impact,
+                    classification.issue,
+                    classification.actionability,
+                    classification.confidence,
+                    model_used,
+                    classified_at,
+                    None
+                )
+                for review, classification, model_used, is_fallback in batch_results
+            ]
+            query = """
+            INSERT INTO classifications
+                (review_db_id, primary_category, subcategory, sentiment,
+                 severity, business_impact, issue, actionability, confidence,
+                 model_used, classified_at, classification_raw)
+            VALUES %s
+            ON CONFLICT (review_db_id) DO UPDATE SET
+                primary_category = EXCLUDED.primary_category,
+                subcategory = EXCLUDED.subcategory,
+                sentiment = EXCLUDED.sentiment,
+                severity = EXCLUDED.severity,
+                business_impact = EXCLUDED.business_impact,
+                issue = EXCLUDED.issue,
+                actionability = EXCLUDED.actionability,
+                confidence = EXCLUDED.confidence,
+                model_used = EXCLUDED.model_used,
+                classified_at = EXCLUDED.classified_at
+            """
+            with conn.cursor() as cur:
+                execute_values(cur, query, tuples, page_size=500)
+            return len(batch_results)
+        else:
+            with conn:
+                for review, classification, model_used, is_fallback in batch_results:
+                    conn.execute(
+                        """
+                        INSERT OR REPLACE INTO classifications
+                            (review_db_id, primary_category, subcategory, sentiment,
+                             severity, business_impact, issue, actionability, confidence,
+                             model_used, classified_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            review["id"],
+                            classification.primary_category,
+                            classification.subcategory,
+                            classification.sentiment,
+                            classification.severity,
+                            classification.business_impact,
+                            classification.issue,
+                            classification.actionability,
+                            classification.confidence,
+                            model_used,
+                            classified_at,
+                        )
+                    )
+                conn.commit()
+            return len(batch_results)
+    except Exception as e:
+        logger.error(f"Batch DB insert classification error: {e}")
+        return 0
+
+
+def insert_reviews_batch(conn: Any, reviews: list[dict]) -> int:
+    """Insert multiple reviews in a single high-speed database batch."""
+    if not reviews:
+        return 0
+    retrieved_at = datetime.now(timezone.utc).isoformat()
+    count = 0
+    try:
+        if is_postgres_connection(conn):
+            from psycopg2.extras import execute_values
+            # Dual-insert into master_reviews
+            try:
+                master_tuples = [
+                    (
+                        r.get("game"), r.get("source", "google_play"), r["review_id"],
+                        r.get("review_date"), r.get("rating"), r.get("review_text"),
+                        r.get("app_version"), r.get("thumbs_up", 0), retrieved_at
+                    )
+                    for r in reviews
+                ]
+                with conn.cursor() as cur:
+                    execute_values(
+                        cur,
+                        """
+                        INSERT INTO master_reviews
+                            (game, source, review_id, review_date, rating, review_text, app_version, thumbs_up, retrieved_at)
+                        VALUES %s
+                        ON CONFLICT (source, review_id) DO NOTHING
+                        """,
+                        master_tuples,
+                        page_size=500
+                    )
+            except Exception:
+                pass
+
+            # Active reviews insertion
+            review_tuples = [
+                (
+                    r.get("game"), r.get("source", "google_play"), r["review_id"],
+                    r.get("review_date"), r.get("rating"), r.get("review_text"),
+                    r.get("app_version"), r.get("thumbs_up", 0), retrieved_at
+                )
+                for r in reviews
+            ]
+            with conn.cursor() as cur:
+                execute_values(
+                    cur,
+                    """
+                    INSERT INTO reviews
+                        (game, source, review_id, review_date, rating, review_text, app_version, thumbs_up, retrieved_at)
+                    VALUES %s
+                    ON CONFLICT (source, review_id) DO NOTHING
+                    """,
+                    review_tuples,
+                    page_size=500
+                )
+                count = cur.rowcount
+                return count if count > 0 else len(reviews)
+        else:
+            with conn:
+                for r in reviews:
+                    conn.execute(
+                        """
+                        INSERT OR IGNORE INTO reviews
+                            (game, source, review_id, review_date, rating, review_text, app_version, thumbs_up, retrieved_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (r.get("game"), r.get("source", "google_play"), r["review_id"],
+                         r.get("review_date"), r.get("rating"), r.get("review_text"),
+                         r.get("app_version"), r.get("thumbs_up", 0), retrieved_at)
+                    )
+                conn.commit()
+            return len(reviews)
+    except Exception as e:
+        logger.error(f"Batch DB insert error for reviews: {e}")
+        return 0
 
 
 def insert_classification(
