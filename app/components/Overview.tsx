@@ -30,7 +30,7 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="glass-card rounded-2xl p-5 h-28 animate-pulse bg-slate-800/40" />
+          <div key={i} className="glass-card rounded-2xl p-5 h-28 animate-pulse bg-slate-100" />
         ))}
       </div>
     );
@@ -38,12 +38,12 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
 
   if (!metrics || metrics.status === "empty" || !metrics.overall || !metrics.overall.ingested) {
     return (
-      <div className="glass-card rounded-2xl p-6 border-amber-500/30 bg-amber-500/5 text-amber-300 flex items-center justify-between">
+      <div className="glass-card rounded-2xl p-6 border-amber-200 bg-amber-50 text-amber-900 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <Sparkles className="text-amber-400" size={24} />
+          <Sparkles className="text-amber-600" size={24} />
           <div>
-            <div className="font-semibold text-white">Database is currently empty</div>
-            <div className="text-sm text-slate-400">Click &quot;Setup Pipeline&quot; in the top right to ingest and analyze Google Play reviews.</div>
+            <div className="font-semibold text-slate-900">Database is currently empty</div>
+            <div className="text-sm text-slate-600">Click &quot;Setup Pipeline&quot; in the top right to ingest and analyze Google Play reviews.</div>
           </div>
         </div>
       </div>
@@ -60,14 +60,14 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
       {/* Header with Relative Benchmark Context */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <span>{gameTitle}</span>
-            <span className="text-xs font-normal px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <span className="text-xs font-normal px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
               {isGlobal ? "Cross-Game Benchmark" : "Last 90 Days"}
             </span>
             <InfoTooltip content="When Global is selected, all telemetry and scores are calculated relative to competitors to isolate Hitwicket's competitive advantages and bottlenecks." />
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             {isGlobal
               ? "Relative performance comparisons between Hitwicket and competing sports gaming titles"
               : "Automated NLP sentiment and category telemetry"}
@@ -76,12 +76,12 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
 
         {/* Global Leaderboard Badge */}
         {isGlobal && rel.leaderboard && (
-          <div className="flex items-center gap-2 p-1.5 rounded-xl bg-black/40 border border-white/10 text-xs">
-            <span className="text-[0.68rem] uppercase font-bold text-slate-400 pl-1 flex items-center gap-1">
-              <Trophy size={13} className="text-amber-400" />
+          <div className="flex items-center gap-2 p-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs">
+            <span className="text-[0.68rem] uppercase font-bold text-slate-500 pl-1 flex items-center gap-1">
+              <Trophy size={13} className="text-amber-500" />
               <span>Rank #1:</span>
             </span>
-            <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+            <span className="font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-lg border border-emerald-200">
               {games?.[rel.leaderboard[0]?.game]?.name || rel.leaderboard[0]?.game} ({rel.leaderboard[0]?.rating}★)
             </span>
           </div>
@@ -102,17 +102,17 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
           }
           relativeBadge={
             isGlobal ? (
-              <span className="text-[0.65rem] text-slate-400 font-medium">Equal ~33% Share</span>
+              <span className="text-[0.65rem] text-slate-500 font-medium">Equal ~33% Share</span>
             ) : (
-              <span className="text-[0.65rem] text-indigo-300 font-mono">
+              <span className="text-[0.65rem] text-indigo-700 font-mono">
                 {activeData?.ingested || 0} / {metrics.overall?.ingested || 0}
               </span>
             )
           }
-          icon={<Inbox size={18} className="text-indigo-400" />}
-          gradient="from-indigo-500/20 via-transparent to-transparent"
-          borderHover="hover:border-indigo-500/40"
-          valueColor="text-white"
+          icon={<Inbox size={18} className="text-indigo-600" />}
+          gradient="from-indigo-500/10 via-transparent to-transparent"
+          borderHover="hover:border-indigo-300"
+          valueColor="text-slate-900"
         />
 
         {/* 2. Average Rating */}
@@ -130,8 +130,8 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
               <span
                 className={`inline-flex items-center gap-0.5 text-[0.65rem] font-bold px-1.5 py-0.5 rounded ${
                   (rel.hw_rating_delta || 0) >= 0
-                    ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
-                    : "text-rose-400 bg-rose-500/10 border border-rose-500/20"
+                    ? "text-emerald-800 bg-emerald-100 border border-emerald-200"
+                    : "text-rose-800 bg-rose-100 border border-rose-200"
                 }`}
               >
                 {(rel.hw_rating_delta || 0) >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
@@ -143,18 +143,18 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
               <span
                 className={`inline-flex items-center gap-0.5 text-[0.65rem] font-bold px-1.5 py-0.5 rounded ${
                   (activeData?.vs_market_rating || 0) >= 0
-                    ? "text-emerald-400 bg-emerald-500/10"
-                    : "text-rose-400 bg-rose-500/10"
+                    ? "text-emerald-800 bg-emerald-100"
+                    : "text-rose-800 bg-rose-100"
                 }`}
               >
                 {(activeData?.vs_market_rating || 0) >= 0 ? `+${activeData.vs_market_rating}` : activeData?.vs_market_rating} vs Market
               </span>
             )
           }
-          icon={<Star size={18} className="text-amber-400 fill-amber-400/20" />}
-          gradient="from-amber-500/20 via-transparent to-transparent"
-          borderHover="hover:border-amber-500/40"
-          valueColor="text-amber-400"
+          icon={<Star size={18} className="text-amber-500 fill-amber-500/20" />}
+          gradient="from-amber-500/10 via-transparent to-transparent"
+          borderHover="hover:border-amber-300"
+          valueColor="text-amber-600"
         />
 
         {/* 3. Negative Sentiment */}
@@ -172,8 +172,8 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
               <span
                 className={`inline-flex items-center gap-0.5 text-[0.65rem] font-bold px-1.5 py-0.5 rounded ${
                   (rel.hw_neg_delta || 0) <= 0
-                    ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
-                    : "text-rose-400 bg-rose-500/10 border border-rose-500/20"
+                    ? "text-emerald-800 bg-emerald-100 border border-emerald-200"
+                    : "text-rose-800 bg-rose-100 border border-rose-200"
                 }`}
               >
                 {(rel.hw_neg_delta || 0) <= 0 ? <ArrowDownRight size={11} /> : <ArrowUpRight size={11} />}
@@ -185,18 +185,18 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
               <span
                 className={`inline-flex items-center gap-0.5 text-[0.65rem] font-bold px-1.5 py-0.5 rounded ${
                   (activeData?.vs_market_neg || 0) <= 0
-                    ? "text-emerald-400 bg-emerald-500/10"
-                    : "text-rose-400 bg-rose-500/10"
+                    ? "text-emerald-800 bg-emerald-100"
+                    : "text-rose-800 bg-rose-100"
                 }`}
               >
                 {(activeData?.vs_market_neg || 0) <= 0 ? `${activeData?.vs_market_neg}%` : `+${activeData?.vs_market_neg}%`} vs Market
               </span>
             )
           }
-          icon={<ThumbsDown size={18} className="text-rose-400" />}
-          gradient="from-rose-500/20 via-transparent to-transparent"
-          borderHover="hover:border-rose-500/40"
-          valueColor="text-rose-400"
+          icon={<ThumbsDown size={18} className="text-rose-600" />}
+          gradient="from-rose-500/10 via-transparent to-transparent"
+          borderHover="hover:border-rose-300"
+          valueColor="text-rose-600"
         />
 
         {/* 4. Positive Sentiment */}
@@ -214,8 +214,8 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
               <span
                 className={`inline-flex items-center gap-0.5 text-[0.65rem] font-bold px-1.5 py-0.5 rounded ${
                   (rel.hw_pos_delta || 0) >= 0
-                    ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
-                    : "text-rose-400 bg-rose-500/10 border border-rose-500/20"
+                    ? "text-emerald-800 bg-emerald-100 border border-emerald-200"
+                    : "text-rose-800 bg-rose-100 border border-rose-200"
                 }`}
               >
                 {(rel.hw_pos_delta || 0) >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
@@ -227,18 +227,18 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
               <span
                 className={`inline-flex items-center gap-0.5 text-[0.65rem] font-bold px-1.5 py-0.5 rounded ${
                   (activeData?.vs_market_pos || 0) >= 0
-                    ? "text-emerald-400 bg-emerald-500/10"
-                    : "text-rose-400 bg-rose-500/10"
+                    ? "text-emerald-800 bg-emerald-100"
+                    : "text-rose-800 bg-rose-100"
                 }`}
               >
                 {(activeData?.vs_market_pos || 0) >= 0 ? `+${activeData?.vs_market_pos}%` : `${activeData?.vs_market_pos}%`} vs Market
               </span>
             )
           }
-          icon={<ThumbsUp size={18} className="text-emerald-400" />}
-          gradient="from-emerald-500/20 via-transparent to-transparent"
-          borderHover="hover:border-emerald-500/40"
-          valueColor="text-emerald-400"
+          icon={<ThumbsUp size={18} className="text-emerald-600" />}
+          gradient="from-emerald-500/10 via-transparent to-transparent"
+          borderHover="hover:border-emerald-300"
+          valueColor="text-emerald-700"
         />
 
         {/* 5. Classified Issues */}
@@ -252,14 +252,14 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
               : `Rank #${activeData?.rank || 1} in Category Sample`
           }
           relativeBadge={
-            <span className="text-[0.65rem] text-cyan-300 font-mono">
+            <span className="text-[0.65rem] text-cyan-800 bg-cyan-100 px-1.5 py-0.5 rounded font-mono">
               100% Tagged
             </span>
           }
-          icon={<CheckCircle2 size={18} className="text-cyan-400" />}
-          gradient="from-cyan-500/20 via-transparent to-transparent"
-          borderHover="hover:border-cyan-500/40"
-          valueColor="text-cyan-400"
+          icon={<CheckCircle2 size={18} className="text-cyan-600" />}
+          gradient="from-cyan-500/10 via-transparent to-transparent"
+          borderHover="hover:border-cyan-300"
+          valueColor="text-cyan-700"
           className="col-span-2 md:col-span-1 lg:col-span-1"
         />
       </div>
@@ -292,17 +292,12 @@ function MetricCard({
 }) {
   return (
     <div className={`glass-card rounded-2xl p-4 sm:p-5 relative transition-all duration-300 ${borderHover} ${className}`}>
-      {/* Background ambient glow contained separately so tooltips aren't clipped */}
-      <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-        <div className={`absolute -right-6 -bottom-6 w-24 h-24 bg-gradient-to-tl ${gradient} rounded-full blur-xl`} />
-      </div>
-
       <div className="flex items-center justify-between mb-2 relative z-10">
         <div className="flex items-center">
-          <span className="text-xs font-semibold text-slate-400 tracking-wider uppercase">{label}</span>
+          <span className="text-xs font-semibold text-slate-500 tracking-wider uppercase">{label}</span>
           <InfoTooltip content={info} position="bottom" />
         </div>
-        <div className="p-2 rounded-xl bg-white/5 border border-white/5">{icon}</div>
+        <div className="p-2 rounded-xl bg-slate-100 border border-slate-200">{icon}</div>
       </div>
 
       <div className={`text-2xl lg:text-3xl font-extrabold tracking-tight ${valueColor} mb-1 relative z-10`}>
@@ -310,7 +305,7 @@ function MetricCard({
       </div>
 
       <div className="flex flex-col gap-1 relative z-10">
-        <div className="text-xs text-slate-400 font-medium">{subtitle}</div>
+        <div className="text-xs text-slate-500 font-medium">{subtitle}</div>
         {relativeBadge && <div className="mt-0.5">{relativeBadge}</div>}
       </div>
     </div>

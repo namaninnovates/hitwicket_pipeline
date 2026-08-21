@@ -218,56 +218,57 @@ export default function PipelineSidebar({
     { label: "Unlimited", revs: 5000 },
   ];
 
+  
   return (
-    <div className="w-full flex flex-col h-full bg-[#0b0f19]/95 backdrop-blur-2xl text-slate-200">
+    <div className="w-full flex flex-col h-full bg-white text-slate-800">
       {/* Header */}
-      <div className="p-6 border-b border-white/[0.08] flex items-center justify-between">
+      <div className="p-6 border-b border-slate-200 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200">
             <Cpu size={20} />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white tracking-tight flex items-center">
+            <h1 className="text-lg font-bold text-slate-900 tracking-tight flex items-center">
               <span>Pipeline Control Center</span>
               <InfoTooltip content="Manage automated Google Play scraping, rule-based classification, priority scoring, and executive report synthesis." />
             </h1>
-            <p className="text-xs text-slate-400">Configure ingestion time window &amp; review limits</p>
+            <p className="text-xs text-slate-500">Configure ingestion time window &amp; review limits</p>
           </div>
         </div>
 
         {/* Global Pipeline Status Pill & Close Trigger in Header */}
         <div className="flex items-center gap-2">
           {status === "running" && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-semibold animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200 text-xs font-semibold animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-indigo-600 animate-ping" />
               {currentStage || "Running..."}
             </span>
           )}
           {status === "completed" && completionStats && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">
-              <CheckCircle2 size={13} className="text-emerald-400" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold">
+              <CheckCircle2 size={13} className="text-emerald-600" />
               Completed ({completionStats.duration})
             </span>
           )}
           {status === "stopped" && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold">
-              <AlertCircle size={13} className="text-amber-400" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold">
+              <AlertCircle size={13} className="text-amber-600" />
               Stopped
             </span>
           )}
           {status === "error" && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold">
-              <XCircle size={13} className="text-rose-400" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-200 text-xs font-semibold">
+              <XCircle size={13} className="text-rose-600" />
               Failed
             </span>
           )}
 
-          {/* Close button with Caution intercept */}
+          {/* Close button */}
           <button
             type="button"
             id="pipeline-close-trigger"
             onClick={handleRequestClose}
-            className="text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-full border border-white/10 transition-all cursor-pointer"
+            className="text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 p-2 rounded-full border border-slate-200 transition-all cursor-pointer"
             title="Close Console"
           >
             <X size={16} />
@@ -281,7 +282,7 @@ export default function PipelineSidebar({
         <div>
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Target Game Titles
               </label>
               <InfoTooltip content="Select which games to include in the ingestion and analysis run. You can click any game to toggle or unselect it." />
@@ -290,15 +291,15 @@ export default function PipelineSidebar({
               <button
                 type="button"
                 onClick={selectAllGames}
-                className="text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors cursor-pointer"
               >
                 Select All
               </button>
-              <span className="text-slate-600">|</span>
+              <span className="text-slate-300">|</span>
               <button
                 type="button"
                 onClick={unselectAllGames}
-                className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                className="text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
               >
                 Unselect All
               </button>
@@ -315,28 +316,28 @@ export default function PipelineSidebar({
                   onClick={() => toggleGame(key)}
                   className={`p-3 rounded-2xl text-xs font-semibold border text-center transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-indigo-600/20 border-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.25)]"
-                      : "bg-black/30 border-white/[0.06] text-slate-500 hover:text-slate-300"
+                      ? "bg-indigo-50 border-indigo-300 text-indigo-900 shadow-xs"
+                      : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
                   }`}
                 >
-                  <div className="truncate">{g.name}</div>
+                  <div className="truncate font-bold">{g.name}</div>
                   <div className="text-[0.65rem] opacity-70 mt-0.5">{isSelected ? "Selected" : "Unselected"}</div>
                 </button>
               );
             })}
           </div>
           {selectedGameList.length === 0 && (
-            <p className="text-[0.68rem] text-amber-400 mt-1.5 flex items-center gap-1">
+            <p className="text-[0.68rem] text-amber-700 mt-1.5 flex items-center gap-1 font-medium">
               <AlertCircle size={12} /> Please select at least one game title to run the pipeline.
             </p>
           )}
         </div>
 
-        {/* 2. Review Window (Custom Number of Days or Time Range) */}
-        <div className="bg-black/30 rounded-2xl p-4 border border-white/[0.06] space-y-3">
+        {/* 2. Review Window */}
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-              <Calendar size={14} className="text-indigo-400" />
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+              <Calendar size={14} className="text-indigo-600" />
               <span>Review Time Window</span>
               <InfoTooltip content="Set the lookback window in days. Click any preset to select or unselect it." />
             </div>
@@ -350,13 +351,13 @@ export default function PipelineSidebar({
                   const val = Math.max(1, Math.min(365, parseInt(e.target.value) || 1));
                   setWindowDays(val);
                 }}
-                className="w-20 bg-black/60 border border-white/10 rounded-lg px-2 py-1 text-xs text-right font-mono text-indigo-400 font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-20 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-right font-mono text-indigo-700 font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
-              <span className="text-xs text-slate-400">days</span>
+              <span className="text-xs text-slate-500">days</span>
             </div>
           </div>
 
-          {/* Quick Presets with Unlimited */}
+          {/* Quick Presets */}
           <div className="flex flex-wrap gap-1.5 pt-1">
             {DAY_PRESETS.map((p) => {
               const isActive = windowDays === p.days;
@@ -367,8 +368,8 @@ export default function PipelineSidebar({
                   onClick={() => setWindowDays(isActive ? 90 : p.days)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
                     isActive
-                      ? "bg-indigo-600 text-white font-bold shadow-sm"
-                      : "bg-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                      ? "bg-indigo-600 text-white font-bold shadow-xs"
+                      : "bg-slate-200/70 text-slate-700 hover:bg-slate-300"
                   }`}
                   title={isActive ? "Click to unselect (resets to 90d)" : `Set window to ${p.label}`}
                 >
@@ -380,10 +381,10 @@ export default function PipelineSidebar({
         </div>
 
         {/* 3. Review Volume Limit */}
-        <div className="bg-black/30 rounded-2xl p-4 border border-white/[0.06] space-y-3">
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-              <Hash size={14} className="text-indigo-400" />
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+              <Hash size={14} className="text-indigo-600" />
               <span>Max Reviews per Game</span>
               <InfoTooltip content="Limit the maximum reviews scraped per game. Click 'Unlimited' to fetch all available reviews." />
             </div>
@@ -398,13 +399,13 @@ export default function PipelineSidebar({
                   const val = Math.max(10, Math.min(5000, parseInt(e.target.value) || 10));
                   setMaxRevs(val);
                 }}
-                className="w-20 bg-black/60 border border-white/10 rounded-lg px-2 py-1 text-xs text-right font-mono text-indigo-400 font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-20 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-right font-mono text-indigo-700 font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
-              <span className="text-xs text-slate-400">revs</span>
+              <span className="text-xs text-slate-500">revs</span>
             </div>
           </div>
 
-          {/* Quick Review Count Presets with Unlimited */}
+          {/* Quick Review Count Presets */}
           <div className="flex flex-wrap gap-1.5 pt-1">
             {VOLUME_PRESETS.map((p) => {
               const isActive = maxRevs === p.revs;
@@ -415,8 +416,8 @@ export default function PipelineSidebar({
                   onClick={() => setMaxRevs(isActive ? 150 : p.revs)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
                     isActive
-                      ? "bg-indigo-600 text-white font-bold shadow-sm"
-                      : "bg-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                      ? "bg-indigo-600 text-white font-bold shadow-xs"
+                      : "bg-slate-200/70 text-slate-700 hover:bg-slate-300"
                   }`}
                   title={isActive ? "Click to unselect (resets to 150)" : `Set volume limit to ${p.label}`}
                 >
@@ -428,13 +429,13 @@ export default function PipelineSidebar({
         </div>
 
         {/* 4. Incremental Merge vs Fresh Purge Toggle */}
-        <div className="bg-black/30 rounded-2xl p-3.5 border border-white/[0.06] flex items-center justify-between">
+        <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 flex items-center justify-between">
           <div>
-            <div className="text-xs font-semibold text-white flex items-center gap-1.5">
+            <div className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
               <span>Fresh Purge Mode</span>
               <InfoTooltip content="When OFF (Recommended), newly scraped reviews merge cumulatively with existing historical reviews (e.g. Day 0–100 retained intact, adding Day 100–110). Turn ON only to purge previous reviews and start fresh." />
             </div>
-            <p className="text-[0.65rem] text-slate-400 mt-0.5">
+            <p className="text-[0.65rem] text-slate-500 mt-0.5">
               {freshMode
                 ? "⚠️ Purge prior reviews for selected games and start fresh"
                 : "✓ Incremental Merge: Preserves past reviews and adds new ones intact"}
@@ -444,10 +445,10 @@ export default function PipelineSidebar({
             type="button"
             onClick={() => setFreshMode(!freshMode)}
             className={`w-10 h-5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
-              freshMode ? "bg-indigo-600 justify-end" : "bg-white/15 justify-start"
+              freshMode ? "bg-indigo-600 justify-end" : "bg-slate-300 justify-start"
             }`}
           >
-            <span className="bg-white w-4 h-4 rounded-full shadow-sm" />
+            <span className="bg-white w-4 h-4 rounded-full shadow-xs" />
           </button>
         </div>
 
@@ -457,15 +458,15 @@ export default function PipelineSidebar({
             <div className="flex gap-2">
               <button
                 disabled
-                className="flex-1 py-3.5 px-4 rounded-xl font-bold text-sm bg-indigo-600/70 text-white flex items-center justify-center gap-2 shadow-sm transition-all"
+                className="flex-1 py-3.5 px-4 rounded-xl font-bold text-sm bg-indigo-600 text-white flex items-center justify-center gap-2 shadow-xs transition-all"
               >
-                <RefreshCw size={16} className="animate-spin text-indigo-200" />
+                <RefreshCw size={16} className="animate-spin text-white" />
                 <span>Executing ({currentStage || `${windowDays}d, ${maxRevs} revs`})...</span>
               </button>
               <button
                 type="button"
                 onClick={stopPipeline}
-                className="py-3.5 px-4 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(225,29,72,0.4)] transition-all cursor-pointer"
+                className="py-3.5 px-4 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
                 title="Stop running pipeline immediately"
               >
                 <Square size={14} fill="currentColor" />
@@ -476,7 +477,7 @@ export default function PipelineSidebar({
             <button
               onClick={runPipeline}
               disabled={selectedGameList.length === 0}
-              className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-indigo-600 hover:opacity-95 text-white flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(99,102,241,0.4)] disabled:opacity-40 transition-all cursor-pointer"
+              className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-2 shadow-xs disabled:opacity-40 transition-all cursor-pointer"
             >
               <Play size={16} fill="currentColor" />
               <span>Trigger Pipeline Now ({selectedGameList.length} Game{selectedGameList.length === 1 ? "" : "s"})</span>
@@ -488,19 +489,19 @@ export default function PipelineSidebar({
             <div
               className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-all ${
                 status === "completed"
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-900"
                   : status === "running"
-                  ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-300"
+                  ? "bg-indigo-50 border-indigo-200 text-indigo-900"
                   : status === "stopped"
-                  ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
-                  : "bg-rose-500/10 border-rose-500/30 text-rose-300"
+                  ? "bg-amber-50 border-amber-200 text-amber-900"
+                  : "bg-rose-50 border-rose-200 text-rose-900"
               }`}
             >
               <div className="flex items-center gap-2">
-                {status === "completed" && <CheckCircle2 size={16} className="text-emerald-400" />}
-                {status === "running" && <RefreshCw size={16} className="animate-spin text-indigo-400" />}
-                {status === "stopped" && <AlertCircle size={16} className="text-amber-400" />}
-                {status === "error" && <XCircle size={16} className="text-rose-400" />}
+                {status === "completed" && <CheckCircle2 size={16} className="text-emerald-600" />}
+                {status === "running" && <RefreshCw size={16} className="animate-spin text-indigo-600" />}
+                {status === "stopped" && <AlertCircle size={16} className="text-amber-600" />}
+                {status === "error" && <XCircle size={16} className="text-rose-600" />}
                 <div>
                   <div className="font-bold">
                     {status === "completed" && "Pipeline Execution Succeeded"}
@@ -515,7 +516,7 @@ export default function PipelineSidebar({
                   )}
                 </div>
               </div>
-              <span className="font-mono text-[0.65rem] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/40 border border-white/10">
+              <span className="font-mono text-[0.65rem] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-white border border-slate-200">
                 {status}
               </span>
             </div>
@@ -523,10 +524,10 @@ export default function PipelineSidebar({
         </div>
 
         {/* Database Quick Health */}
-        <div className="bg-black/30 rounded-2xl p-4 border border-white/[0.06] space-y-2.5">
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 uppercase tracking-wider">
-              <Database size={14} className="text-indigo-400" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 uppercase tracking-wider">
+              <Database size={14} className="text-indigo-600" />
               <span>Local Telemetry Database</span>
               <InfoTooltip content="Stores reviews in your private local database. If you want only reviews from your new run, click 'Reset DB'." />
             </div>
@@ -544,52 +545,52 @@ export default function PipelineSidebar({
                   window.location.reload();
                 }
               }}
-              className="text-[0.65rem] text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-2 py-0.5 rounded border border-rose-500/20 transition-all cursor-pointer"
+              className="text-[0.65rem] text-rose-700 hover:text-rose-900 bg-rose-100 hover:bg-rose-200 px-2 py-0.5 rounded border border-rose-200 transition-all cursor-pointer font-medium"
             >
               Reset DB
             </button>
           </div>
           {dbStatus ? (
             <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-              <div className="bg-white/[0.02] p-2 rounded-lg border border-white/5">
-                <div className="text-[0.65rem] text-slate-400">Total Ingested</div>
-                <div className="text-sm font-bold text-white mt-0.5">{dbStatus.ingested?.toLocaleString() || 0}</div>
+              <div className="bg-white p-2 rounded-lg border border-slate-200">
+                <div className="text-[0.65rem] text-slate-500 font-medium">Total Ingested</div>
+                <div className="text-sm font-bold text-slate-900 mt-0.5">{dbStatus.ingested?.toLocaleString() || 0}</div>
               </div>
-              <div className="bg-white/[0.02] p-2 rounded-lg border border-white/5">
-                <div className="text-[0.65rem] text-slate-400">Classified</div>
-                <div className="text-sm font-bold text-cyan-400 mt-0.5">{dbStatus.classified?.toLocaleString() || 0}</div>
+              <div className="bg-white p-2 rounded-lg border border-slate-200">
+                <div className="text-[0.65rem] text-slate-500 font-medium">Classified</div>
+                <div className="text-sm font-bold text-indigo-600 mt-0.5">{dbStatus.classified?.toLocaleString() || 0}</div>
               </div>
             </div>
           ) : (
-            <div className="text-xs text-slate-400">Loading database state...</div>
+            <div className="text-xs text-slate-500">Loading database state...</div>
           )}
         </div>
 
         {/* Live Execution Stream */}
         {logs.length > 0 && (
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs text-slate-400">
-              <div className="flex items-center gap-1.5 font-semibold text-slate-300">
-                <Terminal size={14} className="text-indigo-400" />
+            <div className="flex items-center justify-between text-xs text-slate-600">
+              <div className="flex items-center gap-1.5 font-semibold text-slate-800">
+                <Terminal size={14} className="text-indigo-600" />
                 <span>Execution Stream Log</span>
                 <InfoTooltip content="Live Server-Sent Events (SSE) stream directly outputting sub-process console logs." />
               </div>
               {isStreaming ? (
-                <span className="inline-flex items-center gap-1 text-[0.65rem] text-emerald-400 font-mono">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                <span className="inline-flex items-center gap-1 text-[0.65rem] text-emerald-600 font-mono font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                   LIVE
                 </span>
               ) : (
                 <button
                   type="button"
                   onClick={() => setLogs([])}
-                  className="text-[0.65rem] text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                  className="text-[0.65rem] text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
                 >
                   Clear Logs
                 </button>
               )}
             </div>
-            <div className="bg-black/80 border border-white/10 rounded-xl p-3.5 h-48 overflow-y-auto font-mono text-[0.7rem] text-slate-300 space-y-1 shadow-inner">
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 h-48 overflow-y-auto font-mono text-[0.7rem] text-slate-100 space-y-1 shadow-inner">
               {logs.map((log, i) => (
                 <div
                   key={i}
@@ -600,7 +601,7 @@ export default function PipelineSidebar({
                       ? "text-emerald-400 font-bold"
                       : log.includes("[stage") || log.includes("STAGE:") || log.includes("Executing:")
                       ? "text-indigo-300 font-semibold"
-                      : "text-slate-400"
+                      : "text-slate-300"
                   }
                 >
                   {log}

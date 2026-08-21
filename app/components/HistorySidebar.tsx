@@ -106,41 +106,41 @@ export default function HistorySidebar({
         onClick={onClose}
       />
 
-      {/* Slide-out History Drawer (Left Side like ChatGPT) */}
-      <div className="relative mr-auto w-full max-w-md bg-[#0b0f19] border-r border-white/[0.08] shadow-2xl flex flex-col h-full z-10 font-sans animate-in slide-in-from-left duration-300">
+      {/* Slide-out History Drawer (Left Side) */}
+      <div className="relative mr-auto w-full max-w-md bg-white border-r border-slate-200 shadow-2xl flex flex-col h-full z-10 font-sans animate-in slide-in-from-left duration-300">
         {/* Header */}
-        <div className="p-4 border-b border-white/[0.08] flex items-center justify-between gap-3 bg-slate-900/40">
+        <div className="p-4 border-b border-slate-200 flex items-center justify-between gap-3 bg-slate-50">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200">
               <History size={18} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
                 <span>Intelligence History</span>
-                <span className="text-[0.65rem] px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono">
+                <span className="text-[0.65rem] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-mono font-bold">
                   {snapshots.length}
                 </span>
               </h2>
-              <p className="text-[0.68rem] text-slate-400">ChatGPT-style session memory in Local DB</p>
+              <p className="text-[0.68rem] text-slate-500">Session snapshots in PostgreSQL</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            className="p-1.5 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-200 transition-colors"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* New Session CTA */}
-        <div className="p-3 border-b border-white/[0.06] bg-black/20">
+        <div className="p-3 border-b border-slate-200 bg-slate-50/50">
           <button
             onClick={() => {
               onSelectSnapshot(null);
               onClose();
               onNewAnalysis();
             }}
-            className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(99,102,241,0.25)] cursor-pointer"
+            className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
           >
             <PlusCircle size={15} />
             <span>+ New Live Analysis / Pipeline Run</span>
@@ -150,16 +150,16 @@ export default function HistorySidebar({
         {/* History List */}
         <div className="flex-1 overflow-y-auto p-3 space-y-4 no-scrollbar">
           {loading ? (
-            <div className="py-12 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
-              <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+            <div className="py-12 text-center text-xs text-slate-500 flex flex-col items-center gap-2">
+              <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
               <span>Loading saved history snapshots...</span>
             </div>
           ) : snapshots.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-xs space-y-3">
-              <div className="w-10 h-10 mx-auto rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500">
+            <div className="p-8 text-center text-slate-500 text-xs space-y-3">
+              <div className="w-10 h-10 mx-auto rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
                 <Database size={20} />
               </div>
-              <p className="font-medium text-slate-300">No Historical Snapshots Yet</p>
+              <p className="font-semibold text-slate-800">No Historical Snapshots Yet</p>
               <p className="text-[0.7rem] text-slate-500 max-w-xs mx-auto">
                 Every time you run the intelligence pipeline or generate an executive brief, a snapshot is saved here automatically.
               </p>
@@ -186,43 +186,43 @@ export default function HistorySidebar({
                         }}
                         className={`group relative p-3 rounded-2xl border transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-indigo-600/15 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)]"
-                            : "bg-white/[0.03] hover:bg-white/[0.07] border-white/[0.06] hover:border-white/10"
+                            ? "bg-indigo-50 border-indigo-300 shadow-xs"
+                            : "bg-slate-50 hover:bg-slate-100 border-slate-200"
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-1.5">
                             {snap.game === "all" ? (
-                              <Globe size={13} className="text-cyan-400 shrink-0" />
+                              <Globe size={13} className="text-cyan-600 shrink-0" />
                             ) : (
-                              <Gamepad2 size={13} className="text-indigo-400 shrink-0" />
+                              <Gamepad2 size={13} className="text-indigo-600 shrink-0" />
                             )}
-                            <span className="text-xs font-bold text-white tracking-tight line-clamp-1">
+                            <span className="text-xs font-bold text-slate-900 tracking-tight line-clamp-1">
                               {snap.title}
                             </span>
                           </div>
-                          <span className="text-[0.65rem] font-mono text-slate-400 shrink-0">
+                          <span className="text-[0.65rem] font-mono text-slate-500 shrink-0">
                             {timeStr}
                           </span>
                         </div>
 
                         {/* Snapshot Stats Bar */}
-                        <div className="flex items-center gap-2 text-[0.68rem] text-slate-400 mt-1.5">
-                          <span className="font-mono text-slate-300">{snap.totalReviews} revs</span>
+                        <div className="flex items-center gap-2 text-[0.68rem] text-slate-600 mt-1.5">
+                          <span className="font-mono text-slate-700 font-medium">{snap.totalReviews} revs</span>
                           <span>&bull;</span>
-                          <span className="font-bold text-amber-400">{snap.avgRating}★</span>
+                          <span className="font-bold text-amber-600">{snap.avgRating}★</span>
                           <span>&bull;</span>
-                          <span className="text-emerald-400">{snap.positivePct}% Pos</span>
+                          <span className="text-emerald-700 font-semibold">{snap.positivePct}% Pos</span>
                           {snap.topPriority && (
                             <>
                               <span>&bull;</span>
-                              <span className="text-slate-400 truncate max-w-[120px]">{snap.topPriority}</span>
+                              <span className="text-slate-500 truncate max-w-[120px]">{snap.topPriority}</span>
                             </>
                           )}
                         </div>
 
                         {/* Hover Quick Actions */}
-                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/[0.04]">
+                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200">
                           <span className="text-[0.65rem] text-slate-500 font-mono flex items-center gap-1">
                             <Clock size={10} />
                             {dateStr}
@@ -230,7 +230,7 @@ export default function HistorySidebar({
 
                           <button
                             onClick={(e) => handleDelete(e, snap.id)}
-                            className="text-slate-500 hover:text-rose-400 p-1 rounded-lg hover:bg-rose-500/10 transition-colors"
+                            className="text-slate-400 hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50 transition-colors"
                             title="Delete snapshot"
                           >
                             <Trash2 size={12} />
@@ -246,9 +246,9 @@ export default function HistorySidebar({
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-white/[0.08] bg-slate-950/60 text-center text-[0.68rem] text-slate-400 flex items-center justify-center gap-1.5">
-          <Sparkles size={12} className="text-indigo-400" />
-          <span>Snapshots persist permanently in your local IndexedDB</span>
+        <div className="p-3 border-t border-slate-200 bg-slate-50 text-center text-[0.68rem] text-slate-500 flex items-center justify-center gap-1.5">
+          <Sparkles size={12} className="text-indigo-600" />
+          <span>Snapshots persist permanently in Neon PostgreSQL</span>
         </div>
       </div>
     </div>

@@ -124,22 +124,22 @@ export default function ReviewExplorer({ games }: { games: any }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200">
             <Database size={20} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white tracking-tight flex items-center">
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center">
               <span>Review Explorer &amp; Interactive Filters</span>
               <InfoTooltip content="Search, filter, inspect, and export all raw Google Play reviews stored in your private local database." />
             </h2>
-            <p className="text-xs text-slate-400">Click any filter button below to instantly slice and inspect raw feedback</p>
+            <p className="text-xs text-slate-500">Click any filter button below to instantly slice and inspect raw feedback</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={resetFilters}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <RotateCcw size={13} />
             <span>Reset All</span>
@@ -147,7 +147,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
           <button
             onClick={exportCSV}
             disabled={!reviews.length}
-            className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/30 flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(99,102,241,0.25)] disabled:opacity-40 cursor-pointer"
+            className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-600 flex items-center gap-2 transition-all shadow-xs disabled:opacity-40 cursor-pointer"
           >
             <Download size={14} />
             <span>Export CSV ({reviews.length})</span>
@@ -156,7 +156,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
       </div>
 
       {/* Button-Based Multi-Criteria Filter Console */}
-      <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-white/[0.08] space-y-4">
+      <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 space-y-4">
         {/* Search Query Input */}
         <form onSubmit={handleSearch} className="flex gap-2">
           <div className="flex-1 relative">
@@ -166,12 +166,12 @@ export default function ReviewExplorer({ games }: { games: any }) {
               placeholder="Search keyword in reviews (e.g. crash, umpire, lag, unfair, money, refund, ads)..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-inner"
+              className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 shadow-xs"
             />
           </div>
           <button
             type="submit"
-            className="px-6 py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-slate-200 transition-all cursor-pointer shadow-sm"
+            className="px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all cursor-pointer shadow-xs"
           >
             Search
           </button>
@@ -180,7 +180,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
         {/* 1. Game Selection Buttons */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-1">
           <div className="flex items-center w-28 shrink-0">
-            <span className="text-[0.68rem] uppercase font-bold text-slate-400 tracking-wider">Game:</span>
+            <span className="text-[0.68rem] uppercase font-bold text-slate-500 tracking-wider">Game:</span>
             <InfoTooltip content="Filter reviews by game title or click the active game to unselect back to All." size={11} />
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -189,8 +189,8 @@ export default function ReviewExplorer({ games }: { games: any }) {
               onClick={() => setSelectedGame("All")}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                 selectedGame === "All"
-                  ? "bg-indigo-600 text-white border-indigo-400/50 shadow-[0_0_12px_rgba(99,102,241,0.35)]"
-                  : "bg-white/5 border-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                  ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                  : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
               }`}
             >
               All Games
@@ -202,8 +202,8 @@ export default function ReviewExplorer({ games }: { games: any }) {
                 onClick={() => setSelectedGame(selectedGame === key ? "All" : key)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                   selectedGame === key
-                    ? "bg-indigo-600 text-white border-indigo-400/50 shadow-[0_0_12px_rgba(99,102,241,0.35)]"
-                    : "bg-white/5 border-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                    ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                    : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
                 }`}
                 title={selectedGame === key ? "Click to unselect" : `Filter by ${g.name}`}
               >
@@ -216,7 +216,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
         {/* 2. Primary Category Buttons */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <div className="flex items-center w-28 shrink-0">
-            <span className="text-[0.68rem] uppercase font-bold text-slate-400 tracking-wider">Category:</span>
+            <span className="text-[0.68rem] uppercase font-bold text-slate-500 tracking-wider">Category:</span>
             <InfoTooltip content="Filter by primary NLP classification topic. Click active category to unselect." size={11} />
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -228,8 +228,8 @@ export default function ReviewExplorer({ games }: { games: any }) {
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                 category === "All"
-                  ? "bg-fuchsia-600 text-white border-fuchsia-400/50 shadow-[0_0_12px_rgba(217,70,239,0.35)]"
-                  : "bg-white/5 border-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                  ? "bg-fuchsia-600 text-white border-fuchsia-600 shadow-xs"
+                  : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
               }`}
             >
               All Categories
@@ -249,8 +249,8 @@ export default function ReviewExplorer({ games }: { games: any }) {
                 }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                   category === c
-                    ? "bg-fuchsia-600 text-white border-fuchsia-400/50 shadow-[0_0_12px_rgba(217,70,239,0.35)]"
-                    : "bg-white/5 border-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                    ? "bg-fuchsia-600 text-white border-fuchsia-600 shadow-xs"
+                    : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
                 }`}
                 title={category === c ? "Click to unselect" : `Filter by ${c}`}
               >
@@ -262,9 +262,9 @@ export default function ReviewExplorer({ games }: { games: any }) {
 
         {/* 3. Subcategories Buttons (when category is selected) */}
         {availableSubcategories.length > 0 && (
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 rounded-2xl bg-black/30 border border-white/5">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 rounded-2xl bg-slate-50 border border-slate-200">
             <div className="flex items-center w-28 shrink-0">
-              <span className="text-[0.68rem] uppercase font-bold text-fuchsia-300 tracking-wider">Subcategory:</span>
+              <span className="text-[0.68rem] uppercase font-bold text-fuchsia-700 tracking-wider">Subcategory:</span>
               <InfoTooltip content="Filter by granular problem tag. Click active tag to unselect." size={11} />
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -273,8 +273,8 @@ export default function ReviewExplorer({ games }: { games: any }) {
                 onClick={() => setSubcategory("All")}
                 className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                   subcategory === "All"
-                    ? "bg-white/20 text-white border-white/20"
-                    : "bg-white/5 border-transparent text-slate-400 hover:text-slate-200"
+                    ? "bg-slate-800 text-white border-slate-800"
+                    : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
                 }`}
               >
                 All
@@ -286,8 +286,8 @@ export default function ReviewExplorer({ games }: { games: any }) {
                   onClick={() => setSubcategory(subcategory === sc ? "All" : sc)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                     subcategory === sc
-                      ? "bg-fuchsia-500/30 text-fuchsia-200 border-fuchsia-400/40"
-                      : "bg-white/5 border-transparent text-slate-400 hover:text-slate-200"
+                      ? "bg-fuchsia-600 text-white border-fuchsia-600"
+                      : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
                   }`}
                   title={subcategory === sc ? "Click to unselect" : `Filter by ${sc}`}
                 >
@@ -301,7 +301,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
         {/* 4. Time Window Buttons */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <div className="flex items-center w-28 shrink-0">
-            <span className="text-[0.68rem] uppercase font-bold text-slate-400 tracking-wider">Time Window:</span>
+            <span className="text-[0.68rem] uppercase font-bold text-slate-500 tracking-wider">Time Window:</span>
             <InfoTooltip content="Filter reviews by when they were posted on Google Play. Click active window to unselect." size={11} />
           </div>
           <div className="flex flex-wrap gap-1.5 items-center">
@@ -322,8 +322,8 @@ export default function ReviewExplorer({ games }: { games: any }) {
                 onClick={() => setTimeWindow(timeWindow === t.id && t.id !== "All" ? "All" : t.id)}
                 className={`px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                   timeWindow === t.id
-                    ? "bg-cyan-600 text-white border-cyan-400/50 shadow-[0_0_12px_rgba(8,145,178,0.35)]"
-                    : "bg-white/5 border-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                    ? "bg-cyan-600 text-white border-cyan-600 shadow-xs"
+                    : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
                 }`}
                 title={timeWindow === t.id ? "Click to unselect" : `Filter by ${t.label}`}
               >
@@ -333,25 +333,25 @@ export default function ReviewExplorer({ games }: { games: any }) {
           </div>
         </div>
 
-        {/* Custom Date Range Pickers (shown when 'Custom Range' button is active) */}
+        {/* Custom Date Range Pickers */}
         {timeWindow === "custom" && (
-          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border border-cyan-500/20 text-xs">
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
             <div className="flex items-center gap-2">
-              <span className="text-[0.68rem] uppercase font-bold text-cyan-300">Start Date:</span>
+              <span className="text-[0.68rem] uppercase font-bold text-slate-700">Start Date:</span>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-black/60 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                className="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-cyan-500"
               />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[0.68rem] uppercase font-bold text-cyan-300">End Date:</span>
+              <span className="text-[0.68rem] uppercase font-bold text-slate-700">End Date:</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="bg-black/60 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                className="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-cyan-500"
               />
             </div>
           </div>
@@ -362,16 +362,16 @@ export default function ReviewExplorer({ games }: { games: any }) {
           {/* Sentiment Buttons */}
           <div className="flex items-center gap-2">
             <div className="flex items-center w-24 shrink-0">
-              <span className="text-[0.68rem] uppercase font-bold text-slate-400 tracking-wider">Sentiment:</span>
+              <span className="text-[0.68rem] uppercase font-bold text-slate-500 tracking-wider">Sentiment:</span>
               <InfoTooltip content="Filter by classified sentiment tone. Click active sentiment to unselect." size={11} />
             </div>
             <div className="flex flex-wrap gap-1.5">
               {[
                 { id: "All", label: "All" },
-                { id: "positive", label: "Positive", color: "bg-emerald-600 text-white border-emerald-400/50" },
-                { id: "negative", label: "Negative", color: "bg-rose-600 text-white border-rose-400/50" },
-                { id: "mixed", label: "Mixed", color: "bg-amber-600 text-white border-amber-400/50" },
-                { id: "neutral", label: "Neutral", color: "bg-slate-600 text-white border-slate-400/50" },
+                { id: "positive", label: "Positive", color: "bg-emerald-600 text-white border-emerald-600" },
+                { id: "negative", label: "Negative", color: "bg-rose-600 text-white border-rose-600" },
+                { id: "mixed", label: "Mixed", color: "bg-amber-600 text-white border-amber-600" },
+                { id: "neutral", label: "Neutral", color: "bg-slate-600 text-white border-slate-600" },
               ].map((s) => (
                 <button
                   key={s.id}
@@ -379,8 +379,8 @@ export default function ReviewExplorer({ games }: { games: any }) {
                   onClick={() => setSentiment(sentiment === s.id && s.id !== "All" ? "All" : s.id)}
                   className={`px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                     sentiment === s.id
-                      ? s.color || "bg-white/20 text-white border-white/30"
-                      : "bg-white/5 border-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                      ? s.color || "bg-slate-800 text-white border-slate-800"
+                      : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
                   }`}
                   title={sentiment === s.id ? "Click to unselect" : `Filter by ${s.label}`}
                 >
@@ -393,7 +393,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
           {/* Star Rating Buttons */}
           <div className="flex items-center gap-2">
             <div className="flex items-center w-20 shrink-0">
-              <span className="text-[0.68rem] uppercase font-bold text-slate-400 tracking-wider">Rating:</span>
+              <span className="text-[0.68rem] uppercase font-bold text-slate-500 tracking-wider">Rating:</span>
               <InfoTooltip content="Filter by exact player star rating. Click active star rating to unselect." size={11} />
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -411,8 +411,8 @@ export default function ReviewExplorer({ games }: { games: any }) {
                   onClick={() => setRating(rating === r.id && r.id !== "All" ? "All" : r.id)}
                   className={`px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                     rating === r.id
-                      ? "bg-amber-500 text-black font-bold border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.4)]"
-                      : "bg-white/5 border-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                      ? "bg-amber-500 text-black font-bold border-amber-500 shadow-xs"
+                      : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
                   }`}
                   title={rating === r.id ? "Click to unselect" : `Filter by ${r.label}`}
                 >
@@ -425,10 +425,10 @@ export default function ReviewExplorer({ games }: { games: any }) {
       </div>
 
       {/* Results Table */}
-      <div className="glass-panel rounded-3xl overflow-hidden flex-1 flex flex-col border border-white/[0.08]">
-        <div className="px-6 py-3.5 border-b border-white/[0.08] bg-white/[0.02] flex items-center justify-between text-xs text-slate-400">
+      <div className="glass-panel rounded-3xl overflow-hidden flex-1 flex flex-col border border-slate-200">
+        <div className="px-6 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
           <span>
-            Displaying <strong className="text-white">{reviews.length}</strong> matching reviews
+            Displaying <strong className="text-slate-900">{reviews.length}</strong> matching reviews
           </span>
           <div className="flex items-center gap-2">
             <span className="text-[0.65rem] uppercase font-semibold text-slate-500">Max limit:</span>
@@ -447,8 +447,8 @@ export default function ReviewExplorer({ games }: { games: any }) {
                   onClick={() => setReviewLimit(reviewLimit === lim.val && lim.val !== 0 ? 0 : lim.val)}
                   className={`px-2.5 py-0.5 rounded text-[0.68rem] font-mono font-semibold transition-all cursor-pointer ${
                     reviewLimit === lim.val
-                      ? "bg-indigo-600 text-white font-bold shadow-sm"
-                      : "bg-white/5 text-slate-400 hover:text-slate-200 hover:bg-white/10"
+                      ? "bg-indigo-600 text-white font-bold shadow-xs"
+                      : "bg-slate-200/70 text-slate-700 hover:bg-slate-300"
                   }`}
                   title={reviewLimit === lim.val ? "Active limit (click to toggle)" : `Limit to ${lim.label}`}
                 >
@@ -468,9 +468,9 @@ export default function ReviewExplorer({ games }: { games: any }) {
             />
           </div>
         ) : reviews.length === 0 ? (
-          <div className="p-16 text-center text-slate-400 space-y-2">
-            <Sparkles size={24} className="mx-auto text-slate-500" />
-            <div className="text-sm font-semibold text-slate-300">No reviews matched your filters</div>
+          <div className="p-16 text-center text-slate-500 space-y-2">
+            <Sparkles size={24} className="mx-auto text-slate-400" />
+            <div className="text-sm font-semibold text-slate-800">No reviews matched your filters</div>
             <p className="text-xs text-slate-500">
               Try clicking &quot;Reset All&quot; or selecting a broader category like &quot;Monetization&quot;, &quot;Gameplay&quot;, or &quot;Experience&quot;.
             </p>
@@ -478,7 +478,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
         ) : (
           <div className="overflow-auto max-h-[650px]">
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="sticky top-0 bg-[#0b0f19] border-b border-white/[0.08] text-slate-400 z-10">
+              <thead className="sticky top-0 bg-slate-100 border-b border-slate-200 text-slate-700 z-10">
                 <tr>
                   <th className="py-3.5 px-4 font-semibold uppercase tracking-wider">Game</th>
                   <th className="py-3.5 px-4 font-semibold uppercase tracking-wider">Rating</th>
@@ -489,40 +489,40 @@ export default function ReviewExplorer({ games }: { games: any }) {
                   <th className="py-3.5 px-4 font-semibold uppercase tracking-wider">Review Content</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.05]">
+              <tbody className="divide-y divide-slate-100">
                 {reviews.map((r, i) => {
-                  let sentimentBadge = "bg-white/5 text-slate-400 border-white/5";
-                  if (r.sentiment === "positive") sentimentBadge = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-                  else if (r.sentiment === "negative") sentimentBadge = "bg-rose-500/10 text-rose-400 border-rose-500/20";
-                  else if (r.sentiment === "mixed") sentimentBadge = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                  let sentimentBadge = "bg-slate-100 text-slate-700 border-slate-200";
+                  if (r.sentiment === "positive") sentimentBadge = "bg-emerald-50 text-emerald-800 border-emerald-200";
+                  else if (r.sentiment === "negative") sentimentBadge = "bg-rose-50 text-rose-800 border-rose-200";
+                  else if (r.sentiment === "mixed") sentimentBadge = "bg-amber-50 text-amber-800 border-amber-200";
 
                   return (
-                    <tr key={i} className="hover:bg-white/[0.03] transition-colors">
-                      <td className="py-3.5 px-4 font-medium text-slate-200 whitespace-nowrap">
+                    <tr key={i} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3.5 px-4 font-medium text-slate-900 whitespace-nowrap">
                         {games[r.game]?.name || r.game}
                       </td>
                       <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                          {r.rating} <Star size={11} className="fill-amber-400" />
+                        <span className="inline-flex items-center gap-1 font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                          {r.rating} <Star size={11} className="fill-amber-500 text-amber-500" />
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-slate-400 font-mono text-[0.7rem] whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-slate-500 font-mono text-[0.7rem] whitespace-nowrap">
                         {r.review_date?.substring(0, 10) || "—"}
                       </td>
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         {r.primary_category ? (
-                          <span className="inline-flex px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-medium">
+                          <span className="inline-flex px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 font-medium">
                             {r.primary_category}
                           </span>
                         ) : (
-                          <span className="text-slate-600">—</span>
+                          <span className="text-slate-400">—</span>
                         )}
                       </td>
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         {r.subcategory ? (
-                          <span className="text-slate-300 text-[0.75rem] font-medium">{r.subcategory}</span>
+                          <span className="text-slate-700 text-[0.75rem] font-medium">{r.subcategory}</span>
                         ) : (
-                          <span className="text-slate-600">—</span>
+                          <span className="text-slate-400">—</span>
                         )}
                       </td>
                       <td className="py-3.5 px-4 whitespace-nowrap">
@@ -531,10 +531,10 @@ export default function ReviewExplorer({ games }: { games: any }) {
                             {r.sentiment}
                           </span>
                         ) : (
-                          <span className="text-slate-600">—</span>
+                          <span className="text-slate-400">—</span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-300 min-w-[340px] leading-relaxed">
+                      <td className="py-3.5 px-4 text-slate-800 min-w-[340px] leading-relaxed">
                         {r.review_text}
                       </td>
                     </tr>

@@ -36,15 +36,15 @@ export default function GameAnalytics({ refreshKey = 0 }: { refreshKey?: number 
   return (
     <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col">
       <div className="flex items-center gap-2.5 mb-5">
-        <div className="p-1.5 rounded-lg bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20">
+        <div className="p-1.5 rounded-lg bg-fuchsia-50 text-fuchsia-600 border border-fuchsia-200">
           <BarChart3 size={18} />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight flex items-center">
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center">
             <span>Game vs Game Telemetry</span>
             <InfoTooltip content="Comparative volume, mean store rating, and sentiment ratio bars across competing titles." />
           </h2>
-          <p className="text-xs text-slate-400">Head-to-head rating &amp; sentiment breakdown</p>
+          <p className="text-xs text-slate-500">Head-to-head rating &amp; sentiment breakdown</p>
         </div>
       </div>
 
@@ -55,53 +55,53 @@ export default function GameAnalytics({ refreshKey = 0 }: { refreshKey?: number 
             <div
               key={idx}
               className={`glass-card rounded-2xl p-4 border transition-all ${
-                isHitwicket ? "border-indigo-500/30 bg-indigo-500/[0.04]" : "border-white/[0.07]"
+                isHitwicket ? "border-indigo-200 bg-indigo-50/40" : "border-slate-200"
               }`}
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-white">{game.name}</span>
+                  <span className="text-sm font-bold text-slate-900">{game.name}</span>
                   {isHitwicket && (
-                    <span className="text-[0.65rem] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">
+                    <span className="text-[0.65rem] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold border border-indigo-200">
                       Our Game
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-3 text-xs">
-                  <span className="text-slate-400 font-mono">{game.volume?.toLocaleString()} reviews</span>
-                  <div className="flex items-center gap-1 font-bold text-amber-400">
+                  <span className="text-slate-600 font-mono font-medium">{game.volume?.toLocaleString()} reviews</span>
+                  <div className="flex items-center gap-1 font-bold text-amber-600">
                     <span>{game.avgRating}</span>
-                    <Star size={12} className="fill-amber-400" />
+                    <Star size={12} className="fill-amber-500 text-amber-500" />
                   </div>
                 </div>
               </div>
 
               {/* Sentiment Ratio Bar */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-[0.68rem] text-slate-400">
-                  <span className="text-emerald-400 font-semibold flex items-center">
+                <div className="flex items-center justify-between text-[0.68rem] text-slate-600">
+                  <span className="text-emerald-700 font-semibold flex items-center">
                     {game.posPct}% Positive
                     <InfoTooltip content="4-5 star reviews indicating satisfaction." size={10} />
                   </span>
-                  <span className="text-rose-400 font-semibold flex items-center">
+                  <span className="text-rose-700 font-semibold flex items-center">
                     {game.negPct}% Negative
                     <InfoTooltip content="1-2 star reviews indicating frustration." size={10} />
                   </span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-black/40 overflow-hidden flex border border-white/5">
+                <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden flex border border-slate-200">
                   <div
                     style={{ width: `${game.posPct || 0}%` }}
-                    className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-full"
+                    className="bg-emerald-500 h-full"
                     title={`Positive: ${game.posPct}%`}
                   />
                   <div
                     style={{ width: `${Math.max(0, 100 - (game.posPct || 0) - (game.negPct || 0))}%` }}
-                    className="bg-amber-400/40 h-full"
+                    className="bg-amber-300 h-full"
                     title="Mixed / Neutral"
                   />
                   <div
                     style={{ width: `${game.negPct || 0}%` }}
-                    className="bg-gradient-to-r from-rose-500 to-rose-400 h-full"
+                    className="bg-rose-500 h-full"
                     title={`Negative: ${game.negPct}%`}
                   />
                 </div>

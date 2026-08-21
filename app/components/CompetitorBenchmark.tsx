@@ -53,49 +53,49 @@ export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: n
     <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200">
             <Swords size={18} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white tracking-tight flex items-center">
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center">
               <span>Competitor Benchmark Matrix</span>
               <InfoTooltip content="Cross-game category volume comparison. Highlights which categories are high friction across competitors vs specific to Hitwicket." />
             </h2>
-            <p className="text-xs text-slate-400">Category volume distribution vs category leaders</p>
+            <p className="text-xs text-slate-500">Category volume distribution vs category leaders</p>
           </div>
         </div>
       </div>
 
       {/* Table Container */}
-      <div className="glass-card rounded-2xl overflow-hidden border border-white/[0.08] mb-6">
+      <div className="glass-card rounded-2xl overflow-hidden border border-slate-200 mb-6">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-white/[0.03] border-b border-white/[0.08] text-slate-400">
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600">
                 <th className="py-3.5 px-4 font-semibold uppercase tracking-wider">Category</th>
                 {games.map((g) => (
                   <th key={g.id} className="py-3.5 px-4 font-semibold uppercase tracking-wider">
-                    <span className={g.isPrimary ? "text-indigo-300 font-bold flex items-center gap-1.5" : "text-slate-400"}>
+                    <span className={g.isPrimary ? "text-indigo-700 font-bold flex items-center gap-1.5" : "text-slate-600"}>
                       {g.name}
-                      {g.isPrimary && <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />}
+                      {g.isPrimary && <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />}
                     </span>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.05]">
+            <tbody className="divide-y divide-slate-100">
               {categories.map((cat, i) => (
-                <tr key={i} className="hover:bg-white/[0.03] transition-colors">
-                  <td className="py-3.5 px-4 font-medium text-slate-200">{cat}</td>
+                <tr key={i} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="py-3.5 px-4 font-medium text-slate-900">{cat}</td>
                   {games.map((g) => {
                     const val = matrixData[cat]?.[g.id];
-                    let badge = "text-slate-500 bg-white/5 border-white/5";
+                    let badge = "text-slate-600 bg-slate-100 border-slate-200";
                     if (val === "High") {
-                      badge = "text-rose-400 bg-rose-500/10 border-rose-500/20 font-bold";
+                      badge = "text-rose-800 bg-rose-50 border-rose-200 font-bold";
                     } else if (val === "Medium") {
-                      badge = "text-amber-400 bg-amber-500/10 border-amber-500/20 font-medium";
+                      badge = "text-amber-800 bg-amber-50 border-amber-200 font-medium";
                     } else if (val === "Low") {
-                      badge = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 font-medium";
+                      badge = "text-emerald-800 bg-emerald-50 border-emerald-200 font-medium";
                     }
 
                     return (
@@ -115,8 +115,8 @@ export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: n
 
       {/* Strategic Insights */}
       <div>
-        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">
-          <Compass size={14} className="text-indigo-400" />
+        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
+          <Compass size={14} className="text-indigo-600" />
           <span>Strategic Decision Signals</span>
           <InfoTooltip content="Derived strategic opportunities: differentiates unique Hitwicket friction points from general mobile gaming industry baselines." />
         </div>
@@ -129,14 +129,14 @@ export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: n
                   key={i}
                   className={`p-3.5 rounded-xl border text-xs leading-relaxed flex items-start gap-2.5 ${
                     isSpecific
-                      ? "bg-rose-500/5 border-rose-500/20 text-rose-200"
-                      : "bg-indigo-500/5 border-indigo-500/20 text-indigo-200"
+                      ? "bg-rose-50 border-rose-200 text-rose-900"
+                      : "bg-indigo-50 border-indigo-200 text-indigo-900"
                   }`}
                 >
                   {isSpecific ? (
-                    <AlertCircle size={16} className="text-rose-400 shrink-0 mt-0.5" />
+                    <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
                   ) : (
-                    <CheckCircle size={16} className="text-indigo-400 shrink-0 mt-0.5" />
+                    <CheckCircle size={16} className="text-indigo-600 shrink-0 mt-0.5" />
                   )}
                   <div>
                     <span className="font-bold mr-1">
@@ -153,7 +153,7 @@ export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: n
             })}
           </div>
         ) : (
-          <div className="text-xs text-slate-400 p-3 rounded-xl bg-black/20 border border-white/5">
+          <div className="text-xs text-slate-500 p-3 rounded-xl bg-slate-50 border border-slate-200">
             All 3 games exhibit symmetric category distribution profiles.
           </div>
         )}

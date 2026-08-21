@@ -210,14 +210,14 @@ export default function Dashboard() {
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* Quick Game Selector (Desktop only, mobile shows below) */}
               {activeView === "dashboard" && (
-                <div className="hidden lg:flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/[0.08]">
+                <div className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
                   <button
                     type="button"
                     onClick={() => setSelectedGame("all")}
                     className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                       selectedGame === "all"
-                        ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold"
-                        : "text-slate-400 hover:text-white"
+                        ? "bg-white text-indigo-700 shadow-xs border border-slate-200 font-bold"
+                        : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
                     All
@@ -229,8 +229,8 @@ export default function Dashboard() {
                       onClick={() => setSelectedGame(key)}
                       className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer truncate max-w-[90px] ${
                         selectedGame === key
-                          ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold"
-                          : "text-slate-400 hover:text-white"
+                          ? "bg-white text-indigo-700 shadow-xs border border-slate-200 font-bold"
+                          : "text-slate-600 hover:text-slate-900"
                       }`}
                     >
                       {games[key]?.name?.split(" ")[0] || key}
@@ -244,7 +244,7 @@ export default function Dashboard() {
                 type="button"
                 onClick={handleResetAll}
                 disabled={isResetting}
-                className="p-2 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                className="p-2 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
                 title="Reset Database to Fresh Slate"
               >
                 <RotateCcw size={13} className={isResetting ? "animate-spin" : ""} />
@@ -255,7 +255,7 @@ export default function Dashboard() {
               <button
                 type="button"
                 onClick={() => setIsPipelineOpen(true)}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white flex items-center gap-1.5 transition-all shadow-[0_0_20px_rgba(99,102,241,0.35)] hover:scale-[1.02] cursor-pointer"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
               >
                 <Play size={13} className="fill-white" />
                 <span>Setup Pipeline</span>
@@ -264,15 +264,15 @@ export default function Dashboard() {
           </div>
 
           {/* Mobile Navigation Row (Views + Game Switcher) */}
-          <div className="flex md:hidden flex-col gap-2 py-2 border-t border-white/[0.06]">
+          <div className="flex md:hidden flex-col gap-2 py-2 border-t border-slate-200">
             {/* View Switcher Tabs */}
-            <div className="flex items-center justify-between gap-1 bg-black/40 p-1 rounded-xl border border-white/[0.08]">
+            <div className="flex items-center justify-between gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
               <button
                 onClick={() => setActiveView("dashboard")}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   activeView === "dashboard"
-                    ? "bg-indigo-600 text-white shadow-sm font-bold"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-indigo-600 text-white shadow-xs font-bold"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 <LayoutDashboard size={13} />
@@ -282,8 +282,8 @@ export default function Dashboard() {
                 onClick={() => setActiveView("data")}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   activeView === "data"
-                    ? "bg-indigo-600 text-white shadow-sm font-bold"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-indigo-600 text-white shadow-xs font-bold"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 <Database size={13} />
@@ -293,8 +293,8 @@ export default function Dashboard() {
                 onClick={() => setActiveView("docs")}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   activeView === "docs"
-                    ? "bg-indigo-600 text-white shadow-sm font-bold"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-indigo-600 text-white shadow-xs font-bold"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 <BookOpen size={13} />
@@ -310,8 +310,8 @@ export default function Dashboard() {
                   onClick={() => setSelectedGame("all")}
                   className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 transition-all ${
                     selectedGame === "all"
-                      ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold"
-                      : "bg-white/5 text-slate-400 border border-white/5"
+                      ? "bg-indigo-100 text-indigo-800 border border-indigo-200 font-bold"
+                      : "bg-slate-100 text-slate-700 border border-slate-200"
                   }`}
                 >
                   All (Global)
@@ -323,8 +323,8 @@ export default function Dashboard() {
                     onClick={() => setSelectedGame(key)}
                     className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 transition-all ${
                       selectedGame === key
-                        ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold"
-                        : "bg-white/5 text-slate-400 border border-white/5"
+                        ? "bg-indigo-100 text-indigo-800 border border-indigo-200 font-bold"
+                        : "bg-slate-100 text-slate-700 border border-slate-200"
                     }`}
                   >
                     {games[key]?.name || key}
@@ -340,23 +340,23 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 flex-1 w-full">
         {/* Active Historical Snapshot Banner */}
         {activeSnapshot && (
-          <div className="mb-6 p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 backdrop-blur-md animate-in fade-in slide-in-from-top-2">
+          <div className="mb-6 p-4 rounded-2xl bg-indigo-50 border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in slide-in-from-top-2">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+              <div className="p-2 rounded-xl bg-indigo-100 text-indigo-700 border border-indigo-200">
                 <History size={16} />
               </div>
               <div>
-                <p className="text-xs font-bold text-white tracking-tight">
-                  Viewing Historical Snapshot: <span className="text-indigo-300">{activeSnapshot.title}</span>
+                <p className="text-xs font-bold text-slate-900 tracking-tight">
+                  Viewing Historical Snapshot: <span className="text-indigo-700 font-semibold">{activeSnapshot.title}</span>
                 </p>
-                <p className="text-[0.68rem] text-slate-400">
+                <p className="text-[0.68rem] text-slate-600">
                   Preserved from {new Date(activeSnapshot.timestamp).toLocaleString()} &bull; {activeSnapshot.totalReviews} reviews ({activeSnapshot.avgRating}★)
                 </p>
               </div>
             </div>
             <button
               onClick={() => setActiveSnapshot(null)}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-sm cursor-pointer whitespace-nowrap"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-all shadow-xs cursor-pointer whitespace-nowrap"
             >
               Exit Snapshot &amp; Return to Live
             </button>

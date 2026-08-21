@@ -253,18 +253,18 @@ export default function Documentation() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-fuchsia-500/20 text-indigo-400 border border-indigo-500/30 shadow-[0_0_25px_rgba(99,102,241,0.3)]">
+          <div className="p-3 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-200">
             <BookOpen size={24} />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight flex items-center">
               <span>Documentation &amp; Methodology</span>
               <InfoTooltip
                 content="Comprehensive engineering specifications, scoring formulas, taxonomy design, and empirical research."
                 position="bottom"
               />
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
               Structured reference specifications for the Hitwicket Review Intelligence Pipeline
             </p>
           </div>
@@ -273,79 +273,68 @@ export default function Documentation() {
         <button
           onClick={copyDoc}
           disabled={!content}
-          className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 flex items-center gap-2 transition-all self-start sm:self-auto cursor-pointer shadow-sm hover:border-indigo-500/40"
+          className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 flex items-center gap-2 transition-all self-start sm:self-auto cursor-pointer shadow-xs"
         >
-          {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+          {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
           <span>{copied ? "Copied Markdown" : "Copy Document"}</span>
         </button>
       </div>
 
       {/* Interactive Scoring Simulator (When scoring doc is active) */}
       {activeDoc === "scoring" && (
-        <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-indigo-500/30 bg-gradient-to-br from-indigo-950/30 via-[#0d1222]/80 to-[#0b0f19] relative z-20 shadow-2xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-white/[0.08] pb-4">
+        <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-slate-200 bg-white relative z-20 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-400">
+              <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
                 <Calculator size={18} />
               </div>
               <div>
-                <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
                   <span>Interactive Priority Score Simulator</span>
                   <InfoTooltip
                     content="Adjust the 4 input parameters to test how the mathematical formula weights frequencies, severity, business threat, and trend velocity into a 0-100 score."
                     position="bottom"
                   />
                 </h2>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   Active Formula: Priority = 0.30(Freq) + 0.25(Sev) + 0.25(Impact) + 0.20(Trend)
                 </p>
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setCalcFreq(18);
-                setCalcSev(4.2);
-                setCalcImpact(4.5);
-                setCalcTrend(36);
-              }}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer hover:border-indigo-400 self-start sm:self-auto"
-              title="Reset inputs to default production benchmark values (18% Freq, 4.2 Sev, 4.5 Impact, +36% Trend)"
-            >
-              <RotateCcw size={13} className="text-indigo-400" />
-              <span>Reset Default Weights (30/25/25/20)</span>
-            </button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            {/* Left Controls */}
+            {/* Left 4 Interactive Sliders */}
             <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Frequency */}
-              <div className="bg-black/40 rounded-2xl p-4 border border-white/[0.08] hover:border-indigo-500/30 transition-colors">
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 hover:border-indigo-300 transition-colors">
                 <div className="flex justify-between text-xs mb-2">
-                  <span className="font-semibold text-slate-200">1. Frequency (30% weight)</span>
-                  <span className="font-mono text-indigo-300 font-bold bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">{calcFreq}%</span>
+                  <span className="font-semibold text-slate-800">1. Issue Frequency (30% weight)</span>
+                  <span className="font-mono text-indigo-700 font-bold bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200">
+                    {calcFreq}%
+                  </span>
                 </div>
                 <input
                   type="range"
-                  min="0"
+                  min="1"
                   max="40"
                   value={calcFreq}
                   onChange={(e) => setCalcFreq(parseInt(e.target.value))}
-                  className="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer"
+                  className="w-full accent-indigo-600 bg-slate-200 h-2 rounded-lg cursor-pointer"
                 />
-                <div className="text-[0.68rem] text-slate-400 mt-1.5 flex justify-between">
-                  <span>Isolated bug (1%)</span>
-                  <span>Major crisis (30%+)</span>
+                <div className="text-[0.68rem] text-slate-500 mt-1.5 flex justify-between">
+                  <span>Isolated (1%)</span>
+                  <span>Systemic (40%)</span>
                 </div>
               </div>
 
               {/* Severity */}
-              <div className="bg-black/40 rounded-2xl p-4 border border-white/[0.08] hover:border-indigo-500/30 transition-colors">
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 hover:border-indigo-300 transition-colors">
                 <div className="flex justify-between text-xs mb-2">
-                  <span className="font-semibold text-slate-200">2. Severity (25% weight)</span>
-                  <span className="font-mono text-indigo-300 font-bold bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">{calcSev.toFixed(1)} / 5.0</span>
+                  <span className="font-semibold text-slate-800">2. Technical Severity (25% weight)</span>
+                  <span className="font-mono text-indigo-700 font-bold bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200">
+                    {calcSev.toFixed(1)} / 5.0
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -354,19 +343,21 @@ export default function Documentation() {
                   step="0.1"
                   value={calcSev}
                   onChange={(e) => setCalcSev(parseFloat(e.target.value))}
-                  className="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer"
+                  className="w-full accent-indigo-600 bg-slate-200 h-2 rounded-lg cursor-pointer"
                 />
-                <div className="text-[0.68rem] text-slate-400 mt-1.5 flex justify-between">
-                  <span>Minor flaw (1.0)</span>
-                  <span>Uninstall (5.0)</span>
+                <div className="text-[0.68rem] text-slate-500 mt-1.5 flex justify-between">
+                  <span>Trivial (1.0)</span>
+                  <span>Unplayable (5.0)</span>
                 </div>
               </div>
 
               {/* Business Impact */}
-              <div className="bg-black/40 rounded-2xl p-4 border border-white/[0.08] hover:border-indigo-500/30 transition-colors">
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 hover:border-indigo-300 transition-colors">
                 <div className="flex justify-between text-xs mb-2">
-                  <span className="font-semibold text-slate-200">3. Business Impact (25% weight)</span>
-                  <span className="font-mono text-indigo-300 font-bold bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">{calcImpact.toFixed(1)} / 5.0</span>
+                  <span className="font-semibold text-slate-800">3. Business Impact (25% weight)</span>
+                  <span className="font-mono text-indigo-700 font-bold bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200">
+                    {calcImpact.toFixed(1)} / 5.0
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -375,19 +366,19 @@ export default function Documentation() {
                   step="0.1"
                   value={calcImpact}
                   onChange={(e) => setCalcImpact(parseFloat(e.target.value))}
-                  className="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer"
+                  className="w-full accent-indigo-600 bg-slate-200 h-2 rounded-lg cursor-pointer"
                 />
-                <div className="text-[0.68rem] text-slate-400 mt-1.5 flex justify-between">
+                <div className="text-[0.68rem] text-slate-500 mt-1.5 flex justify-between">
                   <span>Cosmetic (1.0)</span>
                   <span>Revenue killer (5.0)</span>
                 </div>
               </div>
 
               {/* Trend */}
-              <div className="bg-black/40 rounded-2xl p-4 border border-white/[0.08] hover:border-indigo-500/30 transition-colors">
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 hover:border-indigo-300 transition-colors">
                 <div className="flex justify-between text-xs mb-2">
-                  <span className="font-semibold text-slate-200">4. Trend Trajectory (20% weight)</span>
-                  <span className="font-mono text-indigo-300 font-bold bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                  <span className="font-semibold text-slate-800">4. Trend Trajectory (20% weight)</span>
+                  <span className="font-mono text-indigo-700 font-bold bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200">
                     {calcTrend >= 0 ? `+${calcTrend}%` : `${calcTrend}%`}
                   </span>
                 </div>
@@ -398,9 +389,9 @@ export default function Documentation() {
                   step="5"
                   value={calcTrend}
                   onChange={(e) => setCalcTrend(parseInt(e.target.value))}
-                  className="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer"
+                  className="w-full accent-indigo-600 bg-slate-200 h-2 rounded-lg cursor-pointer"
                 />
-                <div className="text-[0.68rem] text-slate-400 mt-1.5 flex justify-between">
+                <div className="text-[0.68rem] text-slate-500 mt-1.5 flex justify-between">
                   <span>Resolving (-100%)</span>
                   <span>Escalating (+200%)</span>
                 </div>
@@ -408,12 +399,12 @@ export default function Documentation() {
             </div>
 
             {/* Right Output Score Box */}
-            <div className="lg:col-span-4 bg-gradient-to-b from-black/80 to-black/50 rounded-2xl p-6 border border-white/10 text-center flex flex-col justify-center items-center shadow-xl">
-              <div className="text-[0.7rem] uppercase font-bold text-slate-400 tracking-wider mb-2">
+            <div className="lg:col-span-4 bg-slate-50 rounded-2xl p-6 border border-slate-200 text-center flex flex-col justify-center items-center shadow-xs">
+              <div className="text-[0.7rem] uppercase font-bold text-slate-500 tracking-wider mb-2">
                 Computed Priority Score
               </div>
-              <div className="text-5xl font-extrabold tracking-tight text-white my-2 font-mono">
-                {liveScore} <span className="text-lg text-slate-500 font-normal">/ 100</span>
+              <div className="text-5xl font-extrabold tracking-tight text-slate-900 my-2 font-mono">
+                {liveScore} <span className="text-lg text-slate-400 font-normal">/ 100</span>
               </div>
               <div className={`mt-3 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all ${scoreColor}`}>
                 {scoreBadge}
@@ -437,15 +428,15 @@ export default function Documentation() {
               }}
               className={`p-3 rounded-2xl text-left transition-all cursor-pointer border ${
                 isActive
-                  ? "bg-gradient-to-br from-indigo-600/30 to-purple-600/20 text-white border-indigo-500/50 shadow-[0_0_20px_rgba(99,102,241,0.25)]"
-                  : "bg-white/[0.03] text-slate-400 hover:text-slate-200 hover:bg-white/[0.06] border-white/[0.06]"
+                  ? "bg-indigo-50 text-indigo-900 border-indigo-300 shadow-xs"
+                  : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border-slate-200"
               }`}
             >
               <div className="flex items-center gap-2 mb-1">
-                <span className={isActive ? "text-indigo-300" : "text-slate-400"}>{d.icon}</span>
+                <span className={isActive ? "text-indigo-600" : "text-slate-400"}>{d.icon}</span>
                 <span className="text-xs font-bold truncate">{d.label}</span>
               </div>
-              <p className="text-[0.68rem] text-slate-400 line-clamp-2 leading-tight">
+              <p className="text-[0.68rem] text-slate-500 line-clamp-2 leading-tight">
                 {d.desc}
               </p>
             </button>
@@ -454,13 +445,13 @@ export default function Documentation() {
       </div>
 
       {/* Document Content Container */}
-      <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-10 border border-white/[0.08] bg-[#0b0f19]/90 shadow-2xl relative">
+      <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-10 border border-slate-200 bg-white shadow-sm relative">
         {/* Document Subheader & In-doc Search */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-8 border-b border-white/[0.08]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
-            <span className="text-indigo-400 font-mono">HITWICKET INTELLIGENCE</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-8 border-b border-slate-200">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+            <span className="text-indigo-600 font-mono font-bold">HITWICKET INTELLIGENCE</span>
             <ChevronRight size={14} />
-            <span className="text-white">{DOCS.find((d) => d.id === activeDoc)?.file}</span>
+            <span className="text-slate-900 font-bold">{DOCS.find((d) => d.id === activeDoc)?.file}</span>
           </div>
 
           <div className="relative w-full sm:w-72">
@@ -470,12 +461,12 @@ export default function Documentation() {
               placeholder="Search in this document..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500/50"
+              className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[0.65rem] text-slate-400 hover:text-white"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[0.65rem] text-slate-400 hover:text-slate-700"
               >
                 Clear
               </button>
@@ -493,7 +484,7 @@ export default function Documentation() {
             />
           </div>
         ) : (
-          <div className="prose prose-invert prose-indigo max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-2xl sm:prose-h1:text-3xl prose-h1:text-white prose-h1:border-b prose-h1:border-white/10 prose-h1:pb-3 prose-h2:text-xl prose-h2:text-indigo-200 prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-base prose-h3:text-slate-200 prose-p:text-slate-300 prose-p:leading-relaxed prose-li:text-slate-300 prose-strong:text-white prose-strong:font-bold prose-code:text-indigo-300 prose-code:bg-indigo-950/40 prose-code:border prose-code:border-indigo-500/20 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-pre:bg-black/80 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-2xl prose-pre:p-5 prose-table:border-collapse prose-table:w-full prose-th:bg-indigo-950/30 prose-th:text-indigo-200 prose-th:p-3.5 prose-th:border-b prose-th:border-white/10 prose-th:text-xs prose-th:uppercase prose-th:tracking-wider prose-td:p-3.5 prose-td:border-b prose-td:border-white/5 prose-td:text-xs prose-td:text-slate-300 prose-blockquote:border-l-4 prose-blockquote:border-indigo-500 prose-blockquote:bg-indigo-950/20 prose-blockquote:p-4 prose-blockquote:rounded-r-2xl prose-blockquote:text-indigo-200">
+          <div className="prose max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-2xl sm:prose-h1:text-3xl prose-h1:text-slate-900 prose-h1:border-b prose-h1:border-slate-200 prose-h1:pb-3 prose-h2:text-xl prose-h2:text-slate-900 prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-base prose-h3:text-slate-800 prose-p:text-slate-700 prose-p:leading-relaxed prose-li:text-slate-700 prose-strong:text-slate-900 prose-strong:font-bold prose-code:text-indigo-800 prose-code:bg-indigo-50 prose-code:border prose-code:border-indigo-200 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:rounded-2xl prose-pre:p-5 prose-table:border-collapse prose-table:w-full prose-th:bg-slate-100 prose-th:text-slate-800 prose-th:p-3.5 prose-th:border-b prose-th:border-slate-200 prose-th:text-xs prose-th:uppercase prose-th:tracking-wider prose-td:p-3.5 prose-td:border-b prose-td:border-slate-100 prose-td:text-xs prose-td:text-slate-700 prose-blockquote:border-l-4 prose-blockquote:border-indigo-600 prose-blockquote:bg-indigo-50 prose-blockquote:p-4 prose-blockquote:rounded-r-2xl prose-blockquote:text-indigo-950">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
@@ -502,8 +493,8 @@ export default function Documentation() {
                   const title = cleanString(rawText);
                   const icon = getHeadingIcon(title);
                   return (
-                    <h1 className="flex items-center gap-3 text-2xl sm:text-3xl font-bold text-white border-b border-white/10 pb-3" {...props}>
-                      <span className="p-2 rounded-xl bg-indigo-500/15 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
+                    <h1 className="flex items-center gap-3 text-2xl sm:text-3xl font-bold text-slate-900 border-b border-slate-200 pb-3" {...props}>
+                      <span className="p-2 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600">
                         {icon}
                       </span>
                       <span>{title}</span>
@@ -515,8 +506,8 @@ export default function Documentation() {
                   const title = cleanString(rawText);
                   const icon = getHeadingIcon(title);
                   return (
-                    <h2 className="flex items-center gap-2.5 text-xl font-bold text-indigo-200 mt-8 mb-4 border-b border-white/[0.06] pb-2" {...props}>
-                      <span className="p-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                    <h2 className="flex items-center gap-2.5 text-xl font-bold text-slate-900 mt-8 mb-4 border-b border-slate-100 pb-2" {...props}>
+                      <span className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600">
                         {icon}
                       </span>
                       <span>{title}</span>
@@ -528,8 +519,8 @@ export default function Documentation() {
                   const title = cleanString(rawText);
                   const icon = getHeadingIcon(title);
                   return (
-                    <h3 className="flex items-center gap-2 text-base font-semibold text-slate-100 mt-6 mb-3" {...props}>
-                      <span className="p-1 rounded bg-white/[0.05] text-slate-400">
+                    <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900 mt-6 mb-3" {...props}>
+                      <span className="p-1 rounded bg-slate-100 text-slate-600">
                         {icon}
                       </span>
                       <span>{title}</span>
@@ -538,7 +529,7 @@ export default function Documentation() {
                 },
                 p: ({ children, ...props }) => {
                   return (
-                    <p className="text-slate-300 leading-relaxed my-3" {...props}>
+                    <p className="text-slate-700 leading-relaxed my-3 text-sm" {...props}>
                       {React.Children.map(children, (child) =>
                         typeof child === "string" ? formatTextWithModernIcons(child) : child
                       )}
@@ -547,7 +538,7 @@ export default function Documentation() {
                 },
                 li: ({ children, ...props }) => {
                   return (
-                    <li className="text-slate-300 my-1" {...props}>
+                    <li className="text-slate-700 my-1 text-sm" {...props}>
                       {React.Children.map(children, (child) =>
                         typeof child === "string" ? formatTextWithModernIcons(child) : child
                       )}
@@ -555,26 +546,26 @@ export default function Documentation() {
                   );
                 },
                 table: ({ ...props }) => (
-                  <div className="overflow-x-auto my-6 rounded-2xl border border-white/[0.08] shadow-lg bg-black/30">
+                  <div className="overflow-x-auto my-6 rounded-2xl border border-slate-200 shadow-xs bg-white">
                     <table className="w-full text-left text-xs border-collapse" {...props} />
                   </div>
                 ),
                 th: ({ ...props }) => (
                   <th
-                    className="bg-indigo-950/40 text-indigo-300 font-bold px-4 py-3 border-b border-white/10 uppercase tracking-wider text-[0.7rem]"
+                    className="bg-slate-50 text-slate-800 font-bold px-4 py-3 border-b border-slate-200 uppercase tracking-wider text-[0.7rem]"
                     {...props}
                   />
                 ),
                 td: ({ children, ...props }) => (
-                  <td className="px-4 py-3 border-b border-white/[0.05] text-slate-300" {...props}>
+                  <td className="px-4 py-3 border-b border-slate-100 text-slate-700" {...props}>
                     {React.Children.map(children, (child) =>
                       typeof child === "string" ? formatTextWithModernIcons(child) : child
                     )}
                   </td>
                 ),
                 blockquote: ({ ...props }) => (
-                  <div className="my-6 p-4 rounded-2xl bg-gradient-to-r from-indigo-950/40 to-black/40 border-l-4 border-indigo-500 border-y border-r border-white/5 text-indigo-200 text-xs sm:text-sm leading-relaxed shadow-md flex items-start gap-3">
-                    <Lightbulb size={18} className="text-indigo-400 shrink-0 mt-0.5" />
+                  <div className="my-6 p-4 rounded-2xl bg-indigo-50 border-l-4 border-indigo-600 text-indigo-950 text-xs sm:text-sm leading-relaxed shadow-xs flex items-start gap-3">
+                    <Lightbulb size={18} className="text-indigo-600 shrink-0 mt-0.5" />
                     <div>{props.children}</div>
                   </div>
                 ),
