@@ -5,29 +5,20 @@ import { RefreshCw, FileText, Sparkles, Copy, Check, Globe } from "lucide-react"
 import InfoTooltip from "./Tooltip";
 import CricketLoader from "./CricketLoader";
 
-
-
 export default function FounderBrief({
   selectedGame = "all",
-  historicalBrief,
   refreshKey = 0,
 }: {
   selectedGame?: string;
-  historicalBrief?: string | null;
   refreshKey?: number;
 }) {
-  const [brief, setBrief] = useState<string>(
-    historicalBrief || ""
-  );
-  const [loading, setLoading] = useState<boolean>(
-    !historicalBrief
-  );
+  const [brief, setBrief] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
   const [copied, setCopied] = useState(false);
 
   const isGlobal = selectedGame === "all" || selectedGame === "global";
 
-  const loadBriefForGame = async (gameKey: string, forceFresh = false) => {
-    // 3. Otherwise, fetch generated brief from server
+  const loadBriefForGame = async (gameKey: string) => {
     setLoading(true);
     try {
       const res = await fetch(`/api/brief?game=${gameKey}`);
@@ -44,16 +35,8 @@ export default function FounderBrief({
   };
 
   useEffect(() => {
-    if (refreshKey > 0) {
-      setLoading(true);
-      loadBriefForGame(selectedGame, true);
-    } else if (historicalBrief !== undefined && historicalBrief !== null) {
-      setBrief(historicalBrief);
-      setLoading(false);
-    } else {
-      loadBriefForGame(selectedGame, false);
-    }
-  }, [selectedGame, historicalBrief, refreshKey]);
+    loadBriefForGame(selectedGame);
+  }, [selectedGame, refreshKey]);
 
   const copyToClipboard = () => {
     if (!brief) return;
@@ -63,7 +46,7 @@ export default function FounderBrief({
   };
 
   return (
-    <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8">
+    <div className="bg-white border border-slate-200 shadow-xs rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200">
@@ -134,7 +117,7 @@ export default function FounderBrief({
           />
         </div>
       ) : brief ? (
-        <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-slate-200 bg-slate-50/80 text-slate-800 leading-relaxed text-sm">
+        <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-slate-200 bg-slate-50 text-slate-800 leading-relaxed text-sm">
           <div className="prose max-w-none prose-headings:text-slate-900 prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-xl prose-h2:text-base prose-h2:border-b prose-h2:border-slate-200 prose-h2:pb-1.5 prose-h3:text-sm prose-p:text-slate-700 prose-p:text-xs prose-p:leading-relaxed prose-li:text-slate-700 prose-li:text-xs prose-strong:text-slate-900 prose-hr:border-slate-200">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{brief}</ReactMarkdown>
           </div>

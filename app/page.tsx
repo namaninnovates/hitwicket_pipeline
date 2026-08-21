@@ -6,9 +6,7 @@ import {
   Database,
   BookOpen,
   Play,
-  X,
   RotateCcw,
-  History,
 } from "lucide-react";
 import ExecutiveSummary from "./components/ExecutiveSummary";
 import Overview from "./components/Overview";
@@ -19,31 +17,15 @@ import GameAnalytics from "./components/GameAnalytics";
 import ReviewExplorer from "./components/ReviewExplorer";
 import PipelineHistory from "./components/PipelineHistory";
 import PipelineSidebar from "./components/PipelineSidebar";
-import HistorySidebar from "./components/HistorySidebar";
 import Documentation from "./components/Documentation";
 import Footer from "./components/Footer";
 import CricketLoader from "./components/CricketLoader";
-
-export interface HistorySnapshot {
-  id: string;
-  title: string;
-  timestamp: string;
-  game: string;
-  totalReviews: number;
-  avgRating: number;
-  positivePct: number;
-  topPriority?: string;
-  brief?: string | null;
-}
 
 export default function Dashboard() {
   const [activeView, setActiveView] = useState<"dashboard" | "data" | "docs">("dashboard");
   const [games, setGames] = useState<Record<string, any>>({});
   const [selectedGame, setSelectedGame] = useState("all");
   const [isPipelineOpen, setIsPipelineOpen] = useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [activeSnapshot, setActiveSnapshot] = useState<HistorySnapshot | null>(null);
-  const [historyCount, setHistoryCount] = useState(0);
   const [isResetting, setIsResetting] = useState(false);
   const [isRefreshingData, setIsRefreshingData] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -58,11 +40,6 @@ export default function Dashboard() {
       if (!data.overall?.ingested) {
         fetch("/api/seed").then(() => setRefreshKey((prev) => prev + 1)).catch(() => {});
       }
-    });
-
-    // Load history snapshots count
-    fetch("/api/history").then((r) => r.json()).then((d) => {
-      setHistoryCount(d.snapshots?.length || 0);
     });
   }, []);
 
@@ -92,41 +69,15 @@ export default function Dashboard() {
   const handlePipelineComplete = async (payload?: any) => {
     setIsPipelineOpen(false);
     
-    // 1. Instantly trigger children to show skeleton loaders and fetch fresh data from Neon
+    // Trigger children to show skeleton loaders and fetch fresh data from Neon
     setRefreshKey((prev) => prev + 1);
     setIsRefreshingData(true);
 
     try {
-      // 2. Meanwhile, page.tsx silently builds the history snapshot in the background
-      const [gamesRes, metricsRes, briefRes] = await Promise.all([
-        fetch("/api/games").then((r) => r.json()).catch(() => ({})),
-        fetch("/api/metrics").then((r) => r.json()).catch(() => ({})),
-        fetch(`/api/brief?game=${selectedGame}`).then((r) => r.json()).catch(() => ({})),
-      ]);
+      const gamesRes = await fetch("/api/games").then((r) => r.json()).catch(() => ({}));
       if (gamesRes?.games) setGames(gamesRes.games);
-
-      const activeMetrics = selectedGame === "all" ? metricsRes?.overall : metricsRes?.games?.[selectedGame];
-      if (activeMetrics) {
-        const newSnap: HistorySnapshot = {
-          id: "snap_" + Date.now(),
-          title: selectedGame === "all" ? "Global Market Synthesis" : `${gamesRes?.games?.[selectedGame]?.name || selectedGame} Analysis`,
-          timestamp: new Date().toISOString(),
-          game: selectedGame,
-          totalReviews: activeMetrics.ingested || 0,
-          avgRating: activeMetrics.avgRating || 0,
-          positivePct: activeMetrics.posPct || 0,
-          topPriority: activeMetrics.topPriority || undefined,
-          brief: briefRes?.brief || null,
-        };
-        await fetch("/api/history", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newSnap)
-        });
-        setHistoryCount((prev) => prev + 1);
-      }
     } catch (e) {
-      console.warn("Snapshot auto-save on pipeline complete:", e);
+      console.warn("Pipeline complete refresh error:", e);
     } finally {
       setTimeout(() => {
         setIsRefreshingData(false);
@@ -136,29 +87,13 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-indigo-500/20">
-      {/* Top Global Navigation Bar (Mobile-Responsive Header & Touch Subnav) */}
-      <header className="sticky top-0 z-40 bg-white/90 border-b border-slate-200 backdrop-blur-md shadow-xs">
+      {/* Top Global Navigation Bar (Solid Color Header) */}
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           {/* Main Top Row */}
           <div className="h-14 sm:h-16 flex items-center justify-between gap-2">
-            {/* Left: History Button + Logo & Branding */}
+            {/* Left: Logo & Branding */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              {/* ChatGPT-style History Button on Far Left */}
-              <button
-                type="button"
-                onClick={() => setIsHistoryOpen(true)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
-                title="Open Intelligence History"
-              >
-                <History size={14} className="text-indigo-600" />
-                <span className="hidden sm:inline">History</span>
-                {historyCount > 0 && (
-                  <span className="text-[0.65rem] font-bold px-1.5 py-0.2 bg-indigo-100 text-indigo-700 rounded-full border border-indigo-200 font-mono">
-                    {historyCount}
-                  </span>
-                )}
-              </button>
-
               <div className="flex flex-col">
                 <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900">
                   HITWICKET — Market Intelligence
@@ -338,31 +273,6 @@ export default function Dashboard() {
 
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 flex-1 w-full">
-        {/* Active Historical Snapshot Banner */}
-        {activeSnapshot && (
-          <div className="mb-6 p-4 rounded-2xl bg-indigo-50 border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in slide-in-from-top-2">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-indigo-100 text-indigo-700 border border-indigo-200">
-                <History size={16} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-900 tracking-tight">
-                  Viewing Historical Snapshot: <span className="text-indigo-700 font-semibold">{activeSnapshot.title}</span>
-                </p>
-                <p className="text-[0.68rem] text-slate-600">
-                  Preserved from {new Date(activeSnapshot.timestamp).toLocaleString()} &bull; {activeSnapshot.totalReviews} reviews ({activeSnapshot.avgRating}★)
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setActiveSnapshot(null)}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-all shadow-xs cursor-pointer whitespace-nowrap"
-            >
-              Exit Snapshot &amp; Return to Live
-            </button>
-          </div>
-        )}
-
         {isRefreshingData ? (
           <div className="py-24 flex flex-col items-center justify-center min-h-[400px]">
             <CricketLoader
@@ -387,7 +297,7 @@ export default function Dashboard() {
 
                 {/* 2. 90-Second Executive Founder Brief */}
                 <section>
-                  <FounderBrief selectedGame={selectedGame} historicalBrief={activeSnapshot?.brief} refreshKey={refreshKey} />
+                  <FounderBrief selectedGame={selectedGame} refreshKey={refreshKey} />
                 </section>
 
                 {/* 3. Priority Issues & Competitor Benchmark Matrix */}
@@ -422,25 +332,8 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* Footer Attribution */}
+      {/* Footer Attribution (Solid Color) */}
       <Footer />
-
-      {/* ChatGPT-style History Sidebar Drawer */}
-      <HistorySidebar
-        isOpen={isHistoryOpen}
-        onClose={() => setIsHistoryOpen(false)}
-        activeSnapshotId={activeSnapshot?.id || null}
-        onSelectSnapshot={(snap) => {
-          setActiveSnapshot(snap);
-          if (snap) {
-            setSelectedGame(snap.game);
-          }
-        }}
-        onNewAnalysis={() => {
-          setActiveSnapshot(null);
-          setIsPipelineOpen(true);
-        }}
-      />
 
       {/* Slide-out Execution Controller Panel */}
       {isPipelineOpen && (

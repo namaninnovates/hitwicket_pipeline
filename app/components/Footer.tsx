@@ -1,9 +1,9 @@
 import React from "react";
-import { Code2, ExternalLink, ShieldAlert } from "lucide-react";
+import { ExternalLink, ShieldAlert } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="mt-16 border-t border-slate-200 bg-white/80 backdrop-blur-md">
+    <footer className="mt-16 border-t border-slate-200 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-3">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
           {/* Left: Branding & Assignment Note */}
