@@ -46,7 +46,10 @@ export default function ExecutiveSummary({
 
         if (metricsRes) {
           const active = selectedGame === "all" ? metricsRes.overall : metricsRes.games?.[selectedGame];
-          setMetrics(active || metricsRes.overall || null);
+          setMetrics({
+            ...(active || metricsRes.overall || {}),
+            period: metricsRes.period || null,
+          });
         }
         setPriorities(prioritiesRes.priorities || []);
         setAnalytics(analyticsRes.analytics || []);

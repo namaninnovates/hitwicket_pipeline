@@ -915,7 +915,7 @@ def stream_pipeline(
                     model_used=get_active_model_name(),
                     output_dir=str(OUTPUTS_DIR),
                     stages_run=",".join(stage_list),
-                    notes="Executed via Web Pipeline Console"
+                    notes=f"Executed via Web Pipeline Console (window={days}d)"
                 )
             except Exception:
                 pass
