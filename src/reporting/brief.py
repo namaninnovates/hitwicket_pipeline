@@ -379,44 +379,41 @@ def _generate_global_template_brief(
     matrix_data: dict,
 ) -> str:
     """Template fallback for global relative market intelligence brief. Strictly emoji-free."""
-    hw_prios = priority_by_game.get("hitwicket", [])
+    active_games = [g for g, prios in priority_by_game.items() if len(prios) > 0]
+    active_names = [GAMES.get(g, {}).get("name", g) for g in active_games]
+    games_label = ", ".join(active_names) if active_names else "Selected Games"
+
     matrix_text = format_competitor_matrix(matrix_data) if matrix_data else "Matrix data unavailable."
 
     brief_lines = [
         "# Global Market Intelligence Brief — Relative Benchmark",
-        f"**{analysis_date}** | {review_count} total reviews analyzed across Hitwicket, Tennis Clash & Baseball Clash",
+        f"**{analysis_date}** | {review_count} total reviews analyzed across {games_label}",
         "",
         "## Category Leadership & Market Standing",
-        "Cross-game review telemetry indicates fierce competition across core mobile sports titles. "
-        "Tennis Clash and Baseball Clash demonstrate strong global download velocity but suffer from severe user churn around aggressive paywalls and forced ads. "
-        "Hitwicket maintains higher organic gameplay enthusiasm, providing a prime window to capture dissatisfied competitor players.",
+        f"Cross-game review telemetry across {games_label} indicates key operational bottlenecks. "
+        "Review signals demonstrate distinct sentiment clusters around monetization stability and technical resilience.",
         "",
         "## Competitor Vulnerabilities & Attack Vectors",
-        "- **Tennis Clash**: Heavy player revolt against aggressive ad frequency, racket paywalls, and unfair trophy matchmaking.",
-        "- **Baseball Clash**: Core complaints center on mid-inning freezes, disconnect auto-losses, and steep legendary card upgrade costs.",
-        "",
-        "## Hitwicket Relative Risk & Lag Areas",
     ]
 
-    if hw_prios:
-        top_hw = hw_prios[0]
-        brief_lines.append(
-            f"- **Hitwicket Top Challenge**: {top_hw['primary_category']} / {top_hw['subcategory']} "
-            f"is the primary friction bottleneck ({top_hw['frequency_pct']:.1f}% frequency, severity {top_hw['avg_severity']:.1f}/5). "
-            "Eliminating match disconnects and lag is the single highest-leverage lever to accelerate retention."
-        )
-    else:
-        brief_lines.append("- **Hitwicket Top Challenge**: Core technical stability and connection resiliency during live PvP matches.")
+    for g_key in active_games:
+        g_name = GAMES.get(g_key, {}).get("name", g_key)
+        prios = priority_by_game.get(g_key, [])
+        if prios:
+            top = prios[0]
+            brief_lines.append(
+                f"- **{g_name}**: Primary issue is {top['primary_category']} / {top['subcategory']} "
+                f"(Severity {top['avg_severity']:.1f}/5, Frequency {top['frequency_pct']:.1f}%)."
+            )
 
     brief_lines += [
         "",
         "## Strategic Roadmap Recommendation",
-        "1. **Stabilize Core Match Engine**: Eliminate mid-match disconnects to maximize retention of newly acquired players.",
-        "2. **Double Down on Fair Monetization**: Position Hitwicket's progression as skill-first vs. Tennis Clash's aggressive paywalls.",
-        "3. **Capitalize on Competitor Regressions**: Run targeted acquisition campaigns during major rival update backlashes.",
+        "1. **Prioritize Top Category Bottlenecks**: Focus engineering resources directly on high-severity disconnect and crash reports.",
+        "2. **Address Player Friction**: Monitor sentiment backlashes during major content updates.",
         "",
         "## Projected Business Impact",
-        "Fixing match stability and highlighting fair progression is projected to lift 30-day retention by 8–12% and drive organic store ratings (+0.3★).",
+        "Resolving core technical friction is projected to improve 30-day retention and store ratings.",
         "",
         "---",
         "### Cross-Game Category Matrix",
@@ -443,6 +440,17 @@ def generate_founder_brief(
     game_name = GAMES.get(game_key, {}).get("name", game_key)
     analysis_date = datetime.now().strftime("%Y-%m-%d")
     review_count = len([r for r in classified_reviews if r.get("game") == game_key])
+
+    if review_count < 5:
+        insufficient_msg = (
+            f"# Executive Brief — Insufficient Data for {game_name}\n\n"
+            f"**Insufficient review telemetry collected for {game_name}** ({review_count} reviews analyzed).\n\n"
+            "An AI synthesis requires active review data. Please run the ingestion pipeline for this game or select a larger sample size."
+        )
+        output_dir.mkdir(parents=True, exist_ok=True)
+        brief_path = output_dir / f"founder_brief_{game_key}.md"
+        brief_path.write_text(insufficient_msg, encoding="utf-8")
+        return brief_path
 
     # Format data for brief
     priority_text = _format_priority_text(priority_scores)
@@ -501,6 +509,18 @@ def generate_global_market_brief(
     """
     analysis_date = datetime.now().strftime("%Y-%m-%d")
     review_count = len(all_classified)
+
+    if review_count < 5:
+        insufficient_msg = (
+            "# Global Market Intelligence Brief — Insufficient Data\n\n"
+            f"**Insufficient review telemetry collected for this pipeline run** ({review_count} total reviews analyzed).\n\n"
+            "An AI market synthesis requires active review data. Please run the pipeline for one or more games to generate competitive intelligence."
+        )
+        output_dir.mkdir(parents=True, exist_ok=True)
+        brief_path = output_dir / "founder_brief_global.md"
+        brief_path.write_text(insufficient_msg, encoding="utf-8")
+        (output_dir / "founder_brief_all.md").write_text(insufficient_msg, encoding="utf-8")
+        return brief_path
 
     brief_content = _generate_global_with_llm(
         review_count=review_count,

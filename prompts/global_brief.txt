@@ -43,3 +43,4 @@ Use EXACTLY this structure:
 - Be extremely concise, quantitative, and direct.
 - Write as an executive peer advising a founder.
 - Use exact category names and numbers from the input data.
+- CRITICAL DATA DIRECTIVE: Only analyze games that have non-zero reviews in the input telemetry. Do NOT make claims or strategic recommendations about games that have 0 reviews or were not ingested in this run. If Hitwicket is not in the data, do not invent recommendations for Hitwicket.
