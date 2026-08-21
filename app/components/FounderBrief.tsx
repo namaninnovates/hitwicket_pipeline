@@ -122,7 +122,35 @@ export default function FounderBrief({
       ) : brief ? (
         <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-indigo-900/80 bg-indigo-900/30 text-slate-100 leading-relaxed text-sm">
           <div className="prose prose-invert max-w-none prose-headings:text-white prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-xl prose-h2:text-base prose-h2:border-b prose-h2:border-indigo-800 prose-h2:pb-1.5 prose-h3:text-sm prose-p:text-indigo-100 prose-p:text-xs prose-p:leading-relaxed prose-li:text-indigo-100 prose-li:text-xs prose-strong:text-white prose-strong:font-bold prose-hr:border-indigo-800">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{brief}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                pre: ({ children, ...props }) => (
+                  <div className="not-prose my-4 rounded-xl overflow-hidden border border-indigo-800 bg-indigo-950/80 shadow-sm">
+                    <pre className="p-3.5 text-indigo-100 font-mono text-xs overflow-x-auto leading-relaxed bg-transparent m-0 border-0" {...props}>
+                      {children}
+                    </pre>
+                  </div>
+                ),
+                code: ({ inline, className, children, ...props }: any) => {
+                  const isBlock = className || String(children).includes("\n");
+                  if (inline || !isBlock) {
+                    return (
+                      <code className="text-indigo-200 bg-indigo-900/60 border border-indigo-800 px-1.5 py-0.5 rounded font-mono text-xs" {...props}>
+                        {children}
+                      </code>
+                    );
+                  }
+                  return (
+                    <code className="font-mono text-indigo-100 text-xs bg-transparent border-0 p-0" {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            >
+              {brief}
+            </ReactMarkdown>
           </div>
         </div>
       ) : (

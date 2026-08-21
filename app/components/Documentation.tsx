@@ -230,13 +230,16 @@ export default function Documentation() {
     0.3 * freqNorm + 0.25 * sevNorm + 0.25 * impactNorm + 0.2 * trendNorm
   );
 
-  let scoreColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/30";
+  let scoreColor = "text-emerald-800 bg-emerald-50 border-emerald-200";
+  let numberColor = "text-emerald-600";
   let scoreBadge = "Low Risk (Healthy Baseline)";
   if (liveScore >= 50) {
-    scoreColor = "text-rose-400 bg-rose-500/10 border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.3)]";
+    scoreColor = "text-rose-800 bg-rose-50 border-rose-200";
+    numberColor = "text-rose-600";
     scoreBadge = "Critical Priority (Immediate Fix)";
   } else if (liveScore >= 30) {
-    scoreColor = "text-amber-400 bg-amber-500/10 border-amber-500/30";
+    scoreColor = "text-amber-800 bg-amber-50 border-amber-200";
+    numberColor = "text-amber-600";
     scoreBadge = "Moderate Friction (Sprint Planning)";
   }
 
@@ -398,13 +401,13 @@ export default function Documentation() {
               </div>
             </div>
 
-            {/* Right Output Score Box (Solid Indigo) */}
-            <div className="lg:col-span-4 bg-indigo-950 rounded-2xl p-6 border border-indigo-900 text-center flex flex-col justify-center items-center shadow-sm">
-              <div className="text-[0.7rem] uppercase font-bold text-indigo-300 tracking-wider mb-2">
+            {/* Right Output Score Box */}
+            <div className="lg:col-span-4 bg-slate-50 rounded-2xl p-6 border border-slate-200 text-center flex flex-col justify-center items-center shadow-xs">
+              <div className="text-[0.7rem] uppercase font-bold text-slate-500 tracking-wider mb-2">
                 Computed Priority Score
               </div>
-              <div className="text-5xl font-extrabold tracking-tight text-white my-2 font-mono">
-                {liveScore} <span className="text-lg text-indigo-400 font-normal">/ 100</span>
+              <div className={`text-5xl font-extrabold tracking-tight my-2 font-mono ${numberColor}`}>
+                {liveScore} <span className="text-lg text-slate-400 font-normal">/ 100</span>
               </div>
               <div className={`mt-3 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all ${scoreColor}`}>
                 {scoreBadge}
@@ -484,27 +487,28 @@ export default function Documentation() {
             />
           </div>
         ) : (
-          <div className="prose max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-2xl sm:prose-h1:text-3xl prose-h1:text-slate-900 prose-h1:border-b prose-h1:border-slate-200 prose-h1:pb-3 prose-h2:text-xl prose-h2:text-slate-900 prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-base prose-h3:text-slate-800 prose-p:text-slate-700 prose-p:leading-relaxed prose-li:text-slate-700 prose-strong:text-slate-900 prose-strong:font-bold prose-code:text-indigo-800 prose-code:bg-indigo-50 prose-code:border prose-code:border-indigo-200 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-pre:bg-indigo-950 prose-pre:border prose-pre:border-indigo-900 prose-pre:text-indigo-100 prose-pre:rounded-2xl prose-pre:p-5 prose-table:border-collapse prose-table:w-full prose-th:bg-slate-100 prose-th:text-slate-800 prose-th:p-3.5 prose-th:border-b prose-th:border-slate-200 prose-th:text-xs prose-th:uppercase prose-th:tracking-wider prose-td:p-3.5 prose-td:border-b prose-td:border-slate-100 prose-td:text-xs prose-td:text-slate-700 prose-blockquote:border-l-4 prose-blockquote:border-indigo-600 prose-blockquote:bg-indigo-50 prose-blockquote:p-4 prose-blockquote:rounded-r-2xl prose-blockquote:text-indigo-950">
+          <div className="prose max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-2xl sm:prose-h1:text-3xl prose-h1:text-slate-900 prose-h1:border-b prose-h1:border-slate-200 prose-h1:pb-3 prose-h2:text-xl prose-h2:text-slate-900 prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-base prose-h3:text-slate-800 prose-p:text-slate-700 prose-p:leading-relaxed prose-li:text-slate-700 prose-strong:text-slate-900 prose-strong:font-bold prose-table:border-collapse prose-table:w-full prose-th:bg-slate-100 prose-th:text-slate-800 prose-th:p-3.5 prose-th:border-b prose-th:border-slate-200 prose-th:text-xs prose-th:uppercase prose-th:tracking-wider prose-td:p-3.5 prose-td:border-b prose-td:border-slate-100 prose-td:text-xs prose-td:text-slate-700 prose-blockquote:border-l-4 prose-blockquote:border-indigo-600 prose-blockquote:bg-indigo-50 prose-blockquote:p-4 prose-blockquote:rounded-r-2xl prose-blockquote:text-indigo-950">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
                 pre: ({ children, ...props }) => (
-                  <div className="my-6 rounded-2xl overflow-hidden border border-indigo-900 bg-indigo-950 shadow-sm">
-                    <pre className="p-4 sm:p-5 text-indigo-100 font-mono text-xs sm:text-sm overflow-x-auto leading-relaxed bg-transparent m-0" {...props}>
+                  <div className="not-prose my-6 rounded-2xl overflow-hidden border border-indigo-900 bg-indigo-950 shadow-md">
+                    <pre className="p-4 sm:p-5 text-indigo-100 font-mono text-xs sm:text-sm overflow-x-auto leading-relaxed bg-indigo-950 m-0 border-0" {...props}>
                       {children}
                     </pre>
                   </div>
                 ),
                 code: ({ inline, className, children, ...props }: any) => {
-                  if (inline) {
+                  const isBlock = className || String(children).includes("\n");
+                  if (inline || !isBlock) {
                     return (
-                      <code className="text-indigo-800 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded-md font-mono text-xs font-semibold" {...props}>
+                      <code className="text-indigo-900 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded-md font-mono text-xs font-semibold not-italic" {...props}>
                         {children}
                       </code>
                     );
                   }
                   return (
-                    <code className="font-mono text-indigo-100 text-xs sm:text-sm bg-transparent" {...props}>
+                    <code className="font-mono text-indigo-100 text-xs sm:text-sm bg-transparent border-0 p-0" {...props}>
                       {children}
                     </code>
                   );

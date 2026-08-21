@@ -292,7 +292,7 @@ function MetricCard({
   className?: string;
 }) {
   return (
-    <div className={`bg-white rounded-2xl p-4 sm:p-5 relative transition-all duration-200 border border-slate-200 border-l-4 ${accentColor} ${borderHover} shadow-xs ${className}`}>
+    <div className={`bg-white rounded-2xl p-4 sm:p-5 relative transition-all duration-200 border-2 border-slate-200 border-l-4 ${accentColor} ${borderHover} shadow-xs ${className}`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center">
           <span className="text-xs font-semibold text-slate-500 tracking-wider uppercase">{label}</span>

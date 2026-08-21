@@ -50,7 +50,7 @@ export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: n
   ];
 
   return (
-    <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col">
+    <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col border-2 border-slate-200 shadow-sm">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
           <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200">

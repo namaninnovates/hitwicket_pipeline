@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BarChart3, Star, Percent } from "lucide-react";
+import { BarChart3, Star, Percent, Gamepad2 } from "lucide-react";
 import InfoTooltip from "./Tooltip";
 
 
@@ -34,14 +34,14 @@ export default function GameAnalytics({ refreshKey = 0 }: { refreshKey?: number 
   if (analytics.length < 2) return null;
 
   return (
-    <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col">
+    <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col border-2 border-slate-200 shadow-sm">
       <div className="flex items-center gap-2.5 mb-5">
-        <div className="p-1.5 rounded-lg bg-fuchsia-50 text-fuchsia-600 border border-fuchsia-200">
-          <BarChart3 size={18} />
+        <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200">
+          <Gamepad2 size={18} />
         </div>
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center">
-            <span>Game vs Game Telemetry</span>
+            <span>Market Rating &amp; Sentiment Comparison</span>
             <InfoTooltip content="Comparative volume, mean store rating, and sentiment ratio bars across competing titles." />
           </h2>
           <p className="text-xs text-slate-500">Head-to-head rating &amp; sentiment breakdown</p>
@@ -54,8 +54,8 @@ export default function GameAnalytics({ refreshKey = 0 }: { refreshKey?: number 
           return (
             <div
               key={idx}
-              className={`glass-card rounded-2xl p-4 border transition-all ${
-                isHitwicket ? "border-indigo-200 bg-indigo-50/40" : "border-slate-200"
+              className={`rounded-2xl p-4 border-2 transition-all ${
+                isHitwicket ? "border-indigo-300 bg-indigo-50/40" : "border-slate-200 bg-white"
               }`}
             >
               <div className="flex items-center justify-between mb-3">

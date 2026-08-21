@@ -114,7 +114,7 @@ export default function PriorityIssues({
   }
 
   return (
-    <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col h-full">
+    <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col h-full border-2 border-slate-200 shadow-sm">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -211,7 +211,7 @@ export default function PriorityIssues({
             return (
               <div
                 key={idx}
-                className={`rounded-2xl transition-all duration-200 border ${
+                className={`rounded-2xl transition-all duration-200 border-2 ${
                   isExpanded 
                     ? "border-indigo-300 bg-indigo-50/20 shadow-xs" 
                     : "border-slate-200 bg-white hover:bg-slate-50/70"
