@@ -453,7 +453,7 @@ export default function Dashboard() {
               else setIsPipelineOpen(false);
             }}
           />
-          <div className="relative w-full sm:max-w-lg glass-panel h-full shadow-2xl border-l border-white/10 rounded-l-none sm:rounded-l-3xl overflow-hidden flex flex-col z-10 animate-in slide-in-from-right duration-300">
+          <div className="relative w-full sm:max-w-lg bg-white h-full shadow-2xl border-l border-slate-200 rounded-l-none sm:rounded-l-3xl overflow-hidden flex flex-col z-10 animate-in slide-in-from-right duration-300">
             <PipelineSidebar
               games={games}
               selectedGame={selectedGame}

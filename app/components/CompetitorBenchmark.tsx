@@ -28,8 +28,8 @@ export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: n
   if (loading) {
     return (
       <div className="glass-panel rounded-3xl p-6 lg:p-8 space-y-4">
-        <div className="h-6 w-48 bg-slate-800/60 rounded animate-pulse" />
-        <div className="h-40 bg-slate-800/40 rounded-2xl animate-pulse" />
+        <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
+        <div className="h-40 bg-slate-100 rounded-2xl animate-pulse border border-slate-200" />
       </div>
     );
   }

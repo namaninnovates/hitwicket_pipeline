@@ -30,7 +30,7 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="glass-card rounded-2xl p-5 h-28 animate-pulse bg-slate-100" />
+          <div key={i} className="rounded-2xl p-5 h-28 animate-pulse bg-slate-100 border border-slate-200" />
         ))}
       </div>
     );
@@ -110,7 +110,7 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
             )
           }
           icon={<Inbox size={18} className="text-indigo-600" />}
-          gradient="from-indigo-500/10 via-transparent to-transparent"
+          accentColor="border-l-indigo-400"
           borderHover="hover:border-indigo-300"
           valueColor="text-slate-900"
         />
@@ -152,9 +152,9 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
             )
           }
           icon={<Star size={18} className="text-amber-500 fill-amber-500/20" />}
-          gradient="from-amber-500/10 via-transparent to-transparent"
+          accentColor="border-l-amber-400"
           borderHover="hover:border-amber-300"
-          valueColor="text-amber-600"
+          valueColor="text-amber-700"
         />
 
         {/* 3. Negative Sentiment */}
@@ -194,9 +194,9 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
             )
           }
           icon={<ThumbsDown size={18} className="text-rose-600" />}
-          gradient="from-rose-500/10 via-transparent to-transparent"
+          accentColor="border-l-rose-400"
           borderHover="hover:border-rose-300"
-          valueColor="text-rose-600"
+          valueColor="text-rose-700"
         />
 
         {/* 4. Positive Sentiment */}
@@ -236,7 +236,7 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
             )
           }
           icon={<ThumbsUp size={18} className="text-emerald-600" />}
-          gradient="from-emerald-500/10 via-transparent to-transparent"
+          accentColor="border-l-emerald-400"
           borderHover="hover:border-emerald-300"
           valueColor="text-emerald-700"
         />
@@ -257,7 +257,7 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
             </span>
           }
           icon={<CheckCircle2 size={18} className="text-cyan-600" />}
-          gradient="from-cyan-500/10 via-transparent to-transparent"
+          accentColor="border-l-cyan-400"
           borderHover="hover:border-cyan-300"
           valueColor="text-cyan-700"
           className="col-span-2 md:col-span-1 lg:col-span-1"
@@ -274,7 +274,7 @@ function MetricCard({
   subtitle,
   relativeBadge,
   icon,
-  gradient,
+  accentColor = "border-slate-200",
   borderHover,
   valueColor,
   className = "",
@@ -285,26 +285,27 @@ function MetricCard({
   subtitle: string;
   relativeBadge?: React.ReactNode;
   icon: React.ReactNode;
-  gradient: string;
+  accentColor?: string;
+  gradient?: string;
   borderHover: string;
   valueColor: string;
   className?: string;
 }) {
   return (
-    <div className={`glass-card rounded-2xl p-4 sm:p-5 relative transition-all duration-300 ${borderHover} ${className}`}>
-      <div className="flex items-center justify-between mb-2 relative z-10">
+    <div className={`bg-white rounded-2xl p-4 sm:p-5 relative transition-all duration-200 border border-slate-200 border-l-4 ${accentColor} ${borderHover} shadow-xs ${className}`}>
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center">
           <span className="text-xs font-semibold text-slate-500 tracking-wider uppercase">{label}</span>
           <InfoTooltip content={info} position="bottom" />
         </div>
-        <div className="p-2 rounded-xl bg-slate-100 border border-slate-200">{icon}</div>
+        <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-200">{icon}</div>
       </div>
 
-      <div className={`text-2xl lg:text-3xl font-extrabold tracking-tight ${valueColor} mb-1 relative z-10`}>
+      <div className={`text-2xl lg:text-3xl font-extrabold tracking-tight ${valueColor} mb-1`}>
         {value}
       </div>
 
-      <div className="flex flex-col gap-1 relative z-10">
+      <div className="flex flex-col gap-1">
         <div className="text-xs text-slate-500 font-medium">{subtitle}</div>
         {relativeBadge && <div className="mt-0.5">{relativeBadge}</div>}
       </div>

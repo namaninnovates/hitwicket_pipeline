@@ -295,7 +295,7 @@ export default function PipelineSidebar({
               >
                 Select All
               </button>
-              <span className="text-slate-300">|</span>
+              <span className="text-slate-400">|</span>
               <button
                 type="button"
                 onClick={unselectAllGames}

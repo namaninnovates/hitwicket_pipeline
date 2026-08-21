@@ -63,11 +63,8 @@ export default function FounderBrief({
   };
 
   return (
-    <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 relative overflow-hidden">
-      {/* Background glow orb */}
-      <div className="absolute -right-20 -top-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 relative z-10">
+    <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200">
             {isGlobal ? <Globe size={20} className="text-cyan-600" /> : <FileText size={20} />}

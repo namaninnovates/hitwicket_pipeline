@@ -30,10 +30,10 @@ export default function PriorityIssues({ selectedGame, refreshKey = 0 }: { selec
   if (loading) {
     return (
       <div className="glass-panel rounded-3xl p-6 lg:p-8 space-y-4">
-        <div className="h-6 w-48 bg-slate-800/60 rounded animate-pulse" />
-        <div className="h-4 w-72 bg-slate-800/40 rounded animate-pulse mb-6" />
+        <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
+        <div className="h-4 w-72 bg-slate-100 rounded animate-pulse mb-6" />
         {[1, 2, 3].map((i) => (
-          <div key={i} className="glass-card rounded-2xl p-5 h-32 animate-pulse bg-slate-800/40" />
+          <div key={i} className="rounded-2xl p-5 h-32 animate-pulse bg-slate-100 border border-slate-200" />
         ))}
       </div>
     );

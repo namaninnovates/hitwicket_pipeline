@@ -33,20 +33,20 @@
   box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08);
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar — light mode */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.4);
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.6);
+  background: #94a3b8;
 }
 
 /* Cricket Bat & Ball Loader Animations */
