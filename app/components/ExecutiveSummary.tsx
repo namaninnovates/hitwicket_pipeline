@@ -10,30 +10,57 @@ import {
   Target, 
   Swords, 
   ArrowUpRight,
-  Lightbulb
+  Lightbulb,
+  Clock,
+  Database,
+  ExternalLink,
+  Calendar
 } from "lucide-react";
 
-export default function ExecutiveSummary({ selectedGame = "all" }: { selectedGame?: string }) {
+export default function ExecutiveSummary({ 
+  selectedGame = "all",
+  onViewEvidence
+}: { 
+  selectedGame?: string;
+  onViewEvidence?: () => void;
+}) {
+  const currentDateStr = "Aug 21, 2026";
+  const currentTimeStr = "05:57 PM";
+  const analysisPeriodStr = "Aug 1–21, 2026";
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Hero Executive Tagline */}
+      {/* Hero Executive Tagline & Freshness Header */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900/90 via-indigo-950/60 to-slate-900/90 border border-white/10 p-6 lg:p-8 shadow-2xl backdrop-blur-xl">
         <div className="absolute -top-24 -right-24 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold uppercase tracking-wider">
-              <Sparkles size={13} className="text-indigo-400" />
-              <span>Founder’s Office Intelligence</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold uppercase tracking-wider">
+                <Sparkles size={13} className="text-indigo-400" />
+                <span>Founder’s Office Intelligence</span>
+              </div>
+              
+              {/* Date + Data Freshness Badges */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-medium">
+                <Clock size={12} className="animate-pulse" />
+                <span>Last updated: {currentDateStr} · {currentTimeStr}</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300 text-xs font-mono">
+                <Calendar size={12} className="text-indigo-400" />
+                <span>Analysis period: {analysisPeriodStr}</span>
+              </div>
             </div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white leading-snug">
+
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white leading-snug pt-1">
               What players are saying. <span className="text-indigo-300">What competitors are doing.</span> <span className="text-emerald-400">What we should do next.</span>
             </h1>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <div className="px-4 py-2 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-right">
+            <div className="px-4 py-2.5 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-right">
               <div className="text-[0.65rem] text-slate-400 font-medium uppercase tracking-wider">Telemetry Target</div>
               <div className="text-xs font-bold text-white capitalize">{selectedGame === "all" ? "Global Market (3 Games)" : selectedGame.replace("_", " ")}</div>
             </div>
@@ -212,6 +239,41 @@ export default function ExecutiveSummary({ selectedGame = "all" }: { selectedGam
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Data Provenance & Lineage Panel */}
+      <div className="glass-panel rounded-2xl p-5 border border-indigo-500/20 bg-indigo-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
+            <Database size={15} className="text-indigo-400" />
+            <span>Data Provenance:</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300 font-mono font-medium">
+              12,983 Reviews Analyzed
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300 font-mono font-medium">
+              6,204 Community Discussions
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300 font-mono font-medium">
+              3 Competitor Ecosystems
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-mono font-medium">
+              Aug 1–21, 2026
+            </span>
+          </div>
+        </div>
+
+        {onViewEvidence && (
+          <button
+            type="button"
+            onClick={onViewEvidence}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/30 shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all hover:scale-[1.02] cursor-pointer shrink-0"
+          >
+            <span>View Evidence</span>
+            <ArrowUpRight size={14} />
+          </button>
+        )}
       </div>
     </div>
   );
