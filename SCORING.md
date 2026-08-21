@@ -1,6 +1,6 @@
-# 🎯 Priority Scoring Model & Weight Justification
+# Priority Scoring Model & Weight Justification
 
-## 📌 Summary
+## Summary
 
 Every issue category for every game gets a single **Priority Score (0–100)**. The score is fully explainable — any number can be traced back to its four inputs.
 
@@ -8,7 +8,7 @@ Every issue category for every game gets a single **Priority Score (0–100)**. 
 
 ---
 
-## 🧮 The Formula
+## The Formula
 
 ```
 Priority Score = (Frequency × 0.30) + (Severity × 0.25) + (Business Impact × 0.25) + (Trend × 0.20)
@@ -18,7 +18,7 @@ All four components are normalized to a 0–100 scale before weighting.
 
 ---
 
-## 📊 The Four Components
+## The Four Components
 
 ### 1. Frequency — 30% Weight
 
@@ -73,24 +73,35 @@ Business Impact Score = ((Avg Business Impact − 1) ÷ 4) × 100
 
 ### 4. Trend Velocity — 20% Weight
 
-**What it measures**: Is this issue getting worse or better? Compares volume in the last 30 days vs. the prior 30 days.
+**What it measures**: Is this problem accelerating, stabilizing, or resolving? Compares mention frequency across two trailing 30-day cohorts.
 
+#### Temporal Windows
+* **Current Cohort ($N_{\text{current}}$)**: Reviews published in the trailing **30 days** ($0 \le t \le 30\text{ days}$).
+* **Prior Baseline ($N_{\text{prior}}$)**: Reviews published **31 to 60 days ago** ($31 \le t \le 60\text{ days}$).
+
+#### The Velocity Formula
 ```
-% Change     = ((Current 30d Count − Prior 30d Count) ÷ max(Prior Count, 1)) × 100
-% Change     = clamped to −100% … +200% to prevent small-sample distortion
-Trend Score  = (% Change + 100) ÷ 3
+% Velocity Change = ((N_current − N_prior) ÷ max(N_prior, 1)) × 100
+Clamped Range     = max(−100%, min(+200%, % Velocity Change))
+Trend Score       = (Clamped Range + 100) ÷ 3
 ```
 
-| % Change | Trend Score | Interpretation |
+| Velocity Delta | Normalized Trend Score | Practical Interpretation |
 | :--- | :---: | :--- |
-| −100% (fully resolved) | 0 / 100 | Issue is disappearing |
-| 0% (stable) | 33 / 100 | Neutral baseline |
-| +100% (doubled) | 67 / 100 | Escalating — watch closely |
-| +200% (tripled) | 100 / 100 | Crisis — act immediately |
+| **−100%** (fully resolved) | **0 / 100** | **Resolved**: Complaints dropped to zero post-patch |
+| **0%** (volume unchanged) | **33.3 / 100** | **Stable Baseline**: Steady rate of player mention |
+| **+100%** (volume doubled) | **66.7 / 100** | **Escalating Issue**: Significant surge in friction |
+| **+200%+** (volume tripled) | **100 / 100** | **Critical Escalation**: Severe crisis requiring immediate action |
+
+#### Safeguards & Edge Cases
+* **Initial / Single-Cohort Run ($N_{\text{prior}} = 0$)**:
+  When all ingested reviews fall within the recent 30-day window ($N_{\text{prior}} = 0$), the issue is flagged as an **Emerging Cohort Issue** ($N_{\text{current}}$ mentions). The dashboard reports raw cohort frequency rather than an inflated $+100\%$ velocity surge.
+* **Small-Sample Confidence Dampener**:
+  For issue clusters with fewer than 5 total reviews ($N < 5$), the composite score is scaled by $\min(1.0, N / 5.0)$ to eliminate single-review bias.
 
 ---
 
-## 🔬 Evidence & Weight Selection Rationale
+## Evidence & Weight Selection Rationale
 
 Why were these exact weights chosen instead of alternative distributions?
 
@@ -128,7 +139,7 @@ Why were these exact weights chosen instead of alternative distributions?
 
 ---
 
-## 🛡️ Anti-Outlier Protections
+## Anti-Outlier Protections
 
 ### Sample Size Confidence Dampener
 
@@ -152,17 +163,17 @@ If either the current or prior 30-day window has fewer than 5 reviews in the cat
 
 ---
 
-## 🚦 Priority Tiers
+## Priority Tiers
 
 | Score | Risk Level | Action |
 | :---: | :--- | :--- |
-| 50 – 100 | 🔴 Critical | Immediate fix — hotfix, executive review, or emergency sprint |
-| 30 – 49 | 🟡 Moderate | Schedule in the next product sprint |
-| 0 – 29 | 🟢 Low | Monitor — healthy baseline or resolved |
+| 50 – 100 | Critical (High Risk) | Immediate fix — hotfix, executive review, or emergency sprint |
+| 30 – 49 | Moderate (Medium Risk) | Schedule in the next product sprint |
+| 0 – 29 | Low (Healthy Baseline) | Monitor — healthy baseline or resolved |
 
 ---
 
-## 📝 Full Worked Example
+## Full Worked Example
 
 **Scenario**: Pay-to-Win pressure complaints for Hitwicket, 500 total classified reviews.
 
@@ -187,5 +198,5 @@ Trend Score          = (100 + 100) ÷ 3             = 66.7
 
 Priority = (9.0 × 0.30) + (80.0 × 0.25) + (90.0 × 0.25) + (66.7 × 0.20)
          =  2.70 + 20.00 + 22.50 + 13.34
-         =  58.5  →  59 / 100  (Critical Priority 🔴)
+         =  58.5  →  59 / 100  (Critical Priority)
 ```

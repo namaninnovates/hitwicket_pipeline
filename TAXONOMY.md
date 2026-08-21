@@ -1,6 +1,6 @@
-# 🏷️ Mobile Sports Strategy Taxonomy & NLP Rules
+# Mobile Sports Strategy Taxonomy & NLP Rules
 
-## 📌 Executive Summary
+## Executive Summary
 
 This taxonomy is purpose-built for **mobile sports strategy games** (Hitwicket, Tennis Clash, Baseball Clash). It translates unstructured player feedback into **5 mutually exclusive, decision-ready categories** and **17 granular subcategories**.
 
@@ -8,7 +8,7 @@ This taxonomy is purpose-built for **mobile sports strategy games** (Hitwicket, 
 
 ---
 
-## 🏛️ The 5 Core Categories
+## The 5 Core Categories
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -25,9 +25,9 @@ This taxonomy is purpose-built for **mobile sports strategy games** (Hitwicket, 
 
 ---
 
-## 📋 Comprehensive Category Breakdown
+## Comprehensive Category Breakdown
 
-### 1. 🎮 Gameplay
+### 1. Gameplay
 *Core mechanics, tactical depth, competitive fairness, and in-match feeling.*
 
 | Subcategory | Scope & Keywords | Example Player Quote |
@@ -39,7 +39,7 @@ This taxonomy is purpose-built for **mobile sports strategy games** (Hitwicket, 
 
 ---
 
-### 2. 📈 Progression
+### 2. Progression
 *How players advance over time — leveling curves, upgrades, and reward economy.*
 
 | Subcategory | Scope & Keywords | Example Player Quote |
@@ -51,7 +51,7 @@ This taxonomy is purpose-built for **mobile sports strategy games** (Hitwicket, 
 
 ---
 
-### 3. 💰 Monetization
+### 3. Monetization
 *Payment models, advertising experience, spending fairness, and shop offers.*
 
 | Subcategory | Scope & Keywords | Example Player Quote |
@@ -64,7 +64,7 @@ This taxonomy is purpose-built for **mobile sports strategy games** (Hitwicket, 
 
 ---
 
-### 4. ⚡ Experience
+### 4. Experience
 *Technical stability, performance, client polish, and user interface.*
 
 | Subcategory | Scope & Keywords | Example Player Quote |
@@ -76,7 +76,7 @@ This taxonomy is purpose-built for **mobile sports strategy games** (Hitwicket, 
 
 ---
 
-### 5. 🏆 Competition & Social
+### 5. Competition & Social
 *Multiplayer ecosystem, ladder integrity, social mechanics, and live operations.*
 
 | Subcategory | Scope & Keywords | Example Player Quote |
@@ -88,7 +88,7 @@ This taxonomy is purpose-built for **mobile sports strategy games** (Hitwicket, 
 
 ---
 
-## 🎯 Classification Output Schema
+## Classification Output Schema
 
 Every classified review generates a strict structured payload:
 
@@ -107,10 +107,10 @@ Every classified review generates a strict structured payload:
 
 ---
 
-## 💬 Handling of Short & Single-Word Reviews (Praise & Sentiment Integrity)
+## Handling of Short & Single-Word Reviews (Praise & Sentiment Integrity)
 
 ### How They Are Handled
-Single-word reviews and brief phrases (e.g., *"good"*, *"awesome"*, *"nice game"*, *"super"*, *"nyc"*, *"❤️"*) represent a substantial fraction of mobile app store volume.
+Single-word reviews and brief phrases (e.g., *"good"*, *"awesome"*, *"nice game"*, *"super"*, *"nyc"*) represent a substantial fraction of mobile app store volume.
 
 * **Macro Sentiment & Ratings**: **100% of single-word reviews are ingested and preserved in database storage**. Their 5★/1★ ratings directly drive:
   - Overall store average star ratings (e.g. `3.72 ★`).
@@ -130,7 +130,7 @@ Single-word reviews and brief phrases (e.g., *"good"*, *"awesome"*, *"nice game"
 
 ---
 
-## 🚫 Explicit Exclusions & Mergers
+## Explicit Exclusions & Mergers
 
 | Excluded Topic | Disposition | Rationale |
 | :--- | :--- | :--- |

@@ -1,12 +1,12 @@
-# 🛠️ AI Engineering Worklog & Architectural Decisions
+# AI Engineering Worklog & Architectural Decisions
 
-## 📌 Executive Summary
+## Executive Summary
 
 This log documents the AI engineering trajectory, technical stack selection, verbatim prompts, empirical mistakes caught during validation, and core architectural optimizations implemented across the **Hitwicket Review Intelligence Pipeline**.
 
 ---
 
-## 🧰 Technology Stack & Tools
+## Technology Stack & Tools
 
 | Component | Tool / Model | Purpose | Why Chosen |
 | :--- | :--- | :--- | :--- |
@@ -20,7 +20,7 @@ This log documents the AI engineering trajectory, technical stack selection, ver
 
 ---
 
-## 🎯 Production Prompts (Verbatim)
+## Production Prompts (Verbatim)
 
 ### Prompt: Executive Founder Brief Generator (`prompts/founder_brief.txt`)
 
@@ -47,32 +47,32 @@ Write a founder-facing weekly brief. It must be readable in 90 seconds.
 
 Use EXACTLY this structure:
 ---
-# Weekly Review Brief — {game_name}
-**{analysis_date}** | {review_count} reviews analyzed
+# 90-Day Review Intelligence Brief — {game_name}
+**{analysis_date}** | {review_count} reviews analyzed (Google Play, last 90 days)
 
-## ⚡ Biggest Emerging Problem
+## Biggest Emerging Problem
 [2-3 sentences. What is the problem? What evidence proves it?]
 
-## 🕐 Why Now?
+## Why Now?
 [2-3 sentences. What trend data shows this is becoming urgent?]
 
-## 🌍 Competitive Signal
+## Competitive Signal
 [2-3 sentences. Is this unique to us or also in Tennis Clash / Baseball Clash? What does that mean?]
 
-## ✅ Recommendation
+## Recommendation
 [2-4 sentences. Concrete, specific action. Not "investigate" — actual decision.]
 
-## 📈 Expected Impact
+## Expected Impact
 [Which metric moves? By roughly how much? What's the mechanism?]
 
-## ❌ What NOT to Do
+## What NOT to Do
 [1-2 sentences. Where is the evidence telling us NOT to spend effort right now?]
 ---
 ```
 
 ---
 
-## 🐛 Documented AI Mistakes Caught & Fixed
+## Documented AI Mistakes Caught & Fixed
 
 ### 1. Hallucinated Google Play Package Names
 * **AI Assumption**: AI assumed default corporate naming (`com.wildlifestudios.tennisclash` and `com.miniclip.baseballclash`).
@@ -100,7 +100,7 @@ Use EXACTLY this structure:
 
 ---
 
-## 🚀 Key Architectural Optimizations
+## Key Architectural Optimizations
 
 1. **Hybrid AI Cost Optimization**: Review classification runs on a zero-cost rule-based NLP engine ($0.00), while Gemini is called strictly **once per run** to synthesize the executive brief (**~$0.00026 / run**).
 2. **Dual Database Engine**: Auto-switches between **Neon Serverless PostgreSQL** when `DATABASE_URL` is set and local **SQLite** when offline.

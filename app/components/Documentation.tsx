@@ -46,86 +46,33 @@ const DOCS = [
     id: "scoring",
     label: "Scoring Model",
     file: "SCORING.md",
-    icon: <Calculator size={15} />,
     desc: "Mathematical priority formula, weights & safeguards",
   },
   {
     id: "taxonomy",
     label: "NLP Taxonomy",
     file: "TAXONOMY.md",
-    icon: <Tags size={15} />,
     desc: "5 categories, 17 subcategories & player quotes",
   },
   {
     id: "readme",
     label: "Architecture",
     file: "README.md",
-    icon: <Layers size={15} />,
     desc: "Next.js + FastAPI + Neon pipeline pipeline",
   },
   {
     id: "sources",
     label: "Data Sources",
     file: "SOURCE_RESEARCH.md",
-    icon: <Database size={15} />,
     desc: "Google Play scraping & rate limit validation",
   },
   {
     id: "worklog",
     label: "AI Worklog",
     file: "AI_WORKLOG.md",
-    icon: <History size={15} />,
     desc: "Engineering decisions, prompts & caught mistakes",
   },
 ];
-
-// Helper to match heading text to a sleek Lucide icon
-function getHeadingIcon(text: string) {
-  const t = text.toLowerCase();
-  if (t.includes("priority") || t.includes("model") || t.includes("target"))
-    return <Target size={18} className="text-indigo-400 shrink-0" />;
-  if (t.includes("summary") || t.includes("executive"))
-    return <Bookmark size={18} className="text-amber-400 shrink-0" />;
-  if (t.includes("formula") || t.includes("calculation"))
-    return <Calculator size={18} className="text-cyan-400 shrink-0" />;
-  if (t.includes("components") || t.includes("metrics") || t.includes("breakdown") || t.includes("four"))
-    return <BarChart3 size={18} className="text-emerald-400 shrink-0" />;
-  if (t.includes("evidence") || t.includes("rationale") || t.includes("selection") || t.includes("justification"))
-    return <Sparkles size={18} className="text-purple-400 shrink-0" />;
-  if (t.includes("protection") || t.includes("safeguard") || t.includes("outlier") || t.includes("guard"))
-    return <ShieldCheck size={18} className="text-blue-400 shrink-0" />;
-  if (t.includes("tier") || t.includes("risk"))
-    return <Sliders size={18} className="text-rose-400 shrink-0" />;
-  if (t.includes("example") || t.includes("worked"))
-    return <FileText size={18} className="text-indigo-400 shrink-0" />;
-  if (t.includes("taxonomy") || t.includes("categories"))
-    return <ListOrdered size={18} className="text-violet-400 shrink-0" />;
-  if (t.includes("architecture") || t.includes("pipeline"))
-    return <Layers size={18} className="text-cyan-400 shrink-0" />;
-  if (t.includes("source") || t.includes("data") || t.includes("scraper") || t.includes("feed"))
-    return <Radio size={18} className="text-blue-400 shrink-0" />;
-  if (t.includes("research") || t.includes("empirical") || t.includes("test") || t.includes("validation"))
-    return <FlaskConical size={18} className="text-emerald-400 shrink-0" />;
-  if (t.includes("worklog") || t.includes("tools") || t.includes("stack") || t.includes("engineering"))
-    return <Cpu size={18} className="text-fuchsia-400 shrink-0" />;
-  if (t.includes("mistake") || t.includes("bug"))
-    return <AlertCircle size={18} className="text-rose-400 shrink-0" />;
-  if (t.includes("optimization") || t.includes("decision"))
-    return <Rocket size={18} className="text-amber-400 shrink-0" />;
-  if (t.includes("gameplay"))
-    return <Gamepad2 size={18} className="text-indigo-400 shrink-0" />;
-  if (t.includes("progression"))
-    return <TrendingUp size={18} className="text-emerald-400 shrink-0" />;
-  if (t.includes("monetization") || t.includes("price") || t.includes("cost"))
-    return <DollarSign size={18} className="text-amber-400 shrink-0" />;
-  if (t.includes("experience"))
-    return <Zap size={18} className="text-yellow-400 shrink-0" />;
-  if (t.includes("competition") || t.includes("social"))
-    return <Trophy size={18} className="text-fuchsia-400 shrink-0" />;
-  if (t.includes("exclusion") || t.includes("merger"))
-    return <XCircle size={18} className="text-slate-400 shrink-0" />;
-  return <BookOpen size={18} className="text-indigo-400 shrink-0" />;
-}
 
 // Regex to strip raw unicode emojis from text
 const EMOJI_REGEX = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}]/gu;
@@ -140,49 +87,6 @@ function extractText(node: any): string {
   if (Array.isArray(node)) return node.map(extractText).join("");
   if (node.props && node.props.children) return extractText(node.props.children);
   return "";
-}
-
-// Transform text nodes to replace status indicators with modern badges/icons
-function formatTextWithModernIcons(text: string): React.ReactNode {
-  if (typeof text !== "string") return text;
-
-  // Split by known emoji markers
-  const parts = text.split(/(🔴|🟡|🟢|✅|❌|⚠️)/g);
-  if (parts.length === 1 && !EMOJI_REGEX.test(text)) return text;
-
-  return parts.map((part, i) => {
-    if (part === "🔴") {
-      return (
-        <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/20 text-rose-300 font-semibold text-[0.7rem] mr-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-        </span>
-      );
-    }
-    if (part === "🟡") {
-      return (
-        <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300 font-semibold text-[0.7rem] mr-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-        </span>
-      );
-    }
-    if (part === "🟢") {
-      return (
-        <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-semibold text-[0.7rem] mr-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-        </span>
-      );
-    }
-    if (part === "✅") {
-      return <CheckCircle2 key={i} size={13} className="text-emerald-400 inline shrink-0 mr-1 align-text-bottom" />;
-    }
-    if (part === "❌") {
-      return <XCircle key={i} size={13} className="text-rose-400 inline shrink-0 mr-1 align-text-bottom" />;
-    }
-    if (part === "⚠️") {
-      return <AlertTriangle key={i} size={13} className="text-amber-400 inline shrink-0 mr-1 align-text-bottom" />;
-    }
-    return cleanString(part);
-  });
 }
 
 export default function Documentation() {
@@ -435,9 +339,8 @@ export default function Documentation() {
                   : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border-slate-200"
               }`}
             >
-              <div className="flex items-center gap-2 mb-1">
-                <span className={isActive ? "text-indigo-600" : "text-slate-400"}>{d.icon}</span>
-                <span className="text-xs font-bold truncate">{d.label}</span>
+              <div className="mb-1">
+                <span className={`text-xs font-bold truncate ${isActive ? "text-indigo-900" : "text-slate-800"}`}>{d.label}</span>
               </div>
               <p className="text-[0.68rem] text-slate-500 line-clamp-2 leading-tight">
                 {d.desc}
@@ -516,57 +419,41 @@ export default function Documentation() {
                 h1: ({ children, ...props }) => {
                   const rawText = extractText(children);
                   const title = cleanString(rawText);
-                  const icon = getHeadingIcon(title);
                   return (
-                    <h1 className="flex items-center gap-3 text-2xl sm:text-3xl font-bold text-slate-900 border-b border-slate-200 pb-3" {...props}>
-                      <span className="p-2 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600">
-                        {icon}
-                      </span>
-                      <span>{title}</span>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-6 tracking-tight" {...props}>
+                      {title}
                     </h1>
                   );
                 },
                 h2: ({ children, ...props }) => {
                   const rawText = extractText(children);
                   const title = cleanString(rawText);
-                  const icon = getHeadingIcon(title);
                   return (
-                    <h2 className="flex items-center gap-2.5 text-xl font-bold text-slate-900 mt-8 mb-4 border-b border-slate-100 pb-2" {...props}>
-                      <span className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600">
-                        {icon}
-                      </span>
-                      <span>{title}</span>
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 mt-8 mb-4 border-b border-slate-100 pb-2 tracking-tight" {...props}>
+                      {title}
                     </h2>
                   );
                 },
                 h3: ({ children, ...props }) => {
                   const rawText = extractText(children);
                   const title = cleanString(rawText);
-                  const icon = getHeadingIcon(title);
                   return (
-                    <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900 mt-6 mb-3" {...props}>
-                      <span className="p-1 rounded bg-slate-100 text-slate-600">
-                        {icon}
-                      </span>
-                      <span>{title}</span>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-800 mt-6 mb-3 tracking-tight" {...props}>
+                      {title}
                     </h3>
                   );
                 },
                 p: ({ children, ...props }) => {
                   return (
                     <p className="text-slate-700 leading-relaxed my-3 text-sm" {...props}>
-                      {React.Children.map(children, (child) =>
-                        typeof child === "string" ? formatTextWithModernIcons(child) : child
-                      )}
+                      {children}
                     </p>
                   );
                 },
                 li: ({ children, ...props }) => {
                   return (
                     <li className="text-slate-700 my-1 text-sm" {...props}>
-                      {React.Children.map(children, (child) =>
-                        typeof child === "string" ? formatTextWithModernIcons(child) : child
-                      )}
+                      {children}
                     </li>
                   );
                 },
@@ -583,15 +470,12 @@ export default function Documentation() {
                 ),
                 td: ({ children, ...props }) => (
                   <td className="px-4 py-3 border-b border-slate-100 text-slate-700" {...props}>
-                    {React.Children.map(children, (child) =>
-                      typeof child === "string" ? formatTextWithModernIcons(child) : child
-                    )}
+                    {children}
                   </td>
                 ),
                 blockquote: ({ ...props }) => (
-                  <div className="my-6 p-4 rounded-2xl bg-indigo-50 border-l-4 border-indigo-600 text-indigo-950 text-xs sm:text-sm leading-relaxed shadow-xs flex items-start gap-3">
-                    <Lightbulb size={18} className="text-indigo-600 shrink-0 mt-0.5" />
-                    <div>{props.children}</div>
+                  <div className="my-6 p-4 rounded-2xl bg-slate-50 border-l-4 border-indigo-600 text-slate-800 text-xs sm:text-sm leading-relaxed shadow-xs">
+                    {props.children}
                   </div>
                 ),
               }}

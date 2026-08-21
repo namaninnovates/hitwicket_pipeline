@@ -102,52 +102,73 @@ export default function ExecutiveSummary({
   // 1. Calculate Fastest Rising Issue Delta
   const risingIssues = [...priorities]
     .map((p) => {
-      const curr = p.current_count || 0;
-      const prev = p.prior_count || 0;
+      const curr = p.current_count ?? 0;
+      const prev = p.prior_count ?? 0;
       const delta = curr - prev;
-      const deltaPct = prev > 0 ? Math.round(((curr - prev) / prev) * 100) : curr > 0 ? 100 : 0;
-      return { ...p, delta, deltaPct };
+      const deltaPct = prev > 0 ? Math.round(((curr - prev) / prev) * 100) : 0;
+      return { ...p, curr, prev, delta, deltaPct };
     })
-    .sort((a, b) => b.deltaPct - a.deltaPct);
+    .sort((a, b) => {
+      if (a.prev > 0 && b.prev > 0) return b.deltaPct - a.deltaPct;
+      if (a.prev > 0) return -1;
+      if (b.prev > 0) return 1;
+      return b.curr - a.curr;
+    });
 
-  const topRising = risingIssues.find((p) => p.delta > 0 || p.deltaPct > 0) || priorities[0];
-  const topRisingPct = topRising?.deltaPct !== undefined && topRising?.deltaPct > 0 ? `+${topRising.deltaPct}%` : "+27%";
-  const topRisingTitle = topRising 
-    ? `Surging Complaints: ${topRising.subcategory || topRising.primary_category} (${topRisingPct})` 
-    : "Progression Difficulty Rising (+27%)";
-  const topRisingSub = topRising
-    ? `Surged from ${topRising.prior_count || 12} to ${topRising.current_count || 28} mentions in recent 30-day window.`
-    : "Upward velocity in player frustration around upgrade resource scaling.";
+  const topRising = risingIssues[0] || null;
+  let topRisingTitle = "No Active Friction Spikes";
+  let topRisingSub = "Player complaint volume remained stable across recent updates.";
+  if (topRising) {
+    if (topRising.prev > 0 && topRising.deltaPct > 0) {
+      topRisingTitle = `Surging Complaints: ${topRising.subcategory || topRising.primary_category} (+${topRising.deltaPct}%)`;
+      topRisingSub = `Increased from ${topRising.prev} to ${topRising.curr} mentions in the last 30 days.`;
+    } else if (topRising.curr > 0) {
+      topRisingTitle = `Emerging Complaint: ${topRising.subcategory || topRising.primary_category} (${topRising.curr} mentions)`;
+      topRisingSub = `${topRising.curr} mentions recorded in recent 30-day window (${topRising.frequency_pct || 0}% of complaints).`;
+    }
+  }
 
   // 2. Calculate Resolving / Improving Issue Delta
   const resolvingIssues = [...priorities]
     .map((p) => {
-      const curr = p.current_count || 0;
-      const prev = p.prior_count || 0;
+      const curr = p.current_count ?? 0;
+      const prev = p.prior_count ?? 0;
       const delta = prev - curr;
       const deltaPct = prev > 0 ? Math.round(((prev - curr) / prev) * 100) : 0;
-      return { ...p, delta, deltaPct };
+      return { ...p, curr, prev, delta, deltaPct };
     })
-    .sort((a, b) => b.deltaPct - a.deltaPct);
+    .sort((a, b) => {
+      if (a.prev > 0 && b.prev > 0) return b.deltaPct - a.deltaPct;
+      if (a.prev > 0) return -1;
+      if (b.prev > 0) return 1;
+      return a.curr - b.curr;
+    });
 
-  const topResolving = resolvingIssues.find((p) => p.delta > 0 || p.deltaPct > 0) || priorities[priorities.length - 1];
-  const topResolvingPct = topResolving?.deltaPct !== undefined && topResolving?.deltaPct > 0 ? `-${topResolving.deltaPct}%` : "-19%";
-  const topResolvingTitle = topResolving
-    ? `Resolving Friction: ${topResolving.subcategory || topResolving.primary_category} (${topResolvingPct})`
-    : "Gameplay Bugs Dropping (-19%)";
-  const topResolvingSub = topResolving
-    ? `Decreased from ${topResolving.prior_count || 32} down to ${topResolving.current_count || 15} mentions following latest patches.`
-    : "Fewer stability and crash mentions reported in recent cohort.";
+  const topResolving = resolvingIssues[0] || null;
+  let topResolvingTitle = "Stable Baseline";
+  let topResolvingSub = "No resolving issue transitions detected in this period.";
+  if (topResolving) {
+    if (topResolving.prev > 0 && topResolving.deltaPct > 0) {
+      topResolvingTitle = `Resolving Friction: ${topResolving.subcategory || topResolving.primary_category} (-${topResolving.deltaPct}%)`;
+      topResolvingSub = `Dropped from ${topResolving.prev} down to ${topResolving.curr} mentions post-update.`;
+    } else if (topResolving.curr > 0) {
+      topResolvingTitle = `Low Friction Area: ${topResolving.subcategory || topResolving.primary_category} (${topResolving.curr} mentions)`;
+      topResolvingSub = `Only ${topResolving.curr} isolated mention(s) with minimal player disruption.`;
+    }
+  }
 
   // 3. Cohort Velocity Shift (Total current 30d reviews vs prior 30d)
-  const totalCurrentCount = priorities.reduce((acc, p) => acc + (p.current_count || 0), 0);
-  const totalPriorCount = priorities.reduce((acc, p) => acc + (p.prior_count || 0), 0);
-  const overallVelocityPct = totalPriorCount > 0 
-    ? Math.round(((totalCurrentCount - totalPriorCount) / totalPriorCount) * 100) 
-    : 18;
-  const velocitySign = overallVelocityPct >= 0 ? "+" : "";
-  const velocityTitle = `${velocitySign}${overallVelocityPct}% Review Intake Velocity Shift`;
-  const velocitySub = `Recorded ${totalCurrentCount.toLocaleString()} classified issues in last 30d vs ${totalPriorCount.toLocaleString()} in prior window.`;
+  const totalCurrentCount = priorities.reduce((acc, p) => acc + (p.current_count ?? 0), 0);
+  const totalPriorCount = priorities.reduce((acc, p) => acc + (p.prior_count ?? 0), 0);
+  let velocityTitle = `${totalCurrentCount.toLocaleString()} Issues in 30-Day Cohort`;
+  let velocitySub = `All ${totalCurrentCount.toLocaleString()} classified reviews reflect recent 30-day player feedback (0 in prior baseline).`;
+
+  if (totalPriorCount > 0) {
+    const overallVelocityPct = Math.round(((totalCurrentCount - totalPriorCount) / totalPriorCount) * 100);
+    const velocitySign = overallVelocityPct >= 0 ? "+" : "";
+    velocityTitle = `${velocitySign}${overallVelocityPct}% Review Intake Velocity Shift`;
+    velocitySub = `Recorded ${totalCurrentCount.toLocaleString()} classified issues in last 30d vs ${totalPriorCount.toLocaleString()} in prior window.`;
+  }
 
   const now = new Date();
   const currentDateStr = now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -439,9 +460,11 @@ export default function ExecutiveSummary({
                 <span className="text-xs font-black font-mono text-rose-700 bg-rose-100 px-2 py-0.5 rounded border border-rose-200">02</span>
                 <ArrowUpRight size={14} className="text-slate-400" />
               </div>
-              <h3 className="text-xs font-bold text-slate-900">Rank #1 Issue: {topIssue?.subcategory || "Progression"}</h3>
+              <h3 className="text-xs font-bold text-slate-900">Rank #1 Issue: {topIssue ? `${topIssue.primary_category} (${topIssue.subcategory})` : "General Feedback"}</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Calculated Priority Score of {topIssue?.priority_int || 59}/100 driven by high severity ({topIssue?.avg_severity?.toFixed(1) || 4.2}★) and impact ({topIssue?.avg_business_impact?.toFixed(1) || 4.6}★).
+                {topIssue 
+                  ? `Calculated Priority Score of ${topIssue.priority_int}/100 driven by severity (${topIssue.avg_severity?.toFixed(1)}★) and business impact (${topIssue.avg_business_impact?.toFixed(1)}★).`
+                  : "No critical player friction bottlenecks identified in the current review batch."}
               </p>
             </div>
 
