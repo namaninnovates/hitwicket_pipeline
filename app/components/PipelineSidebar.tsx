@@ -206,7 +206,6 @@ export default function PipelineSidebar({
     { label: "90d", days: 90 },
     { label: "180d", days: 180 },
     { label: "365d", days: 365 },
-    { label: "Unlimited", days: 3650 },
   ];
 
   const VOLUME_PRESETS = [
@@ -345,10 +344,10 @@ export default function PipelineSidebar({
               <input
                 type="number"
                 min="1"
-                max="3650"
+                max="365"
                 value={windowDays}
                 onChange={(e) => {
-                  const val = Math.max(1, Math.min(3650, parseInt(e.target.value) || 1));
+                  const val = Math.max(1, Math.min(365, parseInt(e.target.value) || 1));
                   setWindowDays(val);
                 }}
                 className="w-20 bg-black/60 border border-white/10 rounded-lg px-2 py-1 text-xs text-right font-mono text-indigo-400 font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500"
