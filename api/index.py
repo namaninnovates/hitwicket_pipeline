@@ -880,7 +880,7 @@ def stream_pipeline(
                     g_priorities = priority_by_game.get(g_key, [])
                     g_reviews = [r for r in all_classified if r.get("game") == g_key]
                     if g_reviews or g_priorities:
-                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Synthesizing 90-Second Executive Decision Memo...'})}\n\n"
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Synthesizing 90-Second Executive Decision Memo with Gemini AI...'})}\n\n"
                         generate_founder_brief(
                             game_key=g_key,
                             classified_reviews=g_reviews,
@@ -888,17 +888,17 @@ def stream_pipeline(
                             matrix_data=matrix_data,
                             output_dir=OUTPUTS_DIR,
                         )
-                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Executive brief generated successfully.'})}\n\n"
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Executive brief generated & saved to Neon PostgreSQL.'})}\n\n"
 
                 # Generate global benchmark brief
-                yield f"data: {json.dumps({'type': 'log', 'msg': 'Synthesizing Cross-Game Global Market Intelligence Brief...'})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'Synthesizing Cross-Game Global Market Intelligence Brief with Gemini AI...'})}\n\n"
                 generate_global_market_brief(
                     all_classified=all_classified,
                     priority_by_game=priority_by_game,
                     matrix_data=matrix_data,
                     output_dir=OUTPUTS_DIR,
                 )
-                yield f"data: {json.dumps({'type': 'log', 'msg': 'Global market intelligence brief generated successfully.'})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'Global market intelligence brief generated & saved to Neon PostgreSQL.'})}\n\n"
                 _brief_file_cache.clear()
 
             # Record run log to Neon PostgreSQL
@@ -981,6 +981,7 @@ def stream_pipeline(
                 from src.ingestion.storage import upsert_brief
                 for gk, text in briefs_map.items():
                     upsert_brief(conn, gk, text)
+                yield f"data: {json.dumps({'type': 'log', 'msg': 'Successfully upserted all generated briefs into Neon database briefs table.'})}\n\n"
 
             yield f"data: {json.dumps({'type': 'complete_payload', 'payload': {'reviews': all_classified[:250], 'priorities': priority_by_game, 'matrix': matrix_data, 'briefs': briefs_map, 'metrics': metrics_payload}})}\n\n"
 
