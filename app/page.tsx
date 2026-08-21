@@ -10,6 +10,7 @@ import {
   RotateCcw,
   History,
 } from "lucide-react";
+import ExecutiveSummary from "./components/ExecutiveSummary";
 import Overview from "./components/Overview";
 import PriorityIssues from "./components/PriorityIssues";
 import FounderBrief from "./components/FounderBrief";
@@ -374,6 +375,11 @@ export default function Dashboard() {
           <>
             {activeView === "dashboard" && (
               <div key={`dashboard-${refreshKey}`} className="space-y-8 animate-in fade-in duration-300">
+                {/* 0. Executive Summary (Founder's Tagline, Snapshot Cards, What Changed, Key Findings) */}
+                <section>
+                  <ExecutiveSummary selectedGame={selectedGame} />
+                </section>
+
                 {/* 1. Global / Game Overview Metrics */}
                 <section>
                   <Overview selectedGame={selectedGame} games={games} refreshKey={refreshKey} />
