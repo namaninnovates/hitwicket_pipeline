@@ -246,6 +246,22 @@ def insert_review(
     try:
         if is_postgres_connection(conn):
             with conn.cursor() as cur:
+                # Dual-insert into master_reviews to keep master vault up-to-date
+                try:
+                    cur.execute(
+                        """
+                        INSERT INTO master_reviews
+                            (game, source, review_id, review_date, rating, review_text,
+                             app_version, thumbs_up, retrieved_at)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (source, review_id) DO NOTHING
+                        """,
+                        (game, source, review_id, review_date, rating, review_text,
+                         app_version, thumbs_up, retrieved_at),
+                    )
+                except Exception:
+                    pass
+
                 cur.execute(
                     """
                     INSERT INTO reviews
@@ -262,6 +278,20 @@ def insert_review(
                 return row is not None
         else:
             with conn:
+                try:
+                    conn.execute(
+                        """
+                        INSERT OR IGNORE INTO master_reviews
+                            (game, source, review_id, review_date, rating, review_text,
+                             app_version, thumbs_up, retrieved_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (game, source, review_id, review_date, rating, review_text,
+                         app_version, thumbs_up, retrieved_at),
+                    )
+                except Exception:
+                    pass
+
                 cursor = conn.execute(
                     """
                     INSERT OR IGNORE INTO reviews
@@ -611,6 +641,61 @@ def get_brief_for_game(conn: Any, game: str) -> Optional[str]:
     except Exception as e:
         logger.error(f"Failed to fetch brief for game {game}: {e}")
         return None
+
+
+def get_latest_master_review_date(conn: Any, game_key: str) -> Optional[str]:
+    """Retrieve the newest review_date in master_reviews for a specific game."""
+    try:
+        if is_postgres_connection(conn):
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT review_date FROM master_reviews WHERE game = %s ORDER BY review_date DESC LIMIT 1",
+                    (game_key,)
+                )
+                row = cur.fetchone()
+                return row[0] if row else None
+        else:
+            cursor = conn.execute(
+                "SELECT review_date FROM master_reviews WHERE game = ? ORDER BY review_date DESC LIMIT 1",
+                (game_key,)
+            )
+            row = cursor.fetchone()
+            return row[0] if row else None
+    except Exception as e:
+        logger.error(f"Failed to fetch latest master review date for {game_key}: {e}")
+        return None
+
+def hydrate_from_master(conn: Any, game_key: str, window_days: int) -> int:
+    """
+    Copy matching historical reviews from master_reviews into active reviews table.
+    Returns the number of reviews hydrated.
+    """
+    cutoff_date = (datetime.now(timezone.utc) - timedelta(days=window_days)).strftime("%Y-%m-%d")
+    try:
+        if is_postgres_connection(conn):
+            query = """
+            INSERT INTO reviews (game, source, review_id, review_date, rating, review_text, app_version, thumbs_up, retrieved_at)
+            SELECT game, source, review_id, review_date, rating, review_text, app_version, thumbs_up, retrieved_at
+            FROM master_reviews
+            WHERE game = %s AND review_date >= %s
+            ON CONFLICT (source, review_id) DO NOTHING
+            """
+            with conn.cursor() as cur:
+                cur.execute(query, (game_key, cutoff_date))
+                return cur.rowcount if cur.rowcount > 0 else 0
+        else:
+            query = """
+            INSERT OR IGNORE INTO reviews (game, source, review_id, review_date, rating, review_text, app_version, thumbs_up, retrieved_at)
+            SELECT game, source, review_id, review_date, rating, review_text, app_version, thumbs_up, retrieved_at
+            FROM master_reviews
+            WHERE game = ? AND review_date >= ?
+            """
+            with conn:
+                cursor = conn.execute(query, (game_key, cutoff_date))
+                return cursor.rowcount if cursor.rowcount > 0 else 0
+    except Exception as e:
+        logger.error(f"Failed to hydrate reviews from master for {game_key}: {e}")
+        return 0
 
 def get_latest_brief_for_game(conn: Any, game: str) -> Optional[str]:
     try:

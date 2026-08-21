@@ -36,13 +36,14 @@ def fetch_reviews_for_game(
     max_reviews: int = MAX_REVIEWS_PER_GAME,
     window_days: int = REVIEW_WINDOW_DAYS,
     source_preference: str = "auto",
+    stop_at_date: Optional[str] = None,
 ) -> list[dict]:
     """
     Fetch reviews for a single game from Google Play (or Apify if configured).
 
     Returns a list of raw review dicts with normalized field names.
     Only returns reviews within the last `window_days` days.
-    Stops fetching when reviews are older than the window (saves time).
+    Stops fetching when reviews are older than `window_days` or <= `stop_at_date`.
     """
     from src.ingestion.apify_fetcher import is_apify_configured, fetch_reviews_via_apify_google_play
 
@@ -64,7 +65,7 @@ def fetch_reviews_for_game(
     from google_play_scraper import reviews as gp_reviews, Sort
 
     logger.info(f"[{game['name']}] Fetching from Google Play (pkg: {package_id})")
-    logger.info(f"[{game['name']}] Cutoff date: {cutoff_date.date()}")
+    logger.info(f"[{game['name']}] Cutoff date: {cutoff_date.date()}" + (f" | Delta stop_at_date: {stop_at_date}" if stop_at_date else ""))
 
     all_reviews: list[dict] = []
     continuation_token = None
@@ -103,6 +104,15 @@ def fetch_reviews_for_game(
             # Make timezone-aware for comparison
             if review_at.tzinfo is None:
                 review_at = review_at.replace(tzinfo=timezone.utc)
+
+            date_str = review_at.strftime("%Y-%m-%d")
+            if stop_at_date and date_str <= stop_at_date:
+                logger.info(
+                    f"[{game['name']}] Reached master cached review date ({date_str} <= {stop_at_date}). "
+                    f"Stopping delta fetch."
+                )
+                stopped_early = True
+                break
 
             if review_at < cutoff_date:
                 # Reviews are newest-first; once we hit old ones, we can stop

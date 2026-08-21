@@ -688,7 +688,9 @@ def stream_pipeline(
                 purge_game_reviews,
                 get_unclassified_reviews,
                 get_classified_reviews,
-                log_pipeline_run
+                log_pipeline_run,
+                hydrate_from_master,
+                get_latest_master_review_date,
             )
 
             target_games = games_list if games_list and "all" not in games_list else list(GAMES.keys())
@@ -708,7 +710,7 @@ def stream_pipeline(
             all_raw_by_game = {}
             if "all" in stage_list or "ingest" in stage_list:
                 yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
-                yield f"data: {json.dumps({'type': 'log', 'msg': f'STAGE 1/4: INGEST (Fetching Google Play reviews, max={max_reviews}, fresh={fresh})'})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'msg': f'STAGE 1/4: INGEST (Hybrid Master Vault + Delta Fetch, max={max_reviews}, window={days}d)'})}\n\n"
                 yield f"data: {json.dumps({'type': 'log', 'msg': '=================================================='})}\n\n"
 
                 total_stored_all = 0
@@ -718,18 +720,29 @@ def stream_pipeline(
                     g_pkg = g_meta.get("google_play_id", "")
 
                     if fresh:
-                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Fresh mode enabled: purging prior review records...'})}\n\n"
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Fresh session enabled: clearing temporary active session table...'})}\n\n"
                         purge_game_reviews(conn, g_key)
+
+                    # 1. Hydrate pre-scraped reviews from master_reviews vault
+                    hydrated_count = hydrate_from_master(conn, g_key, window_days=days)
+                    if hydrated_count > 0:
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Hydrated {hydrated_count} pre-scraped reviews from Master Vault.'})}\n\n"
+
+                    # 2. Get latest master review date for incremental delta fetch
+                    latest_master_date = get_latest_master_review_date(conn, g_key)
+                    if latest_master_date:
+                        yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Master Vault latest date: {latest_master_date}. Fetching real-time delta...'})}\n\n"
 
                     yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Connecting to Google Play store endpoint (pkg: {g_pkg})...'})}\n\n"
                     raw_reviews = fetch_reviews_for_game(
                         g_key,
                         max_reviews=max_reviews,
                         window_days=days,
-                        source_preference="auto"
+                        source_preference="auto",
+                        stop_at_date=latest_master_date
                     )
                     all_raw_by_game[g_key] = raw_reviews
-                    yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Retrieved {len(raw_reviews)} raw reviews.'})}\n\n"
+                    yield f"data: {json.dumps({'type': 'log', 'msg': f'[{g_name}] Retrieved {len(raw_reviews)} new delta reviews.'})}\n\n"
 
                     # Clean & Deduplicate
                     clean_res = clean_batch(raw_reviews)
