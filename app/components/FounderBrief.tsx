@@ -46,15 +46,16 @@ export default function FounderBrief({
   };
 
   return (
-    <div className="bg-white border border-slate-200 shadow-xs rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8">
+    <div className="bg-indigo-950 text-white border border-indigo-900 shadow-md rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200">
-            {isGlobal ? <Globe size={20} className="text-cyan-600" /> : <FileText size={20} />}
+          <div className="p-2 rounded-xl bg-indigo-900 text-indigo-300 border border-indigo-800">
+            {isGlobal ? <Globe size={20} className="text-cyan-400" /> : <FileText size={20} className="text-indigo-300" />}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center">
+              <h2 className="text-xl font-bold text-white tracking-tight flex items-center">
                 <span>
                   {isGlobal
                     ? "Global Market Intelligence Brief"
@@ -70,16 +71,16 @@ export default function FounderBrief({
                 />
               </h2>
               <span
-                className={`text-[0.65rem] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${
+                className={`text-[0.65rem] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border ${
                   isGlobal
-                    ? "bg-cyan-50 text-cyan-700 border-cyan-200"
-                    : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    ? "bg-cyan-950/80 text-cyan-300 border-cyan-800"
+                    : "bg-emerald-950/80 text-emerald-300 border border-emerald-800"
                 }`}
               >
                 {isGlobal ? "Relative Benchmark" : "AI Synthesized"}
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-indigo-200 mt-0.5">
               {isGlobal
                 ? "Cross-game competitive synthesis: market leaders, rival vulnerabilities, and Hitwicket's strategic attack vectors."
                 : "Weekly actionable intelligence: core bottlenecks, rival threat signals, and recommended roadmap fixes."}
@@ -91,16 +92,16 @@ export default function FounderBrief({
           {brief && (
             <button
               onClick={copyToClipboard}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-900 hover:bg-indigo-800 text-indigo-200 border border-indigo-800 flex items-center gap-1.5 transition-all cursor-pointer"
             >
-              {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+              {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
               <span>{copied ? "Copied" : "Copy Markdown"}</span>
             </button>
           )}
           <button
             onClick={() => loadBriefForGame(selectedGame)}
             disabled={loading}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-600 flex items-center gap-1.5 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500 flex items-center gap-1.5 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             <span>Refresh</span>
@@ -108,6 +109,7 @@ export default function FounderBrief({
         </div>
       </div>
 
+      {/* Body Content */}
       {loading ? (
         <div className="py-12">
           <CricketLoader
@@ -117,16 +119,16 @@ export default function FounderBrief({
           />
         </div>
       ) : brief ? (
-        <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-slate-200 bg-slate-50 text-slate-800 leading-relaxed text-sm">
-          <div className="prose max-w-none prose-headings:text-slate-900 prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-xl prose-h2:text-base prose-h2:border-b prose-h2:border-slate-200 prose-h2:pb-1.5 prose-h3:text-sm prose-p:text-slate-700 prose-p:text-xs prose-p:leading-relaxed prose-li:text-slate-700 prose-li:text-xs prose-strong:text-slate-900 prose-hr:border-slate-200">
+        <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-indigo-900/80 bg-indigo-900/30 text-slate-100 leading-relaxed text-sm">
+          <div className="prose prose-invert max-w-none prose-headings:text-white prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-xl prose-h2:text-base prose-h2:border-b prose-h2:border-indigo-800 prose-h2:pb-1.5 prose-h3:text-sm prose-p:text-indigo-100 prose-p:text-xs prose-p:leading-relaxed prose-li:text-indigo-100 prose-li:text-xs prose-strong:text-white prose-strong:font-bold prose-hr:border-indigo-800">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{brief}</ReactMarkdown>
           </div>
         </div>
       ) : (
-        <div className="rounded-xl sm:rounded-2xl p-8 border border-amber-200 bg-amber-50 text-amber-900 text-center text-sm">
-          <Sparkles className="mx-auto mb-2 text-amber-500" size={24} />
-          <p className="font-semibold text-amber-900">No Executive Brief Generated for this Selection Yet</p>
-          <p className="text-xs text-amber-700 mt-1">
+        <div className="rounded-xl sm:rounded-2xl p-8 border border-indigo-800 bg-indigo-900/40 text-indigo-200 text-center text-sm">
+          <Sparkles className="mx-auto mb-2 text-amber-400" size={24} />
+          <p className="font-semibold text-white">No Executive Brief Generated for this Selection Yet</p>
+          <p className="text-xs text-indigo-300 mt-1">
             Briefs are synthesized exclusively during pipeline executions. Click &quot;Setup Pipeline&quot; in the top-right to run the pipeline for this game.
           </p>
         </div>

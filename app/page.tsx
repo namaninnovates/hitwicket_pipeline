@@ -87,31 +87,31 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-indigo-500/20">
-      {/* Top Global Navigation Bar (Solid Color Header) */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
+      {/* Top Global Navigation Bar (Solid Indigo Executive Header) */}
+      <header className="sticky top-0 z-40 bg-indigo-950 border-b border-indigo-900 shadow-sm">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           {/* Main Top Row */}
           <div className="h-14 sm:h-16 flex items-center justify-between gap-2">
             {/* Left: Logo & Branding */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <div className="flex flex-col">
-                <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">
                   HITWICKET — Market Intelligence
                 </span>
-                <span className="text-[0.65rem] sm:text-xs text-slate-500 font-medium">
+                <span className="text-[0.65rem] sm:text-xs text-indigo-200 font-medium">
                   Founder’s Office Intelligence Dashboard
                 </span>
               </div>
             </div>
 
             {/* Desktop Center Navigation Tabs */}
-            <nav className="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200 shrink-0">
+            <nav className="hidden md:flex items-center gap-1 bg-indigo-900/80 p-1 rounded-2xl border border-indigo-800/80 shrink-0">
               <button
                 onClick={() => setActiveView("dashboard")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeView === "dashboard"
-                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-600"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-white"
+                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-500"
+                    : "text-indigo-200 hover:text-white hover:bg-indigo-800/60"
                 }`}
               >
                 <LayoutDashboard size={13} />
@@ -121,8 +121,8 @@ export default function Dashboard() {
                 onClick={() => setActiveView("data")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeView === "data"
-                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-600"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-white"
+                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-500"
+                    : "text-indigo-200 hover:text-white hover:bg-indigo-800/60"
                 }`}
               >
                 <Database size={13} />
@@ -132,8 +132,8 @@ export default function Dashboard() {
                 onClick={() => setActiveView("docs")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeView === "docs"
-                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-600"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-white"
+                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-500"
+                    : "text-indigo-200 hover:text-white hover:bg-indigo-800/60"
                 }`}
               >
                 <BookOpen size={13} />
@@ -145,14 +145,14 @@ export default function Dashboard() {
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* Quick Game Selector (Desktop only, mobile shows below) */}
               {activeView === "dashboard" && (
-                <div className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <div className="hidden lg:flex items-center gap-1 bg-indigo-900/80 p-1 rounded-xl border border-indigo-800/80">
                   <button
                     type="button"
                     onClick={() => setSelectedGame("all")}
                     className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                       selectedGame === "all"
-                        ? "bg-white text-indigo-700 shadow-xs border border-slate-200 font-bold"
-                        : "text-slate-600 hover:text-slate-900"
+                        ? "bg-white text-indigo-950 shadow-xs border border-white font-bold"
+                        : "text-indigo-200 hover:text-white"
                     }`}
                   >
                     All
@@ -164,8 +164,8 @@ export default function Dashboard() {
                       onClick={() => setSelectedGame(key)}
                       className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer truncate max-w-[90px] ${
                         selectedGame === key
-                          ? "bg-white text-indigo-700 shadow-xs border border-slate-200 font-bold"
-                          : "text-slate-600 hover:text-slate-900"
+                          ? "bg-white text-indigo-950 shadow-xs border border-white font-bold"
+                          : "text-indigo-200 hover:text-white"
                       }`}
                     >
                       {games[key]?.name?.split(" ")[0] || key}
@@ -179,7 +179,7 @@ export default function Dashboard() {
                 type="button"
                 onClick={handleResetAll}
                 disabled={isResetting}
-                className="p-2 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                className="p-2 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-semibold bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-800/80 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
                 title="Reset Database to Fresh Slate"
               >
                 <RotateCcw size={13} className={isResetting ? "animate-spin" : ""} />
@@ -190,7 +190,7 @@ export default function Dashboard() {
               <button
                 type="button"
                 onClick={() => setIsPipelineOpen(true)}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold bg-indigo-500 hover:bg-indigo-400 text-white flex items-center gap-1.5 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
               >
                 <Play size={13} className="fill-white" />
                 <span>Setup Pipeline</span>
@@ -199,15 +199,15 @@ export default function Dashboard() {
           </div>
 
           {/* Mobile Navigation Row (Views + Game Switcher) */}
-          <div className="flex md:hidden flex-col gap-2 py-2 border-t border-slate-200">
+          <div className="flex md:hidden flex-col gap-2 py-2 border-t border-indigo-900">
             {/* View Switcher Tabs */}
-            <div className="flex items-center justify-between gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <div className="flex items-center justify-between gap-1 bg-indigo-900/80 p-1 rounded-xl border border-indigo-800/80">
               <button
                 onClick={() => setActiveView("dashboard")}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   activeView === "dashboard"
                     ? "bg-indigo-600 text-white shadow-xs font-bold"
-                    : "text-slate-600 hover:text-slate-900"
+                    : "text-indigo-200 hover:text-white"
                 }`}
               >
                 <LayoutDashboard size={13} />
@@ -218,7 +218,7 @@ export default function Dashboard() {
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   activeView === "data"
                     ? "bg-indigo-600 text-white shadow-xs font-bold"
-                    : "text-slate-600 hover:text-slate-900"
+                    : "text-indigo-200 hover:text-white"
                 }`}
               >
                 <Database size={13} />
@@ -229,7 +229,7 @@ export default function Dashboard() {
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   activeView === "docs"
                     ? "bg-indigo-600 text-white shadow-xs font-bold"
-                    : "text-slate-600 hover:text-slate-900"
+                    : "text-indigo-200 hover:text-white"
                 }`}
               >
                 <BookOpen size={13} />
@@ -245,8 +245,8 @@ export default function Dashboard() {
                   onClick={() => setSelectedGame("all")}
                   className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 transition-all ${
                     selectedGame === "all"
-                      ? "bg-indigo-100 text-indigo-800 border border-indigo-200 font-bold"
-                      : "bg-slate-100 text-slate-700 border border-slate-200"
+                      ? "bg-white text-indigo-950 border border-white font-bold"
+                      : "bg-indigo-900/60 text-indigo-200 border border-indigo-800"
                   }`}
                 >
                   All (Global)
@@ -258,8 +258,8 @@ export default function Dashboard() {
                     onClick={() => setSelectedGame(key)}
                     className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 transition-all ${
                       selectedGame === key
-                        ? "bg-indigo-100 text-indigo-800 border border-indigo-200 font-bold"
-                        : "bg-slate-100 text-slate-700 border border-slate-200"
+                        ? "bg-white text-indigo-950 border border-white font-bold"
+                        : "bg-indigo-900/60 text-indigo-200 border border-indigo-800"
                     }`}
                   >
                     {games[key]?.name || key}
@@ -332,7 +332,7 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* Footer Attribution (Solid Color) */}
+      {/* Footer Attribution (Solid Indigo Footer) */}
       <Footer />
 
       {/* Slide-out Execution Controller Panel */}
