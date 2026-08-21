@@ -116,6 +116,7 @@ export default function FounderBrief({
             label="Loading Saved Executive Brief..."
             subtext="Retrieving pre-generated intelligence memo from database"
             size="md"
+            theme="dark"
           />
         </div>
       ) : brief ? (
