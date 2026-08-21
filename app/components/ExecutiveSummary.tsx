@@ -173,7 +173,7 @@ export default function ExecutiveSummary({
   const now = new Date();
   const currentDateStr = now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   const currentTimeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-  const analysisPeriodStr = "Last 90 Days Telemetry";
+  const analysisPeriodStr = metrics?.period?.label || (metrics?.days ? `Last ${metrics.days} Days Telemetry` : "Last 90 Days Telemetry");
 
   if (loading) {
     return (

@@ -78,7 +78,7 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <span>{gameTitle}</span>
             <span className="text-xs font-normal px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-              {isGlobal ? "Cross-Game Benchmark" : "Last 90 Days"}
+              {isGlobal ? "Cross-Game Benchmark" : (metrics?.period?.days ? `Last ${metrics.period.days} Days` : "Recent Telemetry")}
             </span>
             <InfoTooltip content="When Global is selected, all telemetry and scores are calculated relative to competitors to isolate Hitwicket's competitive advantages and bottlenecks." />
           </h2>

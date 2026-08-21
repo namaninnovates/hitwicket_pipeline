@@ -332,11 +332,36 @@ def get_metrics():
         "leaderboard": game_ratings
     }
     
-    for game_key, g_data in metrics["games"].items():
-        g_data["rank"] = rank_map.get(game_key, 1)
-        g_data["vs_market_rating"] = round(g_data["avgRating"] - metrics["overall"]["avgRating"], 2)
-        g_data["vs_market_neg"] = round(g_data["negPct"] - metrics["overall"]["negPct"], 1)
-        g_data["vs_market_pos"] = round(g_data["posPct"] - metrics["overall"]["posPct"], 1)
+    # Dynamic Telemetry Lookback Period Calculation
+    period_days = 90
+    _, runs_df = load_data_df()
+    if not runs_df.empty and "notes" in runs_df.columns:
+        for note in runs_df["notes"].dropna():
+            m = re.search(r"window=(\d+)d", str(note))
+            if m:
+                period_days = int(m.group(1))
+                break
+
+    if not df.empty and "review_datetime" in df.columns:
+        valid_dates = df["review_datetime"].dropna()
+        if not valid_dates.empty:
+            earliest = valid_dates.min()
+            now_dt = pd.Timestamp.now(tz="UTC")
+            earliest_utc = earliest.tz_localize("UTC") if earliest.tzinfo is None else earliest
+            actual_span = max(1, (now_dt - earliest_utc).days)
+            if actual_span <= 10 and period_days > 14:
+                period_days = 7
+            elif actual_span <= 18 and period_days > 20:
+                period_days = 14
+            elif actual_span <= 38 and period_days > 45:
+                period_days = 30
+            elif actual_span <= 75 and period_days > 90:
+                period_days = 60
+
+    metrics["period"] = {
+        "days": period_days,
+        "label": f"Last {period_days} Days Telemetry" if period_days > 0 else "All-Time Telemetry",
+    }
         
     return metrics
 
