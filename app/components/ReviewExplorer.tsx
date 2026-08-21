@@ -3,7 +3,7 @@ import { Search, Filter, Download, Star, Database, Sparkles, RotateCcw, Calendar
 import InfoTooltip from "./Tooltip";
 import CricketLoader from "./CricketLoader";
 
-export default function ReviewExplorer({ games }: { games: any }) {
+export default function ReviewExplorer({ games, refreshKey = 0 }: { games: any; refreshKey?: number }) {
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -34,7 +34,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
   });
 
   useEffect(() => {
-    fetch("/api/taxonomy")
+    fetch(`/api/taxonomy?t=${Date.now()}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (data.categories?.length) {
@@ -54,6 +54,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
     if (sentiment !== "All") params.append("sentiment", sentiment);
     if (rating !== "All") params.append("rating", rating);
     params.append("limit", String(reviewLimit));
+    params.append("t", String(Date.now()));
 
     if (timeWindow !== "All" && timeWindow !== "custom") {
       params.append("days", timeWindow);
@@ -62,7 +63,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
       if (endDate) params.append("end_date", endDate);
     }
 
-    fetch(`/api/reviews?${params.toString()}`)
+    fetch(`/api/reviews?${params.toString()}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         setReviews(data.reviews || []);
@@ -73,7 +74,7 @@ export default function ReviewExplorer({ games }: { games: any }) {
 
   useEffect(() => {
     fetchReviews();
-  }, [selectedGame, category, subcategory, sentiment, rating, timeWindow, startDate, endDate, reviewLimit]);
+  }, [selectedGame, category, subcategory, sentiment, rating, timeWindow, startDate, endDate, reviewLimit, refreshKey]);
 
   const handleSearch = (e: any) => {
     e.preventDefault();

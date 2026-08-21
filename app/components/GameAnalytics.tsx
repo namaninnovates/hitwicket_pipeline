@@ -10,7 +10,7 @@ export default function GameAnalytics({ refreshKey = 0 }: { refreshKey?: number 
   useEffect(() => {
     const loadAnalytics = async () => {
       setLoading(true);
-      fetch("/api/analytics")
+      fetch(`/api/analytics?t=${Date.now()}`, { cache: "no-store" })
         .then((res) => res.json())
         .then((data) => {
           setAnalytics(data.analytics || []);

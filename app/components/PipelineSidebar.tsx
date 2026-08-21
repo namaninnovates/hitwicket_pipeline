@@ -150,6 +150,9 @@ export default function PipelineSidebar({
                     timestamp: new Date().toLocaleTimeString(),
                   });
                   fetchDbStatus();
+                  if (onComplete) {
+                    onComplete();
+                  }
                   setTimeout(() => {
                     if (onClose) onClose();
                   }, 1200);

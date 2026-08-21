@@ -22,7 +22,7 @@ export default function FounderBrief({
     setLoading(true);
     setBrief("");
     try {
-      const res = await fetch(`/api/brief?game=${gameKey}`);
+      const res = await fetch(`/api/brief?game=${gameKey}&t=${Date.now()}`, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         const text = data.brief || data.content || "";

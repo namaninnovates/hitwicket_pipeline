@@ -289,7 +289,7 @@ export default function Dashboard() {
               <div key={`dashboard-${refreshKey}`} className="space-y-8 animate-in fade-in duration-300">
                 {/* 0. Executive Summary (Founder's Tagline, Snapshot Cards, What Changed, Key Findings) */}
                 <section>
-                  <ExecutiveSummary selectedGame={selectedGame} onViewEvidence={() => setActiveView("data")} />
+                  <ExecutiveSummary selectedGame={selectedGame} refreshKey={refreshKey} onViewEvidence={() => setActiveView("data")} />
                 </section>
 
                 {/* 1. Global / Game Overview Metrics */}
@@ -320,7 +320,7 @@ export default function Dashboard() {
 
             {activeView === "data" && (
               <div key={`data-${refreshKey}`} className="space-y-8 animate-in fade-in duration-300">
-                <ReviewExplorer games={games} />
+                <ReviewExplorer games={games} refreshKey={refreshKey} />
                 <PipelineHistory />
               </div>
             )}

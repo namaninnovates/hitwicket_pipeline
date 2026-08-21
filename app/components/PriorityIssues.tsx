@@ -33,7 +33,7 @@ export default function PriorityIssues({
   useEffect(() => {
     const loadPriorities = async () => {
       setLoading(true);
-      fetch(`/api/priorities?game=${selectedGame}`)
+      fetch(`/api/priorities?game=${selectedGame}&t=${Date.now()}`, { cache: "no-store" })
         .then((res) => res.json())
         .then((data) => {
           setPriorities(data.priorities || []);

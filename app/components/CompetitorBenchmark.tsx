@@ -12,7 +12,7 @@ export default function CompetitorBenchmark({ refreshKey = 0 }: { refreshKey?: n
     const loadMatrix = async () => {
       // Fetch directly from API
       setLoading(true);
-      fetch("/api/matrix")
+      fetch(`/api/matrix?t=${Date.now()}`, { cache: "no-store" })
         .then((res) => res.json())
         .then((data) => {
           setMatrixData(data.matrix || {});

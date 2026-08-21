@@ -9,7 +9,7 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
 
   const fetchMetrics = async () => {
     // Fetch directly from API
-    fetch("/api/metrics")
+    fetch(`/api/metrics?t=${Date.now()}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         setMetrics(data);

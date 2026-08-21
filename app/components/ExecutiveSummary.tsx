@@ -21,9 +21,11 @@ import InfoTooltip from "./Tooltip";
 
 export default function ExecutiveSummary({ 
   selectedGame = "all",
+  refreshKey = 0,
   onViewEvidence
 }: { 
   selectedGame?: string;
+  refreshKey?: number;
   onViewEvidence?: () => void;
 }) {
   const [metrics, setMetrics] = useState<any>(null);
@@ -35,10 +37,11 @@ export default function ExecutiveSummary({
     const fetchData = async () => {
       setLoading(true);
       try {
+        const nonce = Date.now();
         const [metricsRes, prioritiesRes, analyticsRes] = await Promise.all([
-          fetch("/api/metrics").then((r) => r.json()).catch(() => ({})),
-          fetch(`/api/priorities?game=${selectedGame}`).then((r) => r.json()).catch(() => ({})),
-          fetch("/api/analytics").then((r) => r.json()).catch(() => ({})),
+          fetch(`/api/metrics?t=${nonce}`, { cache: "no-store" }).then((r) => r.json()).catch(() => ({})),
+          fetch(`/api/priorities?game=${selectedGame}&t=${nonce}`, { cache: "no-store" }).then((r) => r.json()).catch(() => ({})),
+          fetch(`/api/analytics?t=${nonce}`, { cache: "no-store" }).then((r) => r.json()).catch(() => ({})),
         ]);
 
         if (metricsRes) {
@@ -55,7 +58,7 @@ export default function ExecutiveSummary({
     };
 
     fetchData();
-  }, [selectedGame]);
+  }, [selectedGame, refreshKey]);
 
   // Derived Dynamic Telemetry
   const totalReviews = metrics?.ingested || 0;
