@@ -44,13 +44,14 @@ export default function FounderBrief({
   };
 
   useEffect(() => {
-    if (historicalBrief !== undefined && historicalBrief !== null) {
+    if (refreshKey > 0) {
+      setLoading(true);
+      loadBriefForGame(selectedGame, true);
+    } else if (historicalBrief !== undefined && historicalBrief !== null) {
       setBrief(historicalBrief);
       setLoading(false);
     } else {
-      // When refreshKey updates (pipeline complete), force reload fresh brief
-      const isFreshPipelineRun = refreshKey > 0;
-      loadBriefForGame(selectedGame, isFreshPipelineRun);
+      loadBriefForGame(selectedGame, false);
     }
   }, [selectedGame, historicalBrief, refreshKey]);
 

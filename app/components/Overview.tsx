@@ -22,6 +22,7 @@ export default function Overview({ selectedGame, games = {}, refreshKey }: any) 
   };
 
   useEffect(() => {
+    setLoading(true);
     fetchMetrics();
   }, [selectedGame, refreshKey]);
 
