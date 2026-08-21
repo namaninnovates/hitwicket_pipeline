@@ -640,10 +640,10 @@ def get_doc(doc_name: str):
 
 @app.get("/api/pipeline/stream")
 def stream_pipeline(
-    stages: str = Query("all", max_length=100),
-    max_reviews: int = Query(150, ge=1, le=5000),
-    days: int = Query(90, ge=1, le=365),
-    games: str = Query("", max_length=100),
+    stages: str = Query("all", max_length=500),
+    max_reviews: int = Query(150, ge=1, le=50000),
+    days: int = Query(90, ge=1, le=10000),
+    games: str = Query("", max_length=500),
     fresh: bool = True
 ):
     # Validate stages against whitelist
