@@ -587,16 +587,27 @@ def upsert_brief(conn: Any, game: str, brief_text: str) -> bool:
 
 def get_brief_for_game(conn: Any, game: str) -> Optional[str]:
     try:
-        query = "SELECT brief_text FROM briefs WHERE game = "
-        if is_postgres_connection(conn):
-            with conn.cursor() as cur:
-                cur.execute(query + "%s", (game,))
-                row = cur.fetchone()
-                return row[0] if row else None
-        else:
-            cursor = conn.execute(query + "?", (game,))
-            row = cursor.fetchone()
-            return row[0] if row else None
+        games_to_check = [game]
+        if game in ["all", "global"]:
+            games_to_check = ["all", "global"]
+        elif game in ["tennis", "tennis_clash"]:
+            games_to_check = ["tennis_clash", "tennis"]
+        elif game in ["baseball", "baseball_clash"]:
+            games_to_check = ["baseball_clash", "baseball"]
+
+        for g in games_to_check:
+            if is_postgres_connection(conn):
+                with conn.cursor() as cur:
+                    cur.execute("SELECT brief_text FROM briefs WHERE game = %s", (g,))
+                    row = cur.fetchone()
+                    if row and row[0]:
+                        return row[0]
+            else:
+                cursor = conn.execute("SELECT brief_text FROM briefs WHERE game = ?", (g,))
+                row = cursor.fetchone()
+                if row and row[0]:
+                    return row[0]
+        return None
     except Exception as e:
         logger.error(f"Failed to fetch brief for game {game}: {e}")
         return None

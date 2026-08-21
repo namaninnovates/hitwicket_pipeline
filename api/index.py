@@ -567,7 +567,7 @@ def get_latest_brief(game: str = "all"):
         )
 
     # Check in-memory cache first for instant sub-millisecond response
-    if sanitized_game in _brief_file_cache:
+    if _brief_file_cache.get(sanitized_game):
         content = _brief_file_cache[sanitized_game]
         return {"brief": content, "content": content, "game": sanitized_game, "status": "ok"}
 
