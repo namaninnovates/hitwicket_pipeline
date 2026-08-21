@@ -135,9 +135,9 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080b14] text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-indigo-500/20">
       {/* Top Global Navigation Bar (Mobile-Responsive Header & Touch Subnav) */}
-      <header className="sticky top-0 z-40 glass-panel border-b border-white/[0.08] backdrop-blur-2xl">
+      <header className="sticky top-0 z-40 bg-white/90 border-b border-slate-200 backdrop-blur-md shadow-xs">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           {/* Main Top Row */}
           <div className="h-14 sm:h-16 flex items-center justify-between gap-2">
@@ -147,36 +147,36 @@ export default function Dashboard() {
               <button
                 type="button"
                 onClick={() => setIsHistoryOpen(true)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all shadow-sm hover:scale-[1.02] cursor-pointer"
-                title="Open Intelligence History (ChatGPT-style)"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all shadow-xs hover:scale-[1.02] cursor-pointer"
+                title="Open Intelligence History"
               >
-                <History size={14} className="text-indigo-400" />
+                <History size={14} className="text-indigo-600" />
                 <span className="hidden sm:inline">History</span>
                 {historyCount > 0 && (
-                  <span className="text-[0.65rem] font-bold px-1.5 py-0.2 bg-indigo-500/20 text-indigo-300 rounded-full border border-indigo-500/30 font-mono">
+                  <span className="text-[0.65rem] font-bold px-1.5 py-0.2 bg-indigo-100 text-indigo-700 rounded-full border border-indigo-200 font-mono">
                     {historyCount}
                   </span>
                 )}
               </button>
 
               <div className="flex flex-col">
-                <span className="font-extrabold text-sm sm:text-base tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-indigo-200">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900">
                   HITWICKET — Market Intelligence
                 </span>
-                <span className="text-[0.65rem] sm:text-xs text-slate-400 font-medium">
+                <span className="text-[0.65rem] sm:text-xs text-slate-500 font-medium">
                   Founder’s Office Intelligence Dashboard
                 </span>
               </div>
             </div>
 
-            {/* Desktop Center Navigation Tabs (Hidden on mobile, shown in subnav) */}
-            <nav className="hidden md:flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/[0.08] shadow-inner shrink-0">
+            {/* Desktop Center Navigation Tabs */}
+            <nav className="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200 shrink-0">
               <button
                 onClick={() => setActiveView("dashboard")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeView === "dashboard"
-                    ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-indigo-400/30"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-600"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white"
                 }`}
               >
                 <LayoutDashboard size={13} />
@@ -186,8 +186,8 @@ export default function Dashboard() {
                 onClick={() => setActiveView("data")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeView === "data"
-                    ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-indigo-400/30"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-600"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white"
                 }`}
               >
                 <Database size={13} />
@@ -197,8 +197,8 @@ export default function Dashboard() {
                 onClick={() => setActiveView("docs")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeView === "docs"
-                    ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-indigo-400/30"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-600"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white"
                 }`}
               >
                 <BookOpen size={13} />
