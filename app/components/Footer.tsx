@@ -26,16 +26,9 @@ export default function Footer() {
             </span>
           </div>
 
-          {/* Right: Tech & Telemetry Badge */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[0.7rem] text-slate-400">
-              <Code2 size={12} className="text-indigo-400" />
-              <span>Next.js 16 • FastAPI • Neon PostgreSQL</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[0.7rem] text-emerald-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>System Online</span>
-            </div>
+          {/* Right: Clean Copyright */}
+          <div className="text-[0.7rem] text-slate-500">
+            Founder’s Office Market Intelligence
           </div>
         </div>
 

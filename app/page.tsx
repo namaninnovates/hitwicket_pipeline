@@ -158,12 +158,12 @@ export default function Dashboard() {
                 )}
               </button>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-col">
                 <span className="font-extrabold text-sm sm:text-base tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-indigo-200">
-                  HITWICKET
+                  HITWICKET — Market Intelligence
                 </span>
-                <span className="text-[0.6rem] sm:text-[0.65rem] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded-full">
-                  v1.2 PRO
+                <span className="text-[0.65rem] sm:text-xs text-slate-400 font-medium">
+                  Founder’s Office Intelligence Dashboard
                 </span>
               </div>
             </div>
