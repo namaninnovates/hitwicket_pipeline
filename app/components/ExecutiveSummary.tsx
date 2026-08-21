@@ -59,42 +59,42 @@ export default function ExecutiveSummary({
 
   // Derived Dynamic Telemetry
   const totalReviews = metrics?.ingested || 0;
-  const posPct = metrics?.posPct ? `${metrics.posPct}%` : "72%";
-  const negPct = metrics?.negPct ? `${metrics.negPct}%` : "21%";
+  const posPct = metrics?.posPct !== undefined ? `${metrics.posPct}%` : "0%";
+  const negPct = metrics?.negPct !== undefined ? `${metrics.negPct}%` : "0%";
   
   // Top issue from formula ranking
   const topIssue = priorities[0] || null;
   const topComplaint = topIssue 
     ? `${topIssue.primary_category}: ${topIssue.subcategory}` 
-    : "Progression Difficulty";
+    : "No Critical Issues";
   const topComplaintSub = topIssue 
     ? `${topIssue.frequency_pct?.toFixed(1)}% mentions · Severity ${topIssue.avg_severity?.toFixed(1)}/5.0`
-    : "High friction in late-tier upgrades";
+    : "No negative review clusters in this period";
 
   // Second / Opportunity issue (e.g., matchmaking / retention / monetization)
   const opportunityIssue = priorities.find((p) => p.subcategory?.toLowerCase().includes("retention") || p.subcategory?.toLowerCase().includes("matchmaking") || p.primary_category?.toLowerCase().includes("competition")) || priorities[1];
   const opportunityTitle = opportunityIssue 
     ? `${opportunityIssue.subcategory || opportunityIssue.primary_category} Tuning`
-    : "PvP Retention";
+    : "Ecosystem Stability";
   const opportunitySub = opportunityIssue
     ? `Score ${opportunityIssue.priority_int}/100 · Impact ${opportunityIssue.avg_business_impact?.toFixed(1)}/5.0`
-    : "Smooth matchmaking & reward scaling";
+    : "Balanced gameplay metrics";
 
   // Top Competitor Threat
   const competitorGames = analytics.filter((a) => !a.name?.toLowerCase().includes("hitwicket"));
   const topCompetitor = competitorGames.sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0))[0];
-  const competitorName = topCompetitor?.name || "Tennis Clash";
+  const competitorName = topCompetitor?.name || "Market Competitors";
   const competitorSub = topCompetitor 
     ? `${topCompetitor.avgRating}★ rating across ${topCompetitor.volume?.toLocaleString()} reviews`
-    : "Outperforming on load speeds & events";
+    : "Comparative review data";
 
   // Recommended Action
   const recommendedAction = topIssue 
     ? `Resolve ${topIssue.subcategory || topIssue.primary_category} friction`
-    : "Improve Early-Game Progression";
+    : "Maintain Release Quality";
   const recommendedSub = topIssue
     ? `Address ${topIssue.frequency_pct?.toFixed(1)}% of total complaints to boost 30-day retention`
-    : "Re-balance energy timers & onboarding";
+    : "Continue monitoring incoming reviews";
 
   // 1. Calculate Fastest Rising Issue Delta
   const risingIssues = [...priorities]
@@ -200,6 +200,32 @@ export default function ExecutiveSummary({
 
         {/* Provenance Skeleton */}
         <div className="h-16 rounded-2xl bg-white border-2 border-slate-200 shadow-sm animate-pulse" />
+      </div>
+    );
+  }
+
+  if (!loading && (!metrics || !totalReviews || totalReviews === 0)) {
+    return (
+      <div className="rounded-3xl bg-white border-2 border-amber-200 p-6 lg:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="flex items-start gap-4">
+          <div className="p-3 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 shrink-0">
+            <Sparkles size={24} />
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs uppercase font-bold tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-200">
+                Database Empty
+              </span>
+              <span className="text-xs font-mono text-slate-500">0 Reviews Ingested</span>
+            </div>
+            <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+              No review intelligence found for this selection
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 max-w-2xl">
+              Click the <strong className="text-indigo-600">&quot;Setup Pipeline&quot;</strong> button in the top right to ingest public Google Play reviews, classify them along the taxonomy, and calculate priority scores.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
